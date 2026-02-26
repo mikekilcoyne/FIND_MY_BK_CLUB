@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="Breakfast Club logo">
+  <rect width="1200" height="1200" fill="#000000"/>
+  <circle cx="600" cy="600" r="560" fill="#000000" stroke="#f5f5f5" stroke-width="4"/>
+  <g fill="#ffffff" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="500" text-anchor="middle" text-rendering="geometricPrecision">
+    <text x="600" y="560" font-size="138" letter-spacing="0">BREAKFAST</text>
+    <text x="600" y="700" font-size="138" letter-spacing="0">CLUB</text>
+  </g>
+</svg>

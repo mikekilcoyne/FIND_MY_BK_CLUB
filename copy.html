@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BK Copy Editor</title>
+    <link rel="stylesheet" href="./copy.css" />
+  </head>
+  <body>
+    <main class="editor-wrap">
+      <h1>Site Copy Editor</h1>
+      <p>Edit text fields, then click save. Refresh the main site to see updates.</p>
+
+      <form id="copy-form" class="editor-form">
+        <label>
+          Site title bar
+          <input name="siteTitle" type="text" />
+        </label>
+
+        <label>
+          Main headline (large)
+          <input name="mainHeadline" type="text" />
+        </label>
+
+        <label>
+          Host CTA button text
+          <input name="hostCta" type="text" />
+        </label>
+
+        <label>
+          Search placeholder
+          <input name="searchPlaceholder" type="text" />
+        </label>
+
+        <div class="buttons">
+          <button type="submit">Save Copy</button>
+          <button type="button" id="reset-copy">Reset Defaults</button>
+          <a href="./index.html">Back To Site</a>
+        </div>
+      </form>
+
+      <p id="save-status" class="status" aria-live="polite"></p>
+    </main>
+
+    <script src="./copy.js"></script>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+:root {
+  --bg: #efefef;
+  --ink: #111;
+  --line: #cfcfcf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.editor-wrap {
+  max-width: 760px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+h1 {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.editor-form {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  font: inherit;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button,
+.buttons a {
+  border: 1px solid #222;
+  background: #efefef;
+  color: #111;
+  text-decoration: none;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.status {
+  min-height: 20px;
+}

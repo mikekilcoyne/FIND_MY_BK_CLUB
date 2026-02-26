@@ -1,0 +1,320 @@
+:root {
+  --paper: #efefef;
+  --ink: #111111;
+  --line: #cfcfcf;
+  --link: #111111;
+  --rail: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: var(--link);
+}
+
+.site-shell {
+  min-height: calc(100vh - 56px);
+  display: grid;
+  grid-template-columns: 260px 1fr;
+}
+
+.left-rail {
+  background: #f7f7f7;
+  border-right: 1px solid var(--line);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.logo-dot {
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  border: 1px solid #ffffff;
+  background: #000000;
+  color: #ffffff;
+  font-size: 20px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.95;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 0 8px;
+}
+
+.search-wrap input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px;
+  font: inherit;
+  background: #f8f8fb;
+}
+
+.rail-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rail-cta a {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.calendar-box {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.calendar-box h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.days-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.day-chip {
+  border: 1px solid var(--line);
+  padding: 4px 7px;
+  font-size: 12px;
+  text-decoration: none;
+  background: #f8f8fb;
+  color: var(--ink);
+}
+
+.main-pane {
+  padding: 14px 20px 24px;
+}
+
+.top-bar {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+h1 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(28px, 3.8vw, 46px);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(26px, 4.2vw, 44px);
+  margin: 16px 0 10px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.cta {
+  margin-left: auto;
+  border: 1px solid #2a2a2a;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #111;
+  background: #efefef;
+}
+
+.cta:hover {
+  background: #ffffff;
+}
+
+.status {
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+
+.clubs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+}
+
+.day-section h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.club-row {
+  margin-bottom: 6px;
+  line-height: 1.35;
+  font-size: clamp(20px, 2.1vw, 32px);
+  padding-bottom: 8px;
+}
+
+.club-name {
+  text-decoration: underline;
+}
+
+.meta {
+  font-size: 0.66em;
+  color: #3a3a3a;
+}
+
+.venue-meta {
+  font-size: 0.58em;
+  color: #4b4b4b;
+}
+
+.original-bc {
+  color: #0b5f3b;
+  text-decoration-color: #0b5f3b;
+}
+
+.original-bc::after {
+  content: "  The Original BC";
+  font-size: 0.38em;
+  font-weight: 500;
+  color: #0b5f3b;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.google-maps-link {
+  margin-left: 8px;
+  font-size: 0.44em;
+  text-decoration: none;
+  border: 1px solid #8f8f8f;
+  border-radius: 3px;
+  padding: 1px 6px;
+  background: #f5f5f5;
+  color: #111111;
+  vertical-align: middle;
+}
+
+.map-tbd {
+  margin-left: 6px;
+  font-size: 0.46em;
+  color: #5a5a5a;
+  border: 1px solid #b8b8b8;
+  padding: 0 4px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.ig-icon-link {
+  margin-left: 4px;
+  text-decoration: none;
+}
+
+.li-icon-link {
+  margin-left: 6px;
+  padding: 0 4px;
+  border: 1px solid #aaaaaa;
+  border-radius: 3px;
+  font-size: 0.52em;
+  line-height: 1.2;
+  font-weight: 700;
+  text-decoration: none;
+  color: #111111;
+  vertical-align: middle;
+}
+
+.contact-note {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.46em;
+  color: #5a5a5a;
+}
+
+.host-note {
+  margin-top: 4px;
+  font-size: 0.44em;
+  color: #4a4a4a;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.host-instagram-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.site-footer {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-top: 1px solid #343434;
+  color: #ececec;
+  background: #111111;
+}
+
+.site-footer a {
+  color: #ececec;
+  text-decoration: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 960px) {
+  .site-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .left-rail {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    gap: 12px;
+  }
+
+  .clubs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .club-row {
+    font-size: clamp(24px, 7.4vw, 34px);
+  }
+
+  .cta {
+    margin-left: 0;
+  }
+}

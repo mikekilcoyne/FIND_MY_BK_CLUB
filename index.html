@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club</title>
+    <meta name="description" content="Find My Breakfast Club - community-powered breakfast meetups." />
+    <meta property="og:title" content="Find My Breakfast Club" />
+    <meta property="og:description" content="Community-powered Breakfast Club meetups around the world." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://findmybreakfast.club/" />
+    <meta property="og:image" content="https://findmybreakfast.club/bk-club-icon.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Find My Breakfast Club" />
+    <meta name="twitter:description" content="Community-powered Breakfast Club meetups around the world." />
+    <meta name="twitter:image" content="https://findmybreakfast.club/bk-club-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./bk-club-icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <aside class="left-rail">
+        <div class="logo-wrap">
+          <div class="logo-dot">BREAKFAST<br />CLUB</div>
+        </div>
+
+        <label class="search-wrap" for="club-search">
+          <span class="sr-only">Search clubs</span>
+          <input id="club-search" type="search" placeholder="search clubs" />
+        </label>
+
+        <nav class="rail-cta">
+          <a href="https://www.instagram.com/breakfast_clubbing/" target="_blank" rel="noreferrer">
+            Instagram: @breakfast_clubbing
+          </a>
+          <a href="https://breakfastindustries.substack.com/" target="_blank" rel="noreferrer">
+            Get a weekly reminder
+          </a>
+          <a href="./breakfast-club-starter-kit-hosts.pdf" download>
+            Become a host
+          </a>
+        </nav>
+
+        <section class="calendar-box">
+          <h3>event calendar</h3>
+          <div id="days-nav" class="days-nav"></div>
+        </section>
+      </aside>
+
+      <main class="main-pane">
+        <header class="top-bar">
+          <h1 id="site-title">Breakfast Club</h1>
+          <a id="host-cta" class="cta" href="./breakfast-club-starter-kit-hosts.pdf" download>become a host</a>
+        </header>
+
+        <section>
+          <h2 id="main-headline">Find My Breakfast Club</h2>
+          <p id="status" class="status">Loading clubs...</p>
+          <div id="clubs-list" class="clubs-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <a href="https://www.instagram.com/breakfast_clubbing/" target="_blank" rel="noreferrer">instagram</a>
+      <span>|</span>
+      <a href="https://breakfastindustries.substack.com/" target="_blank" rel="noreferrer">weekly reminder</a>
+      <span>|</span>
+      <a href="./copy.html">edit site copy</a>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
