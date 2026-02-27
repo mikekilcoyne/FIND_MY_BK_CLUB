@@ -12,7 +12,7 @@ const hostCta = document.querySelector("#host-cta");
 const COPY_KEY = "bkClubSiteCopy";
 const DEFAULT_COPY = {
   siteTitle: "Breakfast Club",
-  mainHeadline: "Find My Breakfast Club",
+  mainHeadline: "Everyone's invited. Especially you.",
   hostCta:
     "Become a host. Download the Starter Kit.",
   searchPlaceholder: "search clubs",
