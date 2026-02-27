@@ -2,7 +2,7 @@ const COPY_KEY = "bkClubSiteCopy";
 const DEFAULT_COPY = {
   siteTitle: "Breakfast Club",
   mainHeadline: "Find My Breakfast Club",
-  hostCta: "become a host",
+  hostCta: "Become a host. Download the Starter Kit.",
   searchPlaceholder: "search clubs"
 };
 

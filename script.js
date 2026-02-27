@@ -13,78 +13,98 @@ const COPY_KEY = "bkClubSiteCopy";
 const DEFAULT_COPY = {
   siteTitle: "Breakfast Club",
   mainHeadline: "Find My Breakfast Club",
-  hostCta: "become a host",
-  searchPlaceholder: "search clubs"
+  hostCta:
+    "Become a host. Download the Starter Kit.",
+  searchPlaceholder: "search clubs",
 };
 
 const CLUB_OVERRIDES = {
   "portland, or": {
     cadence: "Weekly",
     time: "Tuesdays, 9:00am",
-    venue: "It's Just a Feeling"
+    venue: "It's Just a Feeling",
   },
-  "toronto": {
+  toronto: {
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
-    venue: "Boxcar Social Laneway"
+    venue: "Boxcar Social Laneway",
   },
   "mexico city": {
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
-    venue: "Mendl"
+    venue: "Mendl",
   },
-  "miami": {
+  miami: {
     cadence: "Weekly",
     time: "Wednesdays, 9:00am",
-    venue: "Novela Cafe Social"
+    venue: "Novela Cafe Social",
   },
   "san francisco, ca": {
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
-    venue: "Tereene at One Hotel"
+    venue: "Tereene at One Hotel",
   },
   "new york - williamsburg": {
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     venue: "Le Crocodile",
     linkedinURL: "https://www.linkedin.com/in/dietznutz",
-    hostDisplay: "Ben Dietz (@bendietz)"
+    hostDisplay: "Ben Dietz (@bendietz)",
   },
   "new york - hamptons": {
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     venue: "Tutto Cafe",
     extraSocials: [
-      { type: "instagram", url: "https://www.instagram.com/themichaelkilcoyne/", title: "Host Instagram" },
-      { type: "linkedin", url: "https://www.linkedin.com/in/mikekilcoyne/", title: "Host LinkedIn" },
-      { type: "instagram", url: "https://www.instagram.com/adamh929/", title: "Co-host Instagram" }
+      {
+        type: "instagram",
+        url: "https://www.instagram.com/themichaelkilcoyne/",
+        title: "Host Instagram",
+      },
+      {
+        type: "linkedin",
+        url: "https://www.linkedin.com/in/mikekilcoyne/",
+        title: "Host LinkedIn",
+      },
+      {
+        type: "instagram",
+        url: "https://www.instagram.com/adamh929/",
+        title: "Co-host Instagram",
+      },
     ],
-    hostDisplay: "@themichaelkilcoyne + @adamh929"
+    hostDisplay: "@themichaelkilcoyne + @adamh929",
   },
   "new york - downtown brooklyn": {
     cadence: "Weekly",
     time: "Thursdays, 8:30am",
-    venue: "Ace Hotel Downtown Brooklyn (Lobby)"
+    venue: "Ace Hotel Downtown Brooklyn (Lobby)",
   },
   "new york - les": {
     cadence: "Weekly",
     time: "Thursdays, 9:00am",
-    venue: "Rule 257, 234 Eldridge"
+    venue: "Rule 257, 234 Eldridge",
   },
   "washington dc": {
     cadence: "Bi-Weekly",
     time: "Thursdays, 8:30am",
-    venue: "Line Hotel, Adams Morgan"
+    venue: "Line Hotel, Adams Morgan",
   },
   "soma, nj, usa": {
     cadence: "Weekly",
     time: "Fridays, 9:15am",
-    venue: "Arties"
-  }
+    venue: "Arties",
+  },
 };
 
 let clubs = [];
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Every now and again"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Every now and again",
+];
 
 function loadSiteCopy() {
   let copy = { ...DEFAULT_COPY };
@@ -233,7 +253,9 @@ function parseWeekday(value) {
 
 function hasRegularCadence(cadence, timeValue) {
   const text = normalize(`${cadence} ${timeValue}`);
-  return /(weekly|bi-weekly|biweekly|monthly|first|second|third|fourth|every)/.test(text);
+  return /(weekly|bi-weekly|biweekly|monthly|first|second|third|fourth|every)/.test(
+    text,
+  );
 }
 
 function formatTimeLabel(value) {
@@ -251,7 +273,10 @@ function getDay(cadence, timeValue) {
 }
 
 function slugify(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function extractScheduleLabel(cadence, timeValue) {
@@ -297,7 +322,9 @@ function renderTextWithInstagramLinks(text) {
 
   while ((match = regex.exec(value)) !== null) {
     if (match.index > cursor) {
-      fragment.append(document.createTextNode(value.slice(cursor, match.index)));
+      fragment.append(
+        document.createTextNode(value.slice(cursor, match.index)),
+      );
     }
     const handle = match[0];
     const handleLink = document.createElement("a");
@@ -329,7 +356,8 @@ function renderDayNav(items) {
     const link = document.createElement("a");
     link.href = `#day-${slugify(day)}`;
     link.className = "day-chip";
-    const dayLabel = day === "Every now and again" ? "Every now + again" : day.slice(0, 3);
+    const dayLabel =
+      day === "Every now and again" ? "Every now + again" : day.slice(0, 3);
     link.textContent = `${dayLabel} (${countByDay.get(day)})`;
     daysNav.append(link);
   });
@@ -379,7 +407,9 @@ function render(items) {
 
       const schedule = document.createElement("span");
       schedule.className = "meta";
-      schedule.textContent = club.scheduleLabel ? ` (${club.scheduleLabel})` : "";
+      schedule.textContent = club.scheduleLabel
+        ? ` (${club.scheduleLabel})`
+        : "";
 
       const venue = document.createElement("span");
       venue.className = "venue-meta";
@@ -403,12 +433,20 @@ function render(items) {
       row.append(city, schedule, venue, map);
 
       if (club.instagramURL) {
-        const ig = renderSocialIcon("instagram", club.instagramURL, `Open ${club.city} on Instagram`);
+        const ig = renderSocialIcon(
+          "instagram",
+          club.instagramURL,
+          `Open ${club.city} on Instagram`,
+        );
         row.append(ig);
       }
 
       if (club.linkedinURL) {
-        const linkedin = renderSocialIcon("linkedin", club.linkedinURL, `Open ${club.city} host on LinkedIn`);
+        const linkedin = renderSocialIcon(
+          "linkedin",
+          club.linkedinURL,
+          `Open ${club.city} host on LinkedIn`,
+        );
         row.append(linkedin);
       }
 
@@ -460,8 +498,8 @@ async function loadClubs() {
       .map((cells) => {
         const city = (cells[0] || "").trim();
         const override = CLUB_OVERRIDES[normalize(city)] || {};
-        const cadence = override.cadence || (cells[1] || "");
-        const time = formatTimeLabel(override.time || (cells[2] || ""));
+        const cadence = override.cadence || cells[1] || "";
+        const time = formatTimeLabel(override.time || cells[2] || "");
         const igHandles = extractInstagramHandles(cells[5] || "");
 
         return {
@@ -472,14 +510,23 @@ async function loadClubs() {
           venue: override.venue || getVenue(cells[8] || "", cells[9] || ""),
           day: getDay(cadence, time),
           instagramURL: extractInstagramURL(cells[5] || ""),
-          linkedinURL: override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || ""),
+          linkedinURL:
+            override.linkedinURL ||
+            extractLinkedInURL(cells[4] || "", cells[7] || ""),
           extraSocials: override.extraSocials || [],
-          hostDisplay: formatHostDisplay(cells[3] || "", igHandles, override.hostDisplay || ""),
+          hostDisplay: formatHostDisplay(
+            cells[3] || "",
+            igHandles,
+            override.hostDisplay || "",
+          ),
           isIncomplete:
             !getVenue(override.venue || cells[8] || "", cells[9] || "") ||
             (!extractInstagramURL(cells[5] || "") &&
-              !(override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || "")) &&
-              !(override.extraSocials || []).length)
+              !(
+                override.linkedinURL ||
+                extractLinkedInURL(cells[4] || "", cells[7] || "")
+              ) &&
+              !(override.extraSocials || []).length),
         };
       })
       .filter((club) => club.city);
@@ -501,7 +548,9 @@ searchInput.addEventListener("input", () => {
   }
 
   const filtered = clubs.filter((club) => {
-    return normalize(`${club.city} ${club.cadence} ${club.time}`).includes(term);
+    return normalize(`${club.city} ${club.cadence} ${club.time}`).includes(
+      term,
+    );
   });
 
   render(filtered);
