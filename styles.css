@@ -158,6 +158,37 @@ h2 {
   font-size: 14px;
 }
 
+.status:empty {
+  display: none;
+}
+
+#site-title.counting {
+  letter-spacing: 0;
+}
+
+.growth-count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.2ch;
+}
+
+#site-title.counting .growth-count {
+  animation: growthPop 120ms ease-out;
+}
+
+@keyframes growthPop {
+  0% {
+    transform: translateY(0.08em) scale(0.985);
+    opacity: 0.7;
+    filter: blur(0.4px);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 .clubs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

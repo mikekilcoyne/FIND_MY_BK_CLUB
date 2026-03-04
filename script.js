@@ -1,6 +1,8 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
 const LOCAL_CSV_URL = "./data.csv";
+const GROWTH_TITLE_SUFFIX = "clubs worldwide (and counting)";
+let growthTitleTimer = null;
 
 const clubsList = document.querySelector("#clubs-list");
 const statusText = document.querySelector("#status");
@@ -484,6 +486,47 @@ function normalize(value) {
   return value.toLowerCase().trim();
 }
 
+function animateGrowthTitle(clubCount) {
+  const finalCount = Math.max(0, Number(clubCount) || 0);
+  if (!siteTitle) return;
+
+  if (growthTitleTimer) {
+    cancelAnimationFrame(growthTitleTimer);
+    growthTitleTimer = null;
+  }
+
+  let current = 1;
+  const durationMs = 1200;
+  const start = performance.now();
+
+  siteTitle.classList.remove("growth-title");
+  siteTitle.classList.add("counting");
+  siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${GROWTH_TITLE_SUFFIX}`;
+
+  const tick = (now) => {
+    const elapsed = now - start;
+    const progress = Math.min(1, elapsed / durationMs);
+    const eased = 1 - (1 - progress) * (1 - progress);
+    const next = Math.max(1, Math.round(1 + (finalCount - 1) * eased));
+
+    if (next !== current) {
+      current = next;
+      siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${GROWTH_TITLE_SUFFIX}`;
+    }
+
+    if (progress < 1) {
+      growthTitleTimer = requestAnimationFrame(tick);
+      return;
+    }
+
+    siteTitle.classList.remove("counting");
+    siteTitle.innerHTML = `<span class="growth-count">${finalCount}</span> ${GROWTH_TITLE_SUFFIX}`;
+    growthTitleTimer = null;
+  };
+
+  growthTitleTimer = requestAnimationFrame(tick);
+}
+
 async function loadClubs() {
   try {
     let csv = "";
@@ -541,7 +584,8 @@ async function loadClubs() {
       })
       .filter((club) => club.city);
 
-    statusText.textContent = `${clubs.length} clubs loaded.`;
+    statusText.textContent = "";
+    animateGrowthTitle(clubs.length);
     render(clubs);
   } catch (error) {
     statusText.textContent = "Could not load clubs from the sheet right now.";
