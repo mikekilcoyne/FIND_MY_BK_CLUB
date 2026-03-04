@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club - Calendar View</title>
+    <meta
+      name="description"
+      content="Breakfast Club Calendar View - explore meetups month by month."
+    />
+    <link rel="icon" type="image/svg+xml" href="./bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./bk-club-icon.svg" />
+    <link rel="stylesheet" href="./responsive-framework.css" />
+    <link rel="stylesheet" href="./calendar-view.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <aside class="left-rail">
+        <div class="logo-wrap">
+          <div class="logo-dot">BREAKFAST<br />CLUB</div>
+        </div>
+
+        <a class="back-link" href="./index.html">Back to Club List</a>
+
+        <section class="calendar-launch">
+          <h3>Calendar View</h3>
+          <p>Explore Breakfast Club activity month-by-month across the world.</p>
+        </section>
+      </aside>
+
+      <main class="main-pane">
+        <header class="top-bar">
+          <h1>Calendar View</h1>
+          <p id="status" class="status">Loading calendar data...</p>
+        </header>
+
+        <section class="calendar-panel">
+          <div class="month-controls">
+            <button id="prev-month" type="button" aria-label="Previous month">
+              ←
+            </button>
+            <h2 id="month-label"></h2>
+            <button id="next-month" type="button" aria-label="Next month">→</button>
+            <button id="jump-today" type="button">Today</button>
+          </div>
+
+          <div id="month-summary" class="month-summary"></div>
+
+          <div class="weekday-row" aria-hidden="true">
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+            <span>Sun</span>
+          </div>
+
+          <div id="calendar-grid" class="calendar-grid"></div>
+        </section>
+
+        <section class="day-details">
+          <h3 id="selected-date-label">Select a day</h3>
+          <p id="selected-date-summary" class="selected-summary">
+            Pick a date to see which clubs are scheduled.
+          </p>
+          <div id="selected-date-list" class="selected-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./club-overrides.js"></script>
+    <script src="./calendar-view.js"></script>
+  </body>
+</html>

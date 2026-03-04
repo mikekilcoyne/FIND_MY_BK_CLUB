@@ -34,6 +34,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="./bk-club-icon.svg" />
     <link rel="shortcut icon" href="./bk-club-icon.svg" />
+    <link rel="stylesheet" href="./responsive-framework.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -42,6 +43,9 @@
         <div class="logo-wrap">
           <div class="logo-dot">BREAKFAST<br />CLUB</div>
         </div>
+        <p id="main-headline" class="rail-headline">
+          Everyone's invited. Especially you.
+        </p>
 
         <label class="search-wrap" for="club-search">
           <span class="sr-only">Search clubs</span>
@@ -69,8 +73,12 @@
         </nav>
 
         <section class="calendar-box">
-          <h3>event calendar</h3>
-          <div id="days-nav" class="days-nav"></div>
+          <h3>
+            <a class="calendar-headline-link" href="./calendar-view.html"
+              >Click for Calendar View</a
+            >
+          </h3>
+          <p>Plan your month, you busy-bee, you.</p>
         </section>
       </aside>
 
@@ -87,7 +95,6 @@
         </header>
 
         <section>
-          <h2 id="main-headline">Find your club.</h2>
           <p id="status" class="status">Loading clubs...</p>
           <div id="clubs-list" class="clubs-grid"></div>
         </section>
@@ -98,6 +105,7 @@
       <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
     </footer>
 
+    <script src="./club-overrides.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>

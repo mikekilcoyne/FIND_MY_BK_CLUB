@@ -1,0 +1,75 @@
+:root {
+  --bp-desktop: 1280px;
+  --bp-tablet: 960px;
+  --bp-mobile: 640px;
+
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 20px;
+
+  --rail-width: 260px;
+  --page-pad-x: 20px;
+  --page-pad-y: 14px;
+
+  --headline-size: clamp(28px, 3.8vw, 46px);
+  --section-title-size: clamp(24px, 3vw, 40px);
+}
+
+/* Base resilience: prevent common overflow breakage when resizing. */
+*,
+*::before,
+*::after {
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+/* Shared shell behavior used by index + calendar pages. */
+.site-shell {
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+}
+
+.main-pane {
+  padding: var(--page-pad-y) var(--page-pad-x) 24px;
+}
+
+.top-bar h1 {
+  font-size: var(--headline-size);
+}
+
+h2 {
+  font-size: var(--section-title-size);
+}
+
+/* Tablet and down */
+@media (max-width: 960px) {
+  :root {
+    --page-pad-x: 16px;
+    --page-pad-y: 12px;
+    --headline-size: clamp(30px, 7vw, 42px);
+    --section-title-size: clamp(22px, 6vw, 34px);
+  }
+
+  .site-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 640px) {
+  :root {
+    --page-pad-x: 12px;
+    --page-pad-y: 10px;
+  }
+
+  .top-bar {
+    padding: 8px 10px;
+  }
+}

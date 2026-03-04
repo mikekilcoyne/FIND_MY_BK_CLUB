@@ -14,13 +14,26 @@ Community-maintained directory for Breakfast Club meetups.
 - `index.html` - main site
 - `styles.css` - visual styling
 - `script.js` - data fetch, rendering, rules/overrides
+- `calendar-view.html` - standalone calendar page
+- `calendar-view.css` - calendar page styling
+- `calendar-view.js` - calendar rendering + day details
+- `club-overrides.js` - shared curated club override data (master)
+- `responsive-framework.css` - shared responsive baseline tokens/rules
+- `style_guide.md` - responsive system guidance/checklist
 - `copy.html` - simple copy editor
 - `copy.js` - stores copy changes in browser local storage
 - `breakfast-club-starter-kit-hosts.pdf` - host CTA download
 
 ## Data Source
 - Primary data comes from the Google Sheet CSV configured in `script.js`.
-- Stable updates can be set in `CLUB_OVERRIDES` inside `script.js`.
+- Stable curated updates are set in `club-overrides.js` and consumed by both list + calendar views.
+
+## Recent Tweaks
+- Added animated global count headline (`X clubs worldwide (and counting)`).
+- Added standalone `Calendar View` page with month navigation and day-level details.
+- Added Google Maps + host contact details in calendar day cards (IG-first, email fallback).
+- Moved left-rail messaging and simplified mobile chrome for cleaner presentation.
+- Added shared responsive framework + style guide for future UI iteration.
 
 ## Community Contribution Workflow
 1. Open an issue for club updates/fixes.

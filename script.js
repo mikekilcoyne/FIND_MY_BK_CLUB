@@ -2,6 +2,7 @@ const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
 const LOCAL_CSV_URL = "./data.csv";
 const GROWTH_TITLE_SUFFIX = "clubs worldwide (and counting)";
+const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 let growthTitleTimer = null;
 
 const clubsList = document.querySelector("#clubs-list");
@@ -19,84 +20,6 @@ const DEFAULT_COPY = {
   hostCta:
     "Become a host. Download the Starter Kit.",
   searchPlaceholder: "search clubs",
-};
-
-const CLUB_OVERRIDES = {
-  "portland, or": {
-    cadence: "Weekly",
-    time: "Tuesdays, 9:00am",
-    venue: "It's Just a Feeling",
-  },
-  toronto: {
-    cadence: "Weekly",
-    time: "Wednesdays, 8:30am",
-    venue: "Boxcar Social Laneway",
-  },
-  "mexico city": {
-    cadence: "Weekly",
-    time: "Wednesdays, 8:30am",
-    venue: "Mendl",
-  },
-  miami: {
-    cadence: "Weekly",
-    time: "Wednesdays, 9:00am",
-    venue: "Novela Cafe Social",
-  },
-  "san francisco, ca": {
-    cadence: "Weekly",
-    time: "Wednesdays, 8:30am",
-    venue: "Tereene at One Hotel",
-  },
-  "new york - williamsburg": {
-    cadence: "Weekly",
-    time: "Wednesdays, 8:30am",
-    venue: "Le Crocodile",
-    linkedinURL: "https://www.linkedin.com/in/dietznutz",
-    hostDisplay: "Ben Dietz (@bendietz)",
-  },
-  "new york - hamptons": {
-    cadence: "Weekly",
-    time: "Wednesdays, 8:30am",
-    venue: "Tutto Cafe",
-    extraSocials: [
-      {
-        type: "instagram",
-        url: "https://www.instagram.com/themichaelkilcoyne/",
-        title: "Host Instagram",
-      },
-      {
-        type: "linkedin",
-        url: "https://www.linkedin.com/in/mikekilcoyne/",
-        title: "Host LinkedIn",
-      },
-      {
-        type: "instagram",
-        url: "https://www.instagram.com/adamh929/",
-        title: "Co-host Instagram",
-      },
-    ],
-    hostDisplay: "@themichaelkilcoyne + @adamh929",
-  },
-  "new york - downtown brooklyn": {
-    cadence: "Weekly",
-    time: "Thursdays, 8:30am",
-    venue: "Ace Hotel Downtown Brooklyn (Lobby)",
-  },
-  "new york - les": {
-    cadence: "Weekly",
-    time: "Thursdays, 9:00am",
-    venue: "Rule 257, 234 Eldridge",
-  },
-  "washington dc": {
-    cadence: "Bi-Weekly",
-    time: "Thursdays, 8:30am",
-    venue: "Line Hotel, Adams Morgan",
-  },
-  "soma, nj, usa": {
-    cadence: "Weekly",
-    time: "Fridays, 9:15am",
-    venue: "Arties",
-  },
 };
 
 let clubs = [];
@@ -264,7 +187,28 @@ function hasRegularCadence(cadence, timeValue) {
 function formatTimeLabel(value) {
   const text = (value || "").trim();
   if (!text) return "";
-  return text.replace(/\b830am\b/i, "8:30am");
+  const noPlaceholder = text
+    .replace(/\bTIME\b/gi, "")
+    .replace(/\s*,\s*$/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!noPlaceholder) return "";
+
+  const normalized = noPlaceholder.replace(/\b830am\b/i, "8:30am");
+  const ordinalWeekdayMatch = normalized.match(
+    /\b(first|second|third|fourth|1st|2nd|3rd|4th|frist)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i,
+  );
+  if (ordinalWeekdayMatch) {
+    const weekday = ordinalWeekdayMatch[2];
+    if (!weekday.endsWith("s")) {
+      return normalized.replace(
+        ordinalWeekdayMatch[0],
+        `${ordinalWeekdayMatch[1]} ${weekday}s`,
+      );
+    }
+  }
+
+  return normalized;
 }
 
 function getDay(cadence, timeValue) {
@@ -348,6 +292,8 @@ function renderTextWithInstagramLinks(text) {
 }
 
 function renderDayNav(items) {
+  if (!daysNav) return;
+
   const countByDay = new Map(DAYS.map((day) => [day, 0]));
   items.forEach((club) => {
     countByDay.set(club.day, (countByDay.get(club.day) || 0) + 1);
