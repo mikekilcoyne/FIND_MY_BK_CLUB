@@ -1,5 +1,6 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
+const LOCAL_CSV_URL = "./data.csv";
 
 const clubsList = document.querySelector("#clubs-list");
 const statusText = document.querySelector("#status");
@@ -485,12 +486,21 @@ function normalize(value) {
 
 async function loadClubs() {
   try {
-    const res = await fetch(SHEET_CSV_URL);
-    if (!res.ok) {
-      throw new Error(`Request failed with ${res.status}`);
+    let csv = "";
+    try {
+      const sheetRes = await fetch(SHEET_CSV_URL);
+      if (!sheetRes.ok) {
+        throw new Error(`Sheet request failed with ${sheetRes.status}`);
+      }
+      csv = await sheetRes.text();
+    } catch (_sheetError) {
+      const localRes = await fetch(LOCAL_CSV_URL);
+      if (!localRes.ok) {
+        throw new Error(`Local fallback request failed with ${localRes.status}`);
+      }
+      csv = await localRes.text();
     }
 
-    const csv = await res.text();
     const rows = parseCSV(csv);
 
     clubs = rows
