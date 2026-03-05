@@ -3,8 +3,8 @@
 This file defines the default framework for keeping FIND_MY_BK_CLUB clean across desktop, tablet, and mobile.
 
 ## 1. Source Of Truth
-- Use `responsive-framework.css` for shared breakpoints, spacing tokens, and baseline responsive behavior.
-- Keep page-specific visual styles in `styles.css` and `calendar-view.css`.
+- Use `css/responsive-framework.css` for shared breakpoints, spacing tokens, and baseline responsive behavior.
+- Keep page-specific visual styles in `css/styles.css` and `css/calendar-view.css`.
 - Prefer tokens and shared classes over one-off media queries whenever possible.
 
 ## 2. Breakpoints
@@ -33,8 +33,8 @@ This file defines the default framework for keeping FIND_MY_BK_CLUB clean across
 2. Verify `calendar-view.html` at `1440` and `390` widths.
 3. Confirm no horizontal scroll appears.
 4. Confirm left-rail headline and top bar remain readable.
-5. Confirm syntax checks pass: `node --check script.js` and `node --check calendar-view.js`.
+5. Confirm syntax checks pass: `node --check js/script.js` and `node --check js/calendar-view.js`.
 
 ## 7. Iteration Policy
-- New responsive behavior should be added to `responsive-framework.css` first.
+- New responsive behavior should be added to `css/responsive-framework.css` first.
 - Page-level overrides are allowed only when the shared framework cannot express the behavior cleanly.

@@ -1,6 +1,5 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
-const LOCAL_CSV_URL = "./data.csv";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
 const statusText = document.querySelector("#status");
@@ -495,20 +494,11 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
-    let csv = "";
-    try {
-      const sheetRes = await fetch(SHEET_CSV_URL);
-      if (!sheetRes.ok) {
-        throw new Error(`Sheet request failed with ${sheetRes.status}`);
-      }
-      csv = await sheetRes.text();
-    } catch (_sheetError) {
-      const localRes = await fetch(LOCAL_CSV_URL);
-      if (!localRes.ok) {
-        throw new Error(`Local fallback request failed with ${localRes.status}`);
-      }
-      csv = await localRes.text();
+    const sheetRes = await fetch(SHEET_CSV_URL);
+    if (!sheetRes.ok) {
+      throw new Error(`Sheet request failed with ${sheetRes.status}`);
     }
+    const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
     clubs = rows
