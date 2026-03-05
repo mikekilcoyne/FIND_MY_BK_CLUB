@@ -13,6 +13,11 @@ const selectedDateLabel = document.querySelector("#selected-date-label");
 const selectedDateSummary = document.querySelector("#selected-date-summary");
 const selectedDateList = document.querySelector("#selected-date-list");
 
+function trackEvent(name, params) {
+  if (!window.BKAnalytics) return;
+  window.BKAnalytics.track(name, params);
+}
+
 let clubs = [];
 let currentMonthDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let selectedDateISO = toISODate(
@@ -394,6 +399,12 @@ function renderDayDetails(isoDate, monthEvents) {
         mapLink.target = "_blank";
         mapLink.rel = "noreferrer";
         mapLink.textContent = "Open in Google Maps";
+        mapLink.addEventListener("click", () => {
+          trackEvent("calendar_open_maps", {
+            city: club.city,
+            date: isoDate,
+          });
+        });
         card.append(mapLink);
       }
 
@@ -480,6 +491,10 @@ function renderCalendar() {
     btn.append(dayNumber, dayCount);
     btn.addEventListener("click", () => {
       selectedDateISO = iso;
+      trackEvent("calendar_select_day", {
+        date: iso,
+        clubs: events.length,
+      });
       renderCalendar();
       renderDayDetails(iso, monthEvents);
     });
@@ -533,6 +548,9 @@ async function loadClubs() {
 }
 
 prevMonthBtn.addEventListener("click", () => {
+  trackEvent("calendar_month_prev", {
+    month: currentMonthDate.toISOString().slice(0, 7),
+  });
   currentMonthDate = new Date(
     currentMonthDate.getFullYear(),
     currentMonthDate.getMonth() - 1,
@@ -543,6 +561,9 @@ prevMonthBtn.addEventListener("click", () => {
 });
 
 nextMonthBtn.addEventListener("click", () => {
+  trackEvent("calendar_month_next", {
+    month: currentMonthDate.toISOString().slice(0, 7),
+  });
   currentMonthDate = new Date(
     currentMonthDate.getFullYear(),
     currentMonthDate.getMonth() + 1,
@@ -553,6 +574,7 @@ nextMonthBtn.addEventListener("click", () => {
 });
 
 todayBtn.addEventListener("click", () => {
+  trackEvent("calendar_jump_today", {});
   currentMonthDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   selectedDateISO = toISODate(
     new Date().getFullYear(),

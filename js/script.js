@@ -11,6 +11,7 @@ const daysNav = document.querySelector("#days-nav");
 const siteTitle = document.querySelector("#site-title");
 const mainHeadline = document.querySelector("#main-headline");
 const hostCta = document.querySelector("#host-cta");
+const calendarViewLink = document.querySelector(".calendar-headline-link");
 
 const COPY_KEY = "bkClubSiteCopy";
 const DEFAULT_COPY = {
@@ -548,3 +549,13 @@ searchInput.addEventListener("input", () => {
 
 loadSiteCopy();
 loadClubs();
+
+if (calendarViewLink) {
+  calendarViewLink.addEventListener("click", () => {
+    if (window.BKAnalytics) {
+      window.BKAnalytics.track("open_calendar_view", {
+        source: "left_rail_link",
+      });
+    }
+  });
+}
