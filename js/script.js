@@ -244,6 +244,15 @@ function extractScheduleLabel(cadence, timeValue) {
   return "First Thursday";
 }
 
+function isNightClub(timeValue, overrideIsNight) {
+  if (typeof overrideIsNight === "boolean") return overrideIsNight;
+  return /\b(pm|p\.m\.|night|evening)\b/.test(normalize(timeValue));
+}
+
+function getDisplayCity(club) {
+  return club.displayCity || club.city;
+}
+
 function renderSocialIcon(type, url, title) {
   const link = document.createElement("a");
   link.href = url;
@@ -338,6 +347,11 @@ function render(items) {
     for (const club of dayItems) {
       const row = document.createElement("article");
       row.className = "club-row";
+      if (club.isNight) {
+        row.classList.add("night-edition");
+      }
+
+      const displayCity = getDisplayCity(club);
 
       let city;
       if (club.venue) {
@@ -349,7 +363,7 @@ function render(items) {
         city = document.createElement("span");
       }
       city.className = "club-name";
-      city.textContent = club.city;
+      city.textContent = displayCity;
       if (normalize(club.city) === "new york - williamsburg") {
         city.classList.add("original-bc");
       }
@@ -380,6 +394,13 @@ function render(items) {
       }
 
       row.append(city, schedule, venue, map);
+
+      if (club.isNight) {
+        const nightChip = document.createElement("span");
+        nightChip.className = "night-chip";
+        nightChip.textContent = "At night";
+        row.append(nightChip);
+      }
 
       if (club.instagramURL) {
         const ig = renderSocialIcon(
@@ -494,11 +515,14 @@ async function loadClubs() {
 
         return {
           city,
+          displayCity: override.displayCity || city,
           cadence,
           time,
           scheduleLabel: extractScheduleLabel(cadence, time),
           venue: override.venue || getVenue(cells[8] || "", cells[9] || ""),
           day: getDay(cadence, time),
+          isNight: isNightClub(time, override.isNight),
+          specificDates: override.specificDates || [],
           instagramURL: extractInstagramURL(cells[5] || ""),
           linkedinURL:
             override.linkedinURL ||
@@ -539,9 +563,9 @@ searchInput.addEventListener("input", () => {
   }
 
   const filtered = clubs.filter((club) => {
-    return normalize(`${club.city} ${club.cadence} ${club.time}`).includes(
-      term,
-    );
+    return normalize(
+      `${club.city} ${club.displayCity || ""} ${club.cadence} ${club.time} ${club.venue || ""}`,
+    ).includes(term);
   });
 
   render(filtered);

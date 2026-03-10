@@ -4,6 +4,10 @@
   --line: #cfcfcf;
   --link: #111111;
   --rail: #ffffff;
+  --night-sky: #173157;
+  --night-sky-deep: #08111f;
+  --night-line: #3d5d8e;
+  --night-ink: #f5f0e1;
 }
 
 * {
@@ -233,8 +237,26 @@ h2 {
   padding-bottom: 8px;
 }
 
+.club-row.night-edition {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top right, rgba(164, 198, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, var(--night-sky) 0%, var(--night-sky-deep) 100%);
+  box-shadow: inset 0 0 0 1px var(--night-line);
+  color: var(--night-ink);
+}
+
 .club-name {
   text-decoration: underline;
+}
+
+.club-row.night-edition .club-name,
+.club-row.night-edition .host-instagram-link,
+.club-row.night-edition .ig-icon-link,
+.club-row.night-edition .li-icon-link {
+  color: var(--night-ink);
 }
 
 .meta {
@@ -245,6 +267,13 @@ h2 {
 .venue-meta {
   font-size: 0.58em;
   color: #4b4b4b;
+}
+
+.club-row.night-edition .meta,
+.club-row.night-edition .venue-meta,
+.club-row.night-edition .host-note,
+.club-row.night-edition .contact-note {
+  color: #dce4f3;
 }
 
 .original-bc {
@@ -272,6 +301,14 @@ h2 {
   background: #f5f5f5;
   color: #111111;
   vertical-align: middle;
+}
+
+.club-row.night-edition .google-maps-link,
+.club-row.night-edition .map-tbd,
+.club-row.night-edition .li-icon-link {
+  background: rgba(7, 16, 31, 0.7);
+  border-color: var(--night-line);
+  color: var(--night-ink);
 }
 
 .map-tbd {
@@ -307,6 +344,18 @@ h2 {
   margin-left: 8px;
   font-size: 0.46em;
   color: #5a5a5a;
+}
+
+.night-chip {
+  margin-left: 8px;
+  font-size: 0.44em;
+  border: 1px solid #d3b24d;
+  border-radius: 999px;
+  padding: 1px 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f2de9a;
+  color: #111111;
 }
 
 .host-note {

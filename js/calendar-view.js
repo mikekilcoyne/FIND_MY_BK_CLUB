@@ -57,6 +57,15 @@ function formatTimeLabel(value) {
   return normalized;
 }
 
+function isNightClub(timeValue, overrideIsNight) {
+  if (typeof overrideIsNight === "boolean") return overrideIsNight;
+  return /\b(pm|p\.m\.|night|evening)\b/.test(normalize(timeValue));
+}
+
+function getDisplayCity(club) {
+  return club.displayCity || club.city;
+}
+
 function cleanLocationValue(value) {
   const raw = (value || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
@@ -338,9 +347,17 @@ function buildMonthEvents(year, monthIndex) {
   const byDate = new Map();
 
   clubs.forEach((club) => {
-    const days = datesForRule(club.rule, year, monthIndex);
-    days.forEach((day) => {
-      const iso = toISODate(year, monthIndex, day);
+    const specificDates = (club.specificDates || []).filter((isoDate) => {
+      const [eventYear, eventMonth] = isoDate.split("-").map(Number);
+      return eventYear === year && eventMonth === monthIndex + 1;
+    });
+    const isoDates = specificDates.length
+      ? specificDates
+      : datesForRule(club.rule, year, monthIndex).map((day) =>
+        toISODate(year, monthIndex, day)
+      );
+
+    isoDates.forEach((iso) => {
       if (!byDate.has(iso)) byDate.set(iso, []);
       byDate.get(iso).push(club);
     });
@@ -362,14 +379,24 @@ function renderDayDetails(isoDate, monthEvents) {
 
   entries
     .slice()
-    .sort((a, b) => a.city.localeCompare(b.city))
+    .sort((a, b) => getDisplayCity(a).localeCompare(getDisplayCity(b)))
     .forEach((club) => {
       const card = document.createElement("article");
       card.className = "detail-card";
+      if (club.isNight) {
+        card.classList.add("night-edition");
+      }
 
       const title = document.createElement("h4");
-      title.textContent = club.city;
+      title.textContent = getDisplayCity(club);
       card.append(title);
+
+      if (club.isNight) {
+        const nightChip = document.createElement("span");
+        nightChip.className = "night-chip";
+        nightChip.textContent = "At night";
+        card.append(nightChip);
+      }
 
       if (club.time || club.cadence) {
         const schedule = document.createElement("p");
@@ -469,14 +496,26 @@ function renderCalendar() {
   for (let day = 1; day <= daysInMonth; day += 1) {
     const iso = toISODate(year, monthIndex, day);
     const events = monthEvents.get(iso) || [];
+    const hasNightEvents = events.some((event) => event.isNight);
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "day-cell";
     if (events.length) btn.classList.add("has-events");
+    if (hasNightEvents) btn.classList.add("has-night-events");
     if (iso === selectedDateISO) btn.classList.add("selected");
     if (iso === todayIso) btn.classList.add("today");
     btn.setAttribute("aria-label", `${formatDateLabel(iso)}: ${events.length} clubs`);
+
+    if (hasNightEvents) {
+      const pins = document.createElement("div");
+      pins.className = "day-pins";
+      const nightPin = document.createElement("div");
+      nightPin.className = "day-pin night-pin";
+      nightPin.textContent = "AT NIGHT";
+      pins.append(nightPin);
+      btn.append(pins);
+    }
 
     const dayNumber = document.createElement("div");
     dayNumber.className = "day-number";
@@ -527,12 +566,15 @@ async function loadClubs() {
         const hostEmail = extractEmail(cells[4] || "");
         return {
           city,
+          displayCity: override.displayCity || city,
           cadence,
           time,
+          isNight: isNightClub(time, override.isNight),
           venue: override.venue || getVenue(cells[8] || "", cells[9] || ""),
           hostName: override.hostDisplay || cells[3] || "",
           hostEmail,
           instagramHandles,
+          specificDates: override.specificDates || [],
           rule: getScheduleRule(cadence, time),
         };
       })
