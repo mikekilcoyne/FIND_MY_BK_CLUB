@@ -13,9 +13,9 @@ Push this folder to GitHub (recommended for community PR workflow).
 
 ## 3. Set Custom Domain in Netlify
 1. Go to **Site settings > Domain management > Add custom domain**.
-2. Add `findmybreakfast.club`.
-3. Add `www.findmybreakfast.club` (optional, recommended).
-4. Set apex (`findmybreakfast.club`) as primary.
+2. Add `breakfastclubbing.com`.
+3. Add `www.breakfastclubbing.com` (optional, recommended).
+4. Set apex (`breakfastclubbing.com`) as primary.
 
 ## 4. Update Namecheap DNS
 In Namecheap > Domain List > Manage > Advanced DNS:

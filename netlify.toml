@@ -2,14 +2,26 @@
   publish = "."
 
 [[redirects]]
-  from = "http://findmybreakfast.club/*"
-  to = "https://findmybreakfast.club/:splat"
+  from = "https://findmybreakfast.club/*"
+  to = "https://breakfastclubbing.com/:splat"
   status = 301
   force = true
 
 [[redirects]]
   from = "https://www.findmybreakfast.club/*"
-  to = "https://findmybreakfast.club/:splat"
+  to = "https://breakfastclubbing.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://breakfastclubbing.com/*"
+  to = "https://breakfastclubbing.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.breakfastclubbing.com/*"
+  to = "https://breakfastclubbing.com/:splat"
   status = 301
   force = true
 

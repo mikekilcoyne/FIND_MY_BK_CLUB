@@ -3,7 +3,7 @@
 Community-maintained directory for Breakfast Club meetups.
 
 ## Live Site
-- Production domain: `https://findmybreakfast.club`
+- Production domain: `https://breakfastclubbing.com`
 
 ## Local Development
 1. `cd /Users/yellowsatinjacket/Desktop/#Active_Projects/FIND_MY_BK_CLUB`
@@ -58,5 +58,5 @@ This repo is configured for static Netlify hosting.
 - Config file: `netlify.toml`
 
 ## Domain
-Domain is expected to be `findmybreakfast.club` via Namecheap DNS.
+Domain is expected to be `breakfastclubbing.com` via Namecheap DNS.
 See deployment notes below for setup steps.
