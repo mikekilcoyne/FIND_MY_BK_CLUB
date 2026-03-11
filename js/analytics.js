@@ -52,7 +52,8 @@
   if (Number.isNaN(expireAtUtcMs) || Date.now() >= expireAtUtcMs) return;
 
   const mainHeadline = document.querySelector("#main-headline");
-  if (!mainHeadline || !mainHeadline.parentElement) return;
+  const topBar = document.querySelector(".top-bar");
+  if (!mainHeadline || !topBar || !topBar.parentElement) return;
 
   const styleId = "sxsw-callout-style";
   if (!document.getElementById(styleId)) {
@@ -143,7 +144,13 @@
     <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/kor.sh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
     <a class="sxsw-callout-map" href="https://www.google.com/maps/search/?api=1&query=The+Better+Half+Bar%2C+406+Walsh+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
   `;
-  mainHeadline.insertAdjacentElement("afterend", callout);
+  if (window.matchMedia("(max-width: 960px)").matches) {
+    // Mobile: keep it under the left-rail headline.
+    mainHeadline.insertAdjacentElement("afterend", callout);
+  } else {
+    // Desktop: show above the "X clubs worldwide" header block.
+    topBar.parentElement.insertBefore(callout, topBar);
+  }
 })();
 
 (function removeDesktopHeaderCta() {
