@@ -1,6 +1,22 @@
 // Master override map shared across list + calendar views.
 // Keep this as the single source of truth for curated club data fixes.
 window.CLUB_OVERRIDES = {
+  austin: {
+    displayCity: "Austin",
+    cadence: "Pop-Up",
+    time: "Sunday, 8:30am CDT",
+    venue: "The Better Half Bar, 406 Walsh St",
+    hostDisplay: "Eric Korsh",
+    specificDates: ["2026-03-15"],
+  },
+  "austin, tx": {
+    displayCity: "Austin",
+    cadence: "Pop-Up",
+    time: "Sunday, 8:30am CDT",
+    venue: "The Better Half Bar, 406 Walsh St",
+    hostDisplay: "Eric Korsh",
+    specificDates: ["2026-03-15"],
+  },
   "amsterdam, nl": {
     displayCity: "Amsterdam",
     cadence: "Monthly",

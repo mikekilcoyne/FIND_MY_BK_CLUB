@@ -259,6 +259,12 @@ h1 {
   color: var(--night-ink);
 }
 
+.day-pin.popup-pin {
+  border-color: #d3b24d;
+  background: #f2de9a;
+  color: #111111;
+}
+
 .day-count {
   margin-top: auto;
   font-size: 12px;
@@ -373,6 +379,19 @@ h1 {
 .night-chip {
   display: inline-block;
   margin: 0 0 8px;
+  border: 1px solid #d3b24d;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #f2de9a;
+  color: #111111;
+}
+
+.popup-chip {
+  display: inline-block;
+  margin: 0 0 8px 6px;
   border: 1px solid #d3b24d;
   border-radius: 999px;
   padding: 2px 8px;

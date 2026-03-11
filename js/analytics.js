@@ -51,8 +51,8 @@
   const expireAtUtcMs = Date.parse("2026-03-15T17:00:00Z"); // 1:00 PM America/New_York
   if (Number.isNaN(expireAtUtcMs) || Date.now() >= expireAtUtcMs) return;
 
-  const topBar = document.querySelector(".top-bar");
-  if (!topBar || !topBar.parentElement) return;
+  const mainHeadline = document.querySelector("#main-headline");
+  if (!mainHeadline || !mainHeadline.parentElement) return;
 
   const styleId = "sxsw-callout-style";
   if (!document.getElementById(styleId)) {
@@ -143,5 +143,14 @@
     <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/kor.sh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
     <a class="sxsw-callout-map" href="https://www.google.com/maps/search/?api=1&query=The+Better+Half+Bar%2C+406+Walsh+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
   `;
-  topBar.parentElement.insertBefore(callout, topBar);
+  mainHeadline.insertAdjacentElement("afterend", callout);
+})();
+
+(function removeDesktopHeaderCta() {
+  if (window.location.pathname.endsWith("/calendar-view.html")) return;
+  if (window.location.pathname.endsWith("/map-view.html")) return;
+  const headerCta = document.querySelector(".top-bar .cta");
+  if (headerCta) {
+    headerCta.remove();
+  }
 })();

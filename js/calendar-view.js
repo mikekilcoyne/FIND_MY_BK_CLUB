@@ -66,6 +66,12 @@ function getDisplayCity(club) {
   return club.displayCity || club.city;
 }
 
+function isPopupEvent(club, isoDate) {
+  if (!club || !isoDate) return false;
+  const city = normalize(club.city || "");
+  return city.includes("austin") && isoDate === "2026-03-15";
+}
+
 function cleanLocationValue(value) {
   const raw = (value || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
@@ -398,6 +404,13 @@ function renderDayDetails(isoDate, monthEvents) {
         card.append(nightChip);
       }
 
+      if (isPopupEvent(club, isoDate)) {
+        const popupChip = document.createElement("span");
+        popupChip.className = "popup-chip";
+        popupChip.textContent = "Pop-Up";
+        card.append(popupChip);
+      }
+
       if (club.time || club.cadence) {
         const schedule = document.createElement("p");
         schedule.className = "detail-row";
@@ -497,23 +510,33 @@ function renderCalendar() {
     const iso = toISODate(year, monthIndex, day);
     const events = monthEvents.get(iso) || [];
     const hasNightEvents = events.some((event) => event.isNight);
+    const hasPopupEvents = events.some((event) => isPopupEvent(event, iso));
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "day-cell";
     if (events.length) btn.classList.add("has-events");
     if (hasNightEvents) btn.classList.add("has-night-events");
+    if (hasPopupEvents) btn.classList.add("has-popup-events");
     if (iso === selectedDateISO) btn.classList.add("selected");
     if (iso === todayIso) btn.classList.add("today");
     btn.setAttribute("aria-label", `${formatDateLabel(iso)}: ${events.length} clubs`);
 
-    if (hasNightEvents) {
+    if (hasNightEvents || hasPopupEvents) {
       const pins = document.createElement("div");
       pins.className = "day-pins";
-      const nightPin = document.createElement("div");
-      nightPin.className = "day-pin night-pin";
-      nightPin.textContent = "AT NIGHT";
-      pins.append(nightPin);
+      if (hasNightEvents) {
+        const nightPin = document.createElement("div");
+        nightPin.className = "day-pin night-pin";
+        nightPin.textContent = "AT NIGHT";
+        pins.append(nightPin);
+      }
+      if (hasPopupEvents) {
+        const popupPin = document.createElement("div");
+        popupPin.className = "day-pin popup-pin";
+        popupPin.textContent = "POP-UP";
+        pins.append(popupPin);
+      }
       btn.append(pins);
     }
 
