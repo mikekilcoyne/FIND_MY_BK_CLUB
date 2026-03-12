@@ -411,6 +411,13 @@ function renderDayDetails(isoDate, monthEvents) {
         card.append(popupChip);
       }
 
+      if (club.locationNote) {
+        const locChip = document.createElement("span");
+        locChip.className = "popup-chip location-chip";
+        locChip.textContent = club.locationNote;
+        card.append(locChip);
+      }
+
       if (club.time || club.cadence) {
         const schedule = document.createElement("p");
         schedule.className = "detail-row";
@@ -598,6 +605,7 @@ async function loadClubs() {
           hostEmail,
           instagramHandles,
           specificDates: override.specificDates || [],
+          locationNote: override.locationNote || "",
           rule: getScheduleRule(cadence, time),
         };
       })

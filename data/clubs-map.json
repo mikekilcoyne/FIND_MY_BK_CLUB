@@ -32,9 +32,9 @@
     "longitude": -97.7431,
     "region": "Southeast US",
     "host": "Eric Korsh (@kor.sh)",
-    "venue": "The Better Half Bar, 406 Walsh St",
+    "venue": "Nate's Baked Goods & Coffee, 401 W 18th St",
     "upcoming_date": "2026-03-15",
-    "mapsURL": "https://maps.google.com/?q=The+Better+Half+Bar%2C+406+Walsh+St%2C+Austin%2C+TX",
+    "mapsURL": "https://maps.google.com/?q=Nate%27s+Baked+Goods+%26+Coffee%2C+401+W+18th+St%2C+Austin%2C+TX",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "specific", "dates": ["2026-03-15"] },
     "isPopup": true

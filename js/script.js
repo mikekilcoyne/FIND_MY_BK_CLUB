@@ -379,6 +379,13 @@ function render(items) {
         subline.append(tbd);
       }
 
+      if (club.locationNote) {
+        const locBadge = document.createElement("span");
+        locBadge.className = "badge badge-location";
+        locBadge.textContent = club.locationNote;
+        subline.append(locBadge);
+      }
+
       if (club.isNight) {
         const nightBadge = document.createElement("span");
         nightBadge.className = "badge badge-night";
@@ -535,6 +542,7 @@ async function loadClubs() {
           day: getDay(cadence, time),
           isNight: isNightClub(time, override.isNight),
           specificDates: override.specificDates || [],
+          locationNote: override.locationNote || "",
           instagramURL: extractInstagramURL(cells[5] || ""),
           linkedinURL:
             override.linkedinURL ||

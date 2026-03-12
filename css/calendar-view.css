@@ -403,6 +403,13 @@ h1 {
   color: #111111;
 }
 
+.location-chip {
+  background: #ff5c00;
+  border-color: #cc4900;
+  color: #ffffff;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .site-shell {
     grid-template-columns: 1fr;

@@ -415,6 +415,13 @@ h2 {
   color: #111;
 }
 
+.badge-location {
+  background: #ff5c00;
+  border-color: #cc4900;
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .club-card.night-edition .badge-night {
   background: rgba(242, 222, 154, 0.15);
   border-color: rgba(211, 178, 77, 0.6);

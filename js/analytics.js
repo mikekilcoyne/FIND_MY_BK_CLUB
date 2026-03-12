@@ -98,6 +98,18 @@
       .sxsw-callout-host a {
         color: inherit;
       }
+      .sxsw-location-badge {
+        display: inline-block;
+        background: #ff5c00;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 4px;
+        padding: 2px 6px;
+        vertical-align: middle;
+      }
       .sxsw-callout-map {
         display: inline-block;
         text-decoration: none;
@@ -137,12 +149,12 @@
   callout.className = "sxsw-callout";
   callout.setAttribute("role", "status");
   callout.innerHTML = `
-    <p class="sxsw-callout-label">Special Announcement</p>
+    <p class="sxsw-callout-label">Special Announcement · <span class="sxsw-location-badge">New Locaish</span></p>
     <h2 class="sxsw-callout-title">SXSW Pop-Up Breakfast Club</h2>
     <p class="sxsw-callout-copy">Announcing a pop-up BKFST CLUB in Austin during SXSW. Everyone's invited, especially you.</p>
-    <p class="sxsw-callout-meta">Sunday, Mar 15, 8:30 AM CDT · The Better Half Bar, 406 Walsh St, Austin, TX</p>
+    <p class="sxsw-callout-meta">Sunday, Mar 15, 8:30 AM CDT · Nate's Baked Goods &amp; Coffee, 401 W 18th St, Austin, TX</p>
     <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/kor.sh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
-    <a class="sxsw-callout-map" href="https://www.google.com/maps/search/?api=1&query=The+Better+Half+Bar%2C+406+Walsh+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
+    <a class="sxsw-callout-map" href="https://www.google.com/maps/search/?api=1&query=Nate%27s+Baked+Goods+%26+Coffee%2C+401+W+18th+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
   `;
   // Always insert above the "X clubs worldwide" top bar in the main pane.
   // CSS handles sizing at each breakpoint — no JS matchMedia needed.
