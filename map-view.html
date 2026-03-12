@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club — Map View</title>
+    <meta
+      name="description"
+      content="Explore Breakfast Club locations worldwide. Find a club near you."
+    />
+    <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="./css/responsive-framework.css" />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/map-view.css" />
+  </head>
+  <body class="map-page">
+    <div class="site-shell">
+      <aside class="left-rail">
+        <div class="logo-wrap">
+          <div class="logo-dot">BREAKFAST<br />CLUB</div>
+        </div>
+
+        <a class="back-link" href="./index.html">← Back to Club List</a>
+
+        <section class="map-box">
+          <h3>Map View</h3>
+          <p>Explore Breakfast Club locations across the globe. Tap a pin to see details.</p>
+        </section>
+      </aside>
+
+      <main class="main-pane">
+        <header class="map-top-bar">
+          <h1>Map View</h1>
+          <p id="status" class="status"></p>
+        </header>
+
+        <div class="region-strip">
+          <nav id="region-nav" aria-label="Filter by region"></nav>
+        </div>
+
+        <div class="map-container">
+          <button id="trip-planner-btn" type="button" class="trip-planner-btn">
+            Feeling Lucky? Plan a Trip
+          </button>
+
+          <div id="map"></div>
+
+          <div id="trip-panel" class="trip-panel" role="dialog" aria-modal="true" aria-label="Plan a trip">
+            <div class="trip-panel-header">
+              <h2 class="trip-panel-title">Feeling Lucky?</h2>
+              <button id="trip-close" class="card-close" type="button" aria-label="Close">×</button>
+            </div>
+
+            <div id="trip-wizard">
+              <!-- Progress -->
+              <div class="trip-progress">
+                <div class="trip-progress-meta">
+                  <button id="trip-back-step" type="button" class="trip-step-back" hidden>← Back</button>
+                  <span id="trip-step-label" class="trip-step-label">Step 1 of 3</span>
+                </div>
+                <div class="trip-progress-bar">
+                  <div class="trip-progress-seg" id="trip-seg-1"></div>
+                  <div class="trip-progress-seg" id="trip-seg-2"></div>
+                  <div class="trip-progress-seg" id="trip-seg-3"></div>
+                </div>
+              </div>
+
+              <div id="trip-step-1" class="trip-step">
+                <p class="trip-question">When is your trip?</p>
+                <input id="trip-from" type="date" class="trip-date-input" />
+                <p id="trip-error" class="trip-error" hidden></p>
+                <button id="trip-next-1" type="button" class="trip-search-btn trip-step-cta">Pick your region →</button>
+              </div>
+              <div id="trip-step-2" class="trip-step" hidden>
+                <p class="trip-question">Where you going?</p>
+                <div id="trip-region-pills" class="trip-option-pills"></div>
+                <button id="trip-next-2" type="button" class="trip-search-btn trip-step-cta">Plan your trip →</button>
+              </div>
+              <div id="trip-step-3" class="trip-step" hidden>
+                <p class="trip-question">How long are you planning?</p>
+                <div id="trip-duration-pills" class="trip-option-pills">
+                  <button type="button" class="trip-option-pill" data-days="2">A weekend</button>
+                  <button type="button" class="trip-option-pill" data-days="4">A few days</button>
+                  <button type="button" class="trip-option-pill" data-days="7">A week</button>
+                  <button type="button" class="trip-option-pill" data-days="14">2 weeks</button>
+                  <button type="button" class="trip-option-pill" data-days="30">A month</button>
+                  <button type="button" class="trip-option-pill trip-option-lucky" data-days="0">No return flight ✈</button>
+                  <span id="carmen-text" class="carmen-text" hidden>Ok, Carmen San-Diego.</span>
+                </div>
+                <button id="trip-go" type="button" class="trip-search-btn trip-step-cta">Let's Go →</button>
+              </div>
+            </div>
+
+            <!-- Results -->
+            <div id="trip-results" hidden>
+              <p id="trip-results-summary" class="trip-results-summary"></p>
+              <ul id="trip-results-list" class="trip-results-list"></ul>
+              <button id="trip-back-results" type="button" class="trip-back-btn">← New Search</button>
+            </div>
+          </div>
+
+          <div id="city-card" class="city-card" role="dialog" aria-modal="true" aria-label="Club details">
+            <div class="card-header">
+              <h2 id="card-city"></h2>
+              <button id="card-close" class="card-close" type="button" aria-label="Close card">×</button>
+            </div>
+            <div class="card-meta">
+              <p id="card-host" class="card-host"></p>
+              <p id="card-venue"></p>
+              <p id="card-date" class="card-date"></p>
+            </div>
+            <div class="card-actions">
+              <a id="card-maps-btn" class="card-maps-btn" href="#" target="_blank" rel="noreferrer">Open in Maps</a>
+              <a id="card-site-link" class="card-site-link" href="./index.html">See all clubs →</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="./js/analytics-config.js"></script>
+    <script src="./js/analytics.js"></script>
+    <script src="./js/map-view.js"></script>
+  </body>
+</html>

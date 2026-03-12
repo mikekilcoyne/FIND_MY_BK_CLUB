@@ -144,20 +144,7 @@
     <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/kor.sh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
     <a class="sxsw-callout-map" href="https://www.google.com/maps/search/?api=1&query=The+Better+Half+Bar%2C+406+Walsh+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
   `;
-  if (window.matchMedia("(max-width: 960px)").matches) {
-    // Mobile: keep it under the left-rail headline.
-    mainHeadline.insertAdjacentElement("afterend", callout);
-  } else {
-    // Desktop: show above the "X clubs worldwide" header block.
-    topBar.parentElement.insertBefore(callout, topBar);
-  }
-})();
-
-(function removeDesktopHeaderCta() {
-  if (window.location.pathname.endsWith("/calendar-view.html")) return;
-  if (window.location.pathname.endsWith("/map-view.html")) return;
-  const headerCta = document.querySelector(".top-bar .cta");
-  if (headerCta) {
-    headerCta.remove();
-  }
+  // Always insert above the "X clubs worldwide" top bar in the main pane.
+  // CSS handles sizing at each breakpoint — no JS matchMedia needed.
+  topBar.parentElement.insertBefore(callout, topBar);
 })();

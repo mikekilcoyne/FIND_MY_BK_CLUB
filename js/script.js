@@ -10,10 +10,10 @@ const searchInput = document.querySelector("#club-search");
 const daysNav = document.querySelector("#days-nav");
 const siteTitle = document.querySelector("#site-title");
 const mainHeadline = document.querySelector("#main-headline");
-const hostCta = document.querySelector("#host-cta");
 const calendarViewLink = document.querySelector(".calendar-headline-link");
+const mobileResourcesToggle = document.querySelector(".mobile-resources-toggle");
+const mobileResourcesBody = document.querySelector("#mobile-resources-body");
 
-const COPY_KEY = "bkClubSiteCopy";
 const DEFAULT_COPY = {
   siteTitle: "Breakfast Club",
   mainHeadline: "Everyone's invited. Especially you.",
@@ -33,19 +33,10 @@ const DAYS = [
 ];
 
 function loadSiteCopy() {
-  let copy = { ...DEFAULT_COPY };
-  try {
-    const raw = localStorage.getItem(COPY_KEY);
-    if (raw) {
-      copy = { ...copy, ...JSON.parse(raw) };
-    }
-  } catch (_error) {
-    copy = { ...DEFAULT_COPY };
-  }
-
+  const copy = DEFAULT_COPY;
   if (siteTitle) siteTitle.textContent = copy.siteTitle;
   if (mainHeadline) mainHeadline.textContent = copy.mainHeadline;
-  if (hostCta) hostCta.textContent = copy.hostCta;
+
   if (searchInput) searchInput.placeholder = copy.searchPlaceholder;
 }
 
@@ -345,104 +336,114 @@ function render(items) {
     section.append(heading);
 
     for (const club of dayItems) {
-      const row = document.createElement("article");
-      row.className = "club-row";
-      if (club.isNight) {
-        row.classList.add("night-edition");
-      }
+      const card = document.createElement("article");
+      card.className = "club-card";
+      if (club.isNight) card.classList.add("night-edition");
 
       const displayCity = getDisplayCity(club);
+      const isOriginal = normalize(club.city) === "new york - williamsburg";
+      if (isOriginal) card.classList.add("flagship-card");
 
-      let city;
+      // 1. City name (primary headline)
+      const cityEl = club.venue
+        ? document.createElement("a")
+        : document.createElement("span");
       if (club.venue) {
-        city = document.createElement("a");
-        city.href = getMapURL(`${club.venue}, ${club.city}`);
-        city.target = "_blank";
-        city.rel = "noreferrer";
-      } else {
-        city = document.createElement("span");
+        cityEl.href = getMapURL(`${club.venue}, ${club.city}`);
+        cityEl.target = "_blank";
+        cityEl.rel = "noreferrer";
       }
-      city.className = "club-name";
-      city.textContent = displayCity;
-      if (normalize(club.city) === "new york - williamsburg") {
-        city.classList.add("original-bc");
+      cityEl.className = "city-name";
+      if (isOriginal) cityEl.classList.add("original-bc");
+      cityEl.textContent = displayCity;
+      card.append(cityEl);
+
+      // 2. Subline: frequency, venue, status badges
+      const subline = document.createElement("div");
+      subline.className = "card-subline";
+
+      if (club.scheduleLabel) {
+        const freq = document.createElement("span");
+        freq.textContent = club.scheduleLabel;
+        subline.append(freq);
       }
 
-      const schedule = document.createElement("span");
-      schedule.className = "meta";
-      schedule.textContent = club.scheduleLabel
-        ? ` (${club.scheduleLabel})`
-        : "";
-
-      const venue = document.createElement("span");
-      venue.className = "venue-meta";
-      venue.textContent = club.venue ? ` - ${club.venue}` : " - TBD";
-
-      let map;
       if (club.venue) {
-        map = document.createElement("a");
-        map.href = getMapURL(`${club.venue}, ${club.city}`);
-        map.target = "_blank";
-        map.rel = "noreferrer";
-        map.className = "google-maps-link";
-        map.textContent = "Google Maps";
-        map.title = `Open ${club.venue} in Google Maps`;
+        const venueEl = document.createElement("span");
+        venueEl.textContent = club.venue;
+        subline.append(venueEl);
       } else {
-        map = document.createElement("span");
-        map.className = "map-tbd";
-        map.textContent = "TBD";
+        const tbd = document.createElement("span");
+        tbd.className = "badge badge-tbd";
+        tbd.textContent = "TBD";
+        subline.append(tbd);
       }
-
-      row.append(city, schedule, venue, map);
 
       if (club.isNight) {
-        const nightChip = document.createElement("span");
-        nightChip.className = "night-chip";
-        nightChip.textContent = "At night";
-        row.append(nightChip);
+        const nightBadge = document.createElement("span");
+        nightBadge.className = "badge badge-night";
+        nightBadge.textContent = "Night";
+        subline.append(nightBadge);
+      }
+
+      if (subline.children.length) card.append(subline);
+
+      // 3. Host line
+      if (club.hostDisplay) {
+        const host = document.createElement("div");
+        host.className = "card-host";
+        host.append(document.createTextNode("HOST: "));
+        host.append(renderTextWithInstagramLinks(club.hostDisplay));
+        card.append(host);
+      }
+
+      if (club.isIncomplete) {
+        const note = document.createElement("div");
+        note.className = "card-host";
+        note.textContent = "Contact host for more info";
+        card.append(note);
+      }
+
+      // 4. Utility row: maps, socials
+      const util = document.createElement("div");
+      util.className = "card-utility";
+
+      if (club.venue) {
+        const mapsBtn = document.createElement("a");
+        mapsBtn.href = getMapURL(`${club.venue}, ${club.city}`);
+        mapsBtn.target = "_blank";
+        mapsBtn.rel = "noreferrer";
+        mapsBtn.title = `Open ${club.venue} in Google Maps`;
+        mapsBtn.textContent = "Google Maps";
+        util.append(mapsBtn);
       }
 
       if (club.instagramURL) {
-        const ig = renderSocialIcon(
+        util.append(renderSocialIcon(
           "instagram",
           club.instagramURL,
           `Open ${club.city} on Instagram`,
-        );
-        row.append(ig);
+        ));
       }
 
       if (club.linkedinURL) {
-        const linkedin = renderSocialIcon(
+        util.append(renderSocialIcon(
           "linkedin",
           club.linkedinURL,
           `Open ${club.city} host on LinkedIn`,
-        );
-        row.append(linkedin);
+        ));
       }
 
       if (club.extraSocials && club.extraSocials.length) {
         club.extraSocials.forEach((item) => {
           if (!item || !item.url) return;
-          row.append(renderSocialIcon(item.type, item.url, item.title || ""));
+          util.append(renderSocialIcon(item.type, item.url, item.title || ""));
         });
       }
 
-      if (club.hostDisplay) {
-        const host = document.createElement("div");
-        host.className = "host-note";
-        host.append(document.createTextNode("HOST: "));
-        host.append(renderTextWithInstagramLinks(club.hostDisplay));
-        row.append(host);
-      }
+      if (util.children.length) card.append(util);
 
-      if (club.isIncomplete) {
-        const note = document.createElement("span");
-        note.className = "contact-note";
-        note.textContent = "Contact host for more info";
-        row.append(note);
-      }
-
-      section.append(row);
+      section.append(card);
     }
 
     clubsList.append(section);
@@ -492,6 +493,17 @@ function animateGrowthTitle(clubCount) {
   };
 
   growthTitleTimer = requestAnimationFrame(tick);
+}
+
+function setupMobileResourcesToggle() {
+  if (!mobileResourcesToggle || !mobileResourcesBody) return;
+
+  mobileResourcesToggle.addEventListener("click", () => {
+    const expanded =
+      mobileResourcesToggle.getAttribute("aria-expanded") === "true";
+    mobileResourcesToggle.setAttribute("aria-expanded", String(!expanded));
+    mobileResourcesBody.hidden = expanded;
+  });
 }
 
 async function loadClubs() {
@@ -572,6 +584,7 @@ searchInput.addEventListener("input", () => {
 });
 
 loadSiteCopy();
+setupMobileResourcesToggle();
 loadClubs();
 
 if (calendarViewLink) {

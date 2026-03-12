@@ -2,32 +2,11 @@
 
 Thanks for helping maintain Breakfast Club.
 
-## Ground Rules
-- Keep edits minimal and specific.
+See [docs/resources/ops.md](./resources/ops.md) for full contribution workflow, data source priority, PR checklist, and governance rules.
+
+## Quick Rules
+- Keep edits minimal and scoped.
 - Prefer fresh source info over old notes.
-- If details are incomplete, use: `Contact host for more info`.
-- If no reliable schedule detail exists, use `First Thursday` as fallback label.
-
-## What to Update
-Typical updates:
-- Venue/location
-- Host and co-host social links
-- Cadence and day grouping
-- Consistency fixes (spelling, city naming, stale details)
-
-## Sources (priority)
-1. Latest Breakfast Club sheet
-2. Recent Breakfast Clubbing newsletters
-3. Direct host-confirmed links/details
-
-## Pull Request Checklist
-- [ ] Change is scoped to a specific set of clubs
-- [ ] Sources are linked in the PR description
-- [ ] No stale/outdated notes added
-- [ ] `HOST:` labels are present when IG handles are present
-- [ ] Links open correctly (Instagram/LinkedIn/Google Maps)
-
-## Coding Notes
-- Keep layout mobile-friendly.
-- Avoid unnecessary dependencies.
-- Preserve existing style language unless a design change is requested.
+- If details are incomplete: `Contact host for more info`.
+- `First Thursday` is the fallback label when no schedule detail exists.
+- Keep layout mobile-friendly. Preserve existing style language unless a design change is requested.

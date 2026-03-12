@@ -251,6 +251,7 @@ h1 {
   letter-spacing: 0.04em;
   padding: 1px 6px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .day-pin.night-pin {
