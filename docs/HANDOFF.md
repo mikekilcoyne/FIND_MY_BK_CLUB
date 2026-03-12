@@ -1,7 +1,7 @@
 # Handoff — Breakfast Clubbing
 
 > Keep this file current. Update it before ending any session.
-> Last updated: 2026-03-12
+> Last updated: 2026-03-12 (session 2)
 
 ---
 
@@ -19,24 +19,28 @@ Run locally: `python3 -m http.server 8080` → open `http://127.0.0.1:8080`
 ```
 index.html              Main club list
 calendar-view.html      Monthly calendar view
-map-view.html           Interactive world map (untracked — ready to commit)
+map-view.html           Interactive world map
 
 css/
   styles.css            Main styles (club list, layout, night edition, cards)
   responsive-framework.css  Shared breakpoints + spacing tokens
   calendar-view.css     Calendar-specific styles
-  map-view.css          Map-specific styles (untracked)
+  map-view.css          Map-specific styles
 
 js/
   script.js             Club list: CSV fetch, parse, render
-  club-overrides.js     Curated overrides for specific clubs
+  club-overrides.js     Curated overrides for specific clubs (single source of truth)
   calendar-view.js      Calendar logic
-  map-view.js           Map + trip planner logic (untracked)
+  map-view.js           Map + trip planner logic
   analytics-config.js   GA4 measurement ID
-  analytics.js          GA4 event helpers
+  analytics.js          GA4 bootstrap + SXSW callout (date-gated, expires 2026-03-15)
 
 data/
-  clubs-map.json        Map pin data (untracked)
+  clubs-map.json        48 map pins — must stay in sync with Google Sheet count
+
+.github/
+  ISSUE_TEMPLATE/
+    club-update.yml     Host submission form (GitHub Issues) — still active
 
 docs/
   HANDOFF.md            ← You are here
@@ -52,48 +56,38 @@ docs/
 
 ## Current State (March 12, 2026)
 
-### Live on main branch
+### Live on main branch (committed this session)
 - Club list with Google Sheets CSV data
-- Calendar view
+- Calendar view with AT NIGHT badge fix
 - Responsive framework (960px / 640px breakpoints)
-- Night edition club styling
-- "The Original BC" / Williamsburg flagship marker
-- Animated global club count in header
+- Club card layout — `.club-card` system (city, subline, host, utility row)
+- Night edition + flagship card variants
+- Mobile action row (Calendar + green Map+NEW buttons in left rail)
+- Mobile resources hamburger (IG / weekly reminder / host kit)
+- Interactive map view — Leaflet, region filters, city cards, trip planner
+- "Next up" dates computed dynamically from schedule data
+- 48 clubs in map (matches front page count); Austin SXSW pop-up included
+- SXSW callout above top-bar on all breakpoints (auto-expires 2026-03-15)
+- "Map View NEW" green CTA in desktop top-bar
+- Squircle buttons (border-radius: 10px throughout)
 - GA4 analytics hooks
-
-### In working copy, not yet committed
-- Mobile quick-actions row (Calendar + Map pill buttons in left rail)
-- Mobile resources accordion (collapsed by default)
-- Map box link in desktop left rail
-- **All map view files** (`map-view.html`, `js/map-view.js`, `css/map-view.css`, `data/clubs-map.json`)
-
-### Just implemented (this session)
-- Club card layout — `.club-card` replaces the old `.club-row` flat layout
-- Card styles: city headline block, subline (freq + venue + badges), host line, utility row
-- `.flagship-card` for Williamsburg (warm tint, accent border)
-- Badges: `.badge-tbd`, `.badge-night` replacing inline chips
 
 ---
 
-## Urgent / Pending
+## Post-SXSW Cleanup (after March 15)
+- Remove Austin entry from `data/clubs-map.json` and `js/club-overrides.js`
+- Update club count if Austin is not a permanent club
+- `analytics.js` SXSW callout will auto-hide but the code can be removed after the event
 
-### 🔴 SXSW Banner — MISSING (expires March 15)
-The SXSW callout was removed at some point and is no longer in any file.
-It must be restored before March 15, 2026.
+## Deployment Notes
+- Push to `main` → Netlify auto-deploys. No branch protection (solo project).
+- QA locally first: `python3 -m http.server 8080`
+- Rollback: Netlify dashboard keeps last 20 deploys, one-click restore.
 
-**Requirements:**
-- Top banner on homepage
-- Auto-hide after March 15 based on JS date check (`new Date() > new Date('2026-03-15')`)
-- Config-driven, not hard-coded
-- Was previously date-gated in a prior commit — check git log for reference
-
-### 🟡 Map view — commit-ready
-All map files are built and tested. Needs a commit + PR.
-Entry point: `map-view.html`. Data: `data/clubs-map.json`.
-Features: Leaflet + MarkerCluster, region filter, city card (bottom sheet on mobile), "Feeling Lucky?" trip planner wizard.
-
-### 🟡 Card layout — just built
-CSS and JS implementation done this session. Needs visual QA at 1440 / 1024 / 390px widths before committing.
+## Host Submission
+GitHub Issues template at `.github/ISSUE_TEMPLATE/club-update.yml` — still active.
+Direct link: `github.com/mikekilcoyne/FIND_MY_BK_CLUB/issues/new?template=club-update.yml`
+Surface this link somewhere on the site for hosts to find.
 
 ---
 
@@ -126,3 +120,27 @@ Map data is a separate static file: `data/clubs-map.json`.
 - MadLib Missed Connections (depth per event)
 - Multi-city itinerary builder / trip route lines
 - Save trip plan
+
+---
+
+## Backlog: Email-to-Site Update Pipeline
+
+**Concept:** Hosts email `set@breakfastclubbing.com` with freeform updates (new venue, new date, flyer, etc.) and it automatically creates a pending row in the Google Sheet for review before going live.
+
+**Approved approach:**
+- Review queue (not auto-publish) — updates land in a "Pending" tab, approved manually
+- AI-parsed freeform — Claude API extracts structured data from natural language emails
+
+**Stack:**
+```
+email → inbound email service → webhook → Netlify Function
+      → Claude API (parse) → Google Sheets API (write pending row)
+      → manual approval → site reflects on next load
+```
+
+**Inbound email provider: SendGrid** (confirmed via `dig MX pauseforshabbat.com` → `mx.sendgrid.net`)
+Already in use on `pauseforshabbat.com`. Use the same SendGrid account — just add a new inbound parse route for `set@breakfastclubbing.com`.
+
+**Netlify Function stack:** `@anthropic-ai/sdk`, `googleapis`, inbound email provider SDK.
+**Environment vars needed:** `ANTHROPIC_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON`, email provider webhook secret.
+**Google Sheet:** add a "Pending" tab with columns: status, city, venue, date, host, notes, raw_email, received_at.
