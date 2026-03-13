@@ -351,6 +351,10 @@ h1 {
   font-weight: 600;
 }
 
+.detail-card.night-edition .detail-row {
+  color: var(--night-ink);
+}
+
 .detail-card.night-edition .detail-label {
   color: #dce4f3;
 }
@@ -438,7 +442,8 @@ h1 {
 
 .night-chip {
   display: inline-block;
-  margin: 0 0 8px;
+  align-self: flex-start;
+  margin: 0;
   border: 1px solid #d3b24d;
   border-radius: 999px;
   padding: 2px 8px;
@@ -451,7 +456,8 @@ h1 {
 
 .popup-chip {
   display: inline-block;
-  margin: 0 0 8px 6px;
+  align-self: flex-start;
+  margin: 0;
   border: 1px solid #d3b24d;
   border-radius: 999px;
   padding: 2px 8px;
