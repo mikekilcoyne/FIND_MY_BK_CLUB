@@ -555,7 +555,7 @@ async function loadClubs() {
           linkedinURL:
             override.linkedinURL ||
             extractLinkedInURL(cells[4] || "", cells[7] || ""),
-          flyerURL: override.flyerURL || (cells[11] || "").trim(),
+          flyerURL: override.flyerURL || "",
           extraSocials: override.extraSocials || [],
           hostDisplay: formatHostDisplay(
             cells[3] || "",
