@@ -448,6 +448,14 @@ function render(items) {
         });
       }
 
+      if (club.flyerURL) {
+        const flyerBtn = document.createElement("button");
+        flyerBtn.className = "flyer-btn";
+        flyerBtn.textContent = "View Flyer";
+        flyerBtn.addEventListener("click", () => openFlyerLightbox(club.flyerURL, getDisplayCity(club)));
+        util.append(flyerBtn);
+      }
+
       if (util.children.length) card.append(util);
 
       section.append(card);
@@ -547,6 +555,7 @@ async function loadClubs() {
           linkedinURL:
             override.linkedinURL ||
             extractLinkedInURL(cells[4] || "", cells[7] || ""),
+          flyerURL: override.flyerURL || (cells[11] || "").trim(),
           extraSocials: override.extraSocials || [],
           hostDisplay: formatHostDisplay(
             cells[3] || "",
@@ -590,6 +599,147 @@ searchInput.addEventListener("input", () => {
 
   render(filtered);
 });
+
+// ── Featured event strip ──────────────────────────────────────────────────────
+
+function renderFeaturedEvent(items) {
+  const strip = document.querySelector("#featured-event");
+  if (!strip) return;
+
+  const featured = items.find((club) => {
+    const override = CLUB_OVERRIDES[normalize(club.city)] || {};
+    return override.featured;
+  });
+  if (!featured) return;
+
+  const displayCity = getDisplayCity(featured);
+  const dateStr = featured.specificDates && featured.specificDates[0]
+    ? new Date(featured.specificDates[0] + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+    : "";
+
+  strip.innerHTML = "";
+
+  const info = document.createElement("div");
+  info.className = "featured-info";
+
+  const label = document.createElement("div");
+  label.className = "featured-label";
+  label.textContent = "This Weekend";
+  info.append(label);
+
+  const city = document.createElement("div");
+  city.className = "featured-city";
+  city.textContent = displayCity;
+  info.append(city);
+
+  if (featured.locationNote) {
+    const badge = document.createElement("span");
+    badge.className = "badge badge-location featured-badge";
+    badge.textContent = featured.locationNote;
+    info.append(badge);
+  }
+
+  if (dateStr || featured.time) {
+    const when = document.createElement("div");
+    when.className = "featured-meta";
+    when.textContent = [dateStr, featured.time].filter(Boolean).join(" · ");
+    info.append(when);
+  }
+
+  if (featured.venue) {
+    const venue = document.createElement("div");
+    venue.className = "featured-meta";
+    venue.textContent = featured.venue;
+    info.append(venue);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "featured-actions";
+
+  if (featured.venue) {
+    const mapsBtn = document.createElement("a");
+    mapsBtn.href = getMapURL(`${featured.venue}, ${featured.city}`);
+    mapsBtn.target = "_blank";
+    mapsBtn.rel = "noreferrer";
+    mapsBtn.textContent = "Google Maps";
+    mapsBtn.className = "featured-action-btn";
+    actions.append(mapsBtn);
+  }
+
+  if (featured.flyerURL) {
+    const flyerBtn = document.createElement("button");
+    flyerBtn.textContent = "View Flyer";
+    flyerBtn.className = "featured-action-btn featured-action-btn--primary";
+    flyerBtn.addEventListener("click", () => openFlyerLightbox(featured.flyerURL, displayCity));
+    actions.append(flyerBtn);
+  }
+
+  info.append(actions);
+  strip.append(info);
+
+  if (featured.flyerURL) {
+    const thumb = document.createElement("div");
+    thumb.className = "featured-thumb";
+    const img = document.createElement("img");
+    img.src = featured.flyerURL;
+    img.alt = `${displayCity} flyer`;
+    img.className = "featured-thumb-img";
+    img.addEventListener("click", () => openFlyerLightbox(featured.flyerURL, displayCity));
+    thumb.append(img);
+    strip.append(thumb);
+  }
+
+  strip.hidden = false;
+}
+
+// ── Flyer lightbox ────────────────────────────────────────────────────────────
+
+let lightbox = null;
+
+function openFlyerLightbox(url, cityName) {
+  if (!lightbox) {
+    lightbox = document.createElement("div");
+    lightbox.className = "flyer-lightbox";
+    lightbox.setAttribute("role", "dialog");
+    lightbox.setAttribute("aria-modal", "true");
+
+    const img = document.createElement("img");
+    img.className = "flyer-lightbox-img";
+    img.alt = "";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "flyer-lightbox-close";
+    closeBtn.setAttribute("aria-label", "Close flyer");
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", closeFlyerLightbox);
+
+    lightbox.append(closeBtn, img);
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeFlyerLightbox();
+    });
+
+    document.body.append(lightbox);
+  }
+
+  lightbox.querySelector(".flyer-lightbox-img").src = url;
+  lightbox.querySelector(".flyer-lightbox-img").alt = `${cityName} flyer`;
+  lightbox.hidden = false;
+  document.body.style.overflow = "hidden";
+
+  const onKey = (e) => {
+    if (e.key === "Escape") { closeFlyerLightbox(); document.removeEventListener("keydown", onKey); }
+  };
+  document.addEventListener("keydown", onKey);
+}
+
+function closeFlyerLightbox() {
+  if (lightbox) lightbox.hidden = true;
+  document.body.style.overflow = "";
+}
+
+window.openFlyerLightbox = openFlyerLightbox;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 
 loadSiteCopy();
 setupMobileResourcesToggle();

@@ -8,7 +8,9 @@ window.CLUB_OVERRIDES = {
     venue: "Nate's Baked Goods & Coffee, 401 W 18th St",
     hostDisplay: "Eric Korsh",
     specificDates: ["2026-03-15"],
-    locationNote: "New Locaish",
+    locationNote: "SXSW Pop-Up",
+    flyerURL: "assets/SXSW_2026-3-15.png",
+    featured: true,
   },
   "austin, tx": {
     displayCity: "Austin",
@@ -17,7 +19,9 @@ window.CLUB_OVERRIDES = {
     venue: "Nate's Baked Goods & Coffee, 401 W 18th St",
     hostDisplay: "Eric Korsh",
     specificDates: ["2026-03-15"],
-    locationNote: "New Locaish",
+    locationNote: "SXSW Pop-Up",
+    flyerURL: "assets/SXSW_2026-3-15.png",
+    featured: true,
   },
   "amsterdam, nl": {
     displayCity: "Amsterdam",
@@ -132,3 +136,20 @@ window.CLUB_OVERRIDES = {
     isNight: true,
   },
 };
+
+// Pop-up and one-off clubs not in the main sheet — merged directly into calendar + list views.
+window.STATIC_CLUBS = [
+  {
+    city: "Austin",
+    displayCity: "Austin",
+    cadence: "Pop-Up",
+    time: "Sunday, 8:30am CDT",
+    venue: "Nate's Baked Goods & Coffee, 401 W 18th St",
+    hostName: "Eric Korsh",
+    instagramHandles: ["@kor.sh"],
+    specificDates: ["2026-03-15"],
+    locationNote: "SXSW Pop-Up",
+    flyerURL: "assets/SXSW_2026-3-15.png",
+    isNight: false,
+  },
+];

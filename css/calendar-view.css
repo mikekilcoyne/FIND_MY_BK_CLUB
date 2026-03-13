@@ -313,9 +313,14 @@ h1 {
 }
 
 .detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   border: 1px solid var(--line);
-  background: #fbfbfb;
-  padding: 10px 12px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 4px;
 }
 
 .detail-card.night-edition {
@@ -327,20 +332,22 @@ h1 {
 }
 
 .detail-card h4 {
-  margin: 0 0 5px;
-  font-size: 18px;
+  margin: 0;
+  font-size: clamp(20px, 2.1vw, 28px);
   font-weight: 600;
   text-transform: uppercase;
+  line-height: 1.1;
 }
 
 .detail-row {
-  margin: 0 0 6px;
-  line-height: 1.35;
-  font-size: 14px;
+  margin: 0;
+  line-height: 1.4;
+  font-size: 13px;
+  color: #4a4a4a;
 }
 
 .detail-label {
-  color: #3d3d3d;
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -348,19 +355,71 @@ h1 {
   color: #dce4f3;
 }
 
+.card-utility {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-utility a,
+.card-utility button {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.card-utility a:hover,
+.card-utility button:hover {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.detail-card.night-edition .card-utility a,
+.detail-card.night-edition .card-utility button {
+  background: rgba(7, 16, 31, 0.7);
+  border-color: var(--night-line);
+  color: var(--night-ink);
+}
+
+.detail-card.night-edition .card-utility a:hover,
+.detail-card.night-edition .card-utility button:hover {
+  background: var(--night-line);
+  color: var(--night-ink);
+}
+
 .detail-action {
-  display: inline-block;
-  border: 1px solid #8f8f8f;
-  border-radius: 3px;
-  padding: 2px 8px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
   text-decoration: none;
   color: #111111;
-  background: #f4f4f4;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1.4;
 }
 
 .detail-action:hover {
-  background: #ffffff;
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }
 
 .detail-card.night-edition .detail-action {

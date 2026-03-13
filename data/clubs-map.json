@@ -37,7 +37,8 @@
     "mapsURL": "https://maps.google.com/?q=Nate%27s+Baked+Goods+%26+Coffee%2C+401+W+18th+St%2C+Austin%2C+TX",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "specific", "dates": ["2026-03-15"] },
-    "isPopup": true
+    "isPopup": true,
+    "flyerURL": "assets/SXSW_2026-3-15.png"
   },
   {
     "city": "barcelona, spain",

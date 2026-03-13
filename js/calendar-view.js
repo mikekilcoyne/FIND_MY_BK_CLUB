@@ -439,20 +439,6 @@ function renderDayDetails(isoDate, monthEvents) {
 
         venueRow.append(venueLabel, venueValue);
         card.append(venueRow);
-
-        const mapLink = document.createElement("a");
-        mapLink.className = "detail-action";
-        mapLink.href = getMapURL(`${club.venue}, ${club.city}`);
-        mapLink.target = "_blank";
-        mapLink.rel = "noreferrer";
-        mapLink.textContent = "Open in Google Maps";
-        mapLink.addEventListener("click", () => {
-          trackEvent("calendar_open_maps", {
-            city: club.city,
-            date: isoDate,
-          });
-        });
-        card.append(mapLink);
       }
 
       appendContactLine(card, "Host", club.hostName);
@@ -479,6 +465,34 @@ function renderDayDetails(isoDate, monthEvents) {
       } else if (club.hostEmail) {
         appendContactLine(card, "Primary Contact", club.hostEmail);
       }
+
+      const util = document.createElement("div");
+      util.className = "card-utility";
+
+      if (club.venue) {
+        const mapLink = document.createElement("a");
+        mapLink.href = getMapURL(`${club.venue}, ${club.city}`);
+        mapLink.target = "_blank";
+        mapLink.rel = "noreferrer";
+        mapLink.textContent = "Google Maps";
+        mapLink.addEventListener("click", () => {
+          trackEvent("calendar_open_maps", { city: club.city, date: isoDate });
+        });
+        util.append(mapLink);
+      }
+
+      if (club.flyerURL) {
+        const flyerBtn = document.createElement("button");
+        flyerBtn.textContent = "View Flyer";
+        flyerBtn.addEventListener("click", () => {
+          if (typeof window.openFlyerLightbox === "function") {
+            window.openFlyerLightbox(club.flyerURL, getDisplayCity(club));
+          }
+        });
+        util.append(flyerBtn);
+      }
+
+      if (util.children.length) card.append(util);
 
       selectedDateList.append(card);
     });
@@ -610,6 +624,13 @@ async function loadClubs() {
         };
       })
       .filter((club) => club.city);
+
+    // Merge pop-up / one-off clubs not in the sheet
+    const staticEntries = (window.STATIC_CLUBS || []).map((s) => ({
+      ...s,
+      rule: { type: "unscheduled" },
+    }));
+    clubs = clubs.concat(staticEntries);
 
     statusText.textContent = `${clubs.length} clubs loaded.`;
     statusText.classList.remove("error");

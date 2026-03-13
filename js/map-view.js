@@ -166,6 +166,7 @@
     var venueEl = document.getElementById("card-venue");
     var dateEl = document.getElementById("card-date");
     var mapsBtn = document.getElementById("card-maps-btn");
+    var flyerBtn = document.getElementById("card-flyer-btn");
     var siteLink = document.getElementById("card-site-link");
 
     cityEl.textContent = club.displayCity || club.city;
@@ -206,6 +207,19 @@
     mapsBtn.parentNode.replaceChild(newMapsBtn, mapsBtn);
 
     siteLink.href = club.link || "./index.html";
+
+    if (club.flyerURL) {
+      var newFlyerBtn = flyerBtn.cloneNode(true);
+      newFlyerBtn.hidden = false;
+      newFlyerBtn.addEventListener("click", function () {
+        if (typeof window.openFlyerLightbox === "function") {
+          window.openFlyerLightbox(club.flyerURL, club.displayCity || club.city);
+        }
+      });
+      flyerBtn.parentNode.replaceChild(newFlyerBtn, flyerBtn);
+    } else {
+      flyerBtn.hidden = true;
+    }
 
     card.classList.add("open");
 
