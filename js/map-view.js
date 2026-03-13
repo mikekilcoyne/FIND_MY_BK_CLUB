@@ -209,16 +209,15 @@
     siteLink.href = club.link || "./index.html";
 
     if (club.flyerURL) {
-      var newFlyerBtn = flyerBtn.cloneNode(true);
-      newFlyerBtn.hidden = false;
-      newFlyerBtn.addEventListener("click", function () {
+      flyerBtn.hidden = false;
+      flyerBtn.onclick = function () {
         if (typeof window.openFlyerLightbox === "function") {
           window.openFlyerLightbox(club.flyerURL, club.displayCity || club.city);
         }
-      });
-      flyerBtn.parentNode.replaceChild(newFlyerBtn, flyerBtn);
+      };
     } else {
       flyerBtn.hidden = true;
+      flyerBtn.onclick = null;
     }
 
     card.classList.add("open");
