@@ -1,5 +1,9 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+[functions."weekly-host-reminder"]
+  schedule = "0 12 * * 0"
 
 [[redirects]]
   from = "https://findmybreakfast.club/*"
