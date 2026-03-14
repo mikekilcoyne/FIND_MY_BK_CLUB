@@ -112,7 +112,7 @@ window.CLUB_OVERRIDES = {
     hostDisplay: "Ben Dietz (@bendietz)",
   },
   "philadelphia, pa": { displayCity: "Philadelphia, PA" },
-  "portland, maine":  { displayCity: "Portland, ME" },
+  "portland, maine":  { displayCity: "Portland, ME", hideInstagram: true, linkedinURL: "https://www.linkedin.com/groups/13161347" },
   "soma, nj, usa": {
     displayCity: "Maplewood, NJ",
     cadence: "Weekly",

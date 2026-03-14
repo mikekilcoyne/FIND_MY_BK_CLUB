@@ -574,7 +574,7 @@ async function loadClubs() {
         const override = CLUB_OVERRIDES[normalize(city)] || {};
         const cadence = override.cadence || cells[1] || "";
         const time = formatTimeLabel(override.time || cells[2] || "");
-        const igHandles = extractInstagramHandles(cells[5] || "");
+        const igHandles = override.hideInstagram ? [] : extractInstagramHandles(cells[5] || "");
 
         return {
           city,
@@ -587,7 +587,7 @@ async function loadClubs() {
           isNight: isNightClub(time, override.isNight),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
-          instagramURL: extractInstagramURL(cells[5] || ""),
+          instagramURL: override.hideInstagram ? "" : extractInstagramURL(cells[5] || ""),
           linkedinURL:
             override.linkedinURL ||
             extractLinkedInURL(cells[4] || "", cells[7] || ""),
