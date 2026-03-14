@@ -135,13 +135,15 @@ function extractInstagramHandles(value) {
 
 function formatHostDisplay(hostName, handles, overrideHostDisplay) {
   if (overrideHostDisplay) return overrideHostDisplay;
-  if (!handles.length) return "";
   const cleanName = (hostName || "").trim();
-  if (cleanName) {
-    const names = cleanName
-      .split(/\s*[,+]\s*|\s+and\s+/i)
-      .map((s) => s.trim())
-      .filter(Boolean);
+  if (!handles.length) return cleanName;
+  const names = cleanName
+    ? cleanName
+        .split(/\s*[,+]\s*|\s+and\s+/i)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  if (names.length) {
     return `${names.join(" & ")} (${handles.join(" | ")})`;
   }
   return handles.join(" | ");
