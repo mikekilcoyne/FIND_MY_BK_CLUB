@@ -3,3 +3,6 @@
 private/
 *.csv
 .env
+
+# Local Netlify folder
+.netlify

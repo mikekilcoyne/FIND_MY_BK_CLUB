@@ -109,6 +109,18 @@ function extractInstagramHandleFromURL(value) {
   return match && match[1] ? `@${match[1]}` : "";
 }
 
+function extractLinkedInURL(...values) {
+  for (const value of values) {
+    const raw = (value || "").trim();
+    if (!raw) continue;
+    const direct = raw.match(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s,]+/i);
+    if (direct) return direct[0];
+    const noProtocol = raw.match(/(?:www\.)?linkedin\.com\/[^\s,]+/i);
+    if (noProtocol) return `https://${noProtocol[0]}`;
+  }
+  return "";
+}
+
 function extractEmail(value) {
   const raw = (value || "").trim();
   if (!raw) return "";
@@ -453,7 +465,7 @@ function renderDayDetails(isoDate, monthEvents) {
         primary.append(label);
 
         club.instagramHandles.forEach((handle, idx) => {
-          if (idx > 0) primary.append(document.createTextNode(" + "));
+          if (idx > 0) primary.append(document.createTextNode(" | "));
           const igLink = document.createElement("a");
           igLink.href = `https://www.instagram.com/${handle.slice(1)}/`;
           igLink.target = "_blank";
@@ -479,6 +491,16 @@ function renderDayDetails(isoDate, monthEvents) {
           trackEvent("calendar_open_maps", { city: club.city, date: isoDate });
         });
         util.append(mapLink);
+      }
+
+      if (club.linkedinURL) {
+        const liLink = document.createElement("a");
+        liLink.href = club.linkedinURL;
+        liLink.target = "_blank";
+        liLink.rel = "noreferrer";
+        liLink.className = "li-icon-link";
+        liLink.textContent = "in";
+        util.append(liLink);
       }
 
       if (club.flyerURL) {
@@ -608,6 +630,7 @@ async function loadClubs() {
         const time = formatTimeLabel(override.time || cells[2] || "");
         const instagramHandles = collectInstagramHandles(cells[5] || "", override);
         const hostEmail = extractEmail(cells[4] || "");
+        const linkedinURL = override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || "");
         return {
           city,
           displayCity: override.displayCity || city,
@@ -618,6 +641,7 @@ async function loadClubs() {
           hostName: override.hostDisplay || cells[3] || "",
           hostEmail,
           instagramHandles,
+          linkedinURL,
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
           rule: getScheduleRule(cadence, time),

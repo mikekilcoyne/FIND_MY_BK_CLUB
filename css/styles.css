@@ -379,14 +379,23 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 8px;
+  gap: 4px 6px;
   font-size: 13px;
   color: #4a4a4a;
   line-height: 1.4;
 }
 
+.card-subline .subline-sep {
+  color: #aaa;
+  user-select: none;
+}
+
 .club-card.night-edition .card-subline {
   color: #dce4f3;
+}
+
+.club-card.night-edition .card-subline .subline-sep {
+  color: #7a8caa;
 }
 
 .badge {
@@ -428,12 +437,36 @@ h2 {
   color: #f2de9a;
 }
 
+/* Host note toggle */
+
+.note-icon-btn {
+  font-size: 13px;
+  line-height: 1;
+  padding: 3px 7px;
+}
+
+.note-icon-btn.open {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.host-note-body {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.45;
+}
+
+.club-card.night-edition .host-note-body {
+  color: #b0bfd8;
+}
+
 /* Host line */
 
 .card-host {
   font-size: 12px;
   color: #555;
-  text-transform: uppercase;
   letter-spacing: 0.01em;
   line-height: 1.4;
 }

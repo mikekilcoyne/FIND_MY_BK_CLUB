@@ -2,6 +2,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+
 [functions."weekly-host-reminder"]
   schedule = "0 12 * * 0"
 

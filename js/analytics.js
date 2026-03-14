@@ -196,7 +196,7 @@
       <h2 class="sxsw-callout-title">SXSW Pop-Up Breakfast Club</h2>
       <p class="sxsw-callout-copy">Announcing a pop-up BKFST CLUB in Austin during SXSW. Everyone's invited, especially you.</p>
       <p class="sxsw-callout-meta">Sunday, Mar 15, 8:30 AM CDT · Nate's Baked Goods &amp; Coffee, 401 W 18th St, Austin, TX</p>
-      <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/kor.sh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
+      <p class="sxsw-callout-host">Host contact: <a href="https://www.instagram.com/erickorsh/" target="_blank" rel="noreferrer">Eric Korsh</a></p>
       <div class="sxsw-callout-actions">
         <a class="sxsw-callout-btn" href="https://www.google.com/maps/search/?api=1&query=Nate%27s+Baked+Goods+%26+Coffee%2C+401+W+18th+St%2C+Austin%2C+TX" target="_blank" rel="noreferrer">Google Maps</a>
         <button class="sxsw-callout-btn sxsw-callout-btn--primary" data-flyer-url="./assets/SXSW_2026-3-15.png" type="button">View Flyer</button>

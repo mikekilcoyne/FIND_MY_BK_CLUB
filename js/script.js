@@ -138,9 +138,13 @@ function formatHostDisplay(hostName, handles, overrideHostDisplay) {
   if (!handles.length) return "";
   const cleanName = (hostName || "").trim();
   if (cleanName) {
-    return `${cleanName} (${handles.join(", ")})`;
+    const names = cleanName
+      .split(/\s*[,+]\s*|\s+and\s+/i)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return `${names.join(" & ")} (${handles.join(" | ")})`;
   }
-  return handles.join(", ");
+  return handles.join(" | ");
 }
 
 function extractLinkedInURL(...values) {
@@ -368,11 +372,19 @@ function render(items) {
         subline.append(freq);
       }
 
-      if (club.venue) {
+      const isLongVenue = club.venue && club.venue.length > 55;
+
+      if (club.venue && !isLongVenue) {
+        if (club.scheduleLabel) {
+          const sep = document.createElement("span");
+          sep.className = "subline-sep";
+          sep.textContent = "|";
+          subline.append(sep);
+        }
         const venueEl = document.createElement("span");
         venueEl.textContent = club.venue;
         subline.append(venueEl);
-      } else {
+      } else if (!club.venue) {
         const tbd = document.createElement("span");
         tbd.className = "badge badge-tbd";
         tbd.textContent = "TBD";
@@ -395,11 +407,20 @@ function render(items) {
 
       if (subline.children.length) card.append(subline);
 
+      // note body element (referenced by utility row button below)
+      let noteBody = null;
+      if (isLongVenue) {
+        noteBody = document.createElement("p");
+        noteBody.className = "host-note-body";
+        noteBody.textContent = club.venue;
+        noteBody.hidden = true;
+      }
+
       // 3. Host line
       if (club.hostDisplay) {
         const host = document.createElement("div");
         host.className = "card-host";
-        host.append(document.createTextNode("HOST: "));
+        host.append(document.createTextNode("Host: "));
         host.append(renderTextWithInstagramLinks(club.hostDisplay));
         card.append(host);
       }
@@ -456,7 +477,22 @@ function render(items) {
         util.append(flyerBtn);
       }
 
+      if (noteBody) {
+        const noteBtn = document.createElement("button");
+        noteBtn.className = "note-icon-btn";
+        noteBtn.title = "Note from host";
+        noteBtn.textContent = "✎";
+        noteBtn.addEventListener("click", () => {
+          const expanded = !noteBody.hidden;
+          noteBody.hidden = expanded;
+          noteBtn.classList.toggle("open", !expanded);
+        });
+        util.append(noteBtn);
+      }
+
       if (util.children.length) card.append(util);
+
+      if (noteBody) card.append(noteBody);
 
       section.append(card);
     }
