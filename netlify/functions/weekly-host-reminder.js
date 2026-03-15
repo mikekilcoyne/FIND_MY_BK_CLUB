@@ -1,4 +1,4 @@
-// Runs every Sunday at 12:00 UTC (8am ET)
+// Runs every Sunday at 17:00 UTC (12pm ET)
 // Fetches active host emails from the Google Sheet and sends a weekly reminder via SendGrid.
 //
 // Required env vars (set in Netlify Dashboard → Site settings → Environment variables):
@@ -149,11 +149,11 @@ export async function handler() {
 
   // 2. Filter active hosts with emails
   const recipients = rows
-    .filter(row => row.Active !== "No" && row.Host_Email)
+    .filter(row => row.Active !== "No" && row.Emails)
     .flatMap(row => {
       const city      = row.City || "";
       const hostName  = row.Host_Name || "";
-      return row.Host_Email.split(";").map(email => ({
+      return row.Emails.split(";").map(email => ({
         email: email.trim().toLowerCase(),
         city,
         hostName,
