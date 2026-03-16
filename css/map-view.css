@@ -239,6 +239,11 @@
   font-size: 14px;
   color: var(--ink);
   text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 /* ── Leaflet overrides ── */

@@ -312,7 +312,7 @@
     });
     mapsBtn.parentNode.replaceChild(newMapsBtn, mapsBtn);
 
-    siteLink.href = club.link || "./index.html";
+    // siteLink handled in init() — zooms out to world view
 
     if (club.linkedinURL) {
       linkedinBtn.href = club.linkedinURL;
@@ -732,6 +732,13 @@
     document.getElementById("card-close").addEventListener("click", function (e) {
       L.DomEvent.stopPropagation(e);
       closeCard();
+    });
+
+    document.getElementById("card-site-link").addEventListener("click", function (e) {
+      e.preventDefault();
+      closeCard();
+      setRegion("All");
+      map.flyTo([30, 10], 2, { duration: 1.2 });
     });
 
     document.getElementById("trip-planner-btn").addEventListener("click", function () {
