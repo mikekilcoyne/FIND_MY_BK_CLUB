@@ -1,6 +1,109 @@
 (function () {
   "use strict";
 
+  var SHEET_CSV_URL =
+    "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
+
+  // ── CSV parsing (same pipeline as home + calendar) ────
+
+  function normCity(str) {
+    return (str || "").toLowerCase().trim();
+  }
+
+  function parseCSVLine(line) {
+    var out = [];
+    var value = "";
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { value += '"'; i++; }
+        else { inQuotes = !inQuotes; }
+        continue;
+      }
+      if (ch === "," && !inQuotes) { out.push(value.trim()); value = ""; continue; }
+      value += ch;
+    }
+    out.push(value.trim());
+    return out;
+  }
+
+  function parseCSV(text) {
+    var lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
+    var rows = [];
+    var current = "";
+    var quoteCount = 0;
+    for (var i = 0; i < lines.length; i++) {
+      if (current) current += "\n";
+      current += lines[i];
+      quoteCount += (lines[i].match(/"/g) || []).length;
+      if (quoteCount % 2 === 0) {
+        rows.push(parseCSVLine(current));
+        current = "";
+        quoteCount = 0;
+      }
+    }
+    return rows;
+  }
+
+  function cleanCell(value) {
+    var raw = (value || "").replace(/\s+/g, " ").trim();
+    if (!raw) return "";
+    var low = raw.toLowerCase();
+    if (low === "tbd" || low === "x") return "";
+    if (low.includes("looking for a home") || low.includes("changing locations soon")) return "";
+    return raw;
+  }
+
+  function getVenueFromCells(loc, addr) {
+    return cleanCell(loc) || cleanCell(addr) || "";
+  }
+
+  function extractInstagramURL(value) {
+    var raw = (value || "").trim();
+    var matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
+    if (!matches.length) return "";
+    var handle = matches[0].replace(/^@/, "");
+    return handle ? "https://www.instagram.com/" + handle + "/" : "";
+  }
+
+  function extractLinkedInURL(contactCell, linkedinCell) {
+    var vals = [contactCell, linkedinCell];
+    for (var i = 0; i < vals.length; i++) {
+      var raw = (vals[i] || "").trim();
+      if (!raw) continue;
+      var direct = raw.match(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s,]+/i);
+      if (direct) return direct[0];
+      var noProto = raw.match(/(?:www\.)?linkedin\.com\/[^\s,]+/i);
+      if (noProto) return "https://" + noProto[0];
+    }
+    return "";
+  }
+
+  // ── Merge CSV onto geo club objects ───────────────────
+
+  function mergeCSV(geoClubs, csvRows) {
+    var OVERRIDES = window.CLUB_OVERRIDES || {};
+    var byCity = {};
+    csvRows.slice(1).forEach(function (cells) {
+      var key = normCity(cells[0] || "");
+      if (key) byCity[key] = cells;
+    });
+
+    return geoClubs.map(function (club) {
+      var key = normCity(club.city);
+      var override = OVERRIDES[key] || {};
+      var cells = byCity[key] || [];
+      return Object.assign({}, club, {
+        displayCity: override.displayCity || club.displayCity || club.city,
+        host: override.hostDisplay || cleanCell(cells[3] || "") || club.host || "",
+        venue: override.venue || getVenueFromCells(cells[8] || "", cells[9] || "") || club.venue || "",
+        linkedinURL: override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || "") || club.linkedinURL || "",
+        instagramURL: override.instagramURL || extractInstagramURL(cells[5] || "") || "",
+      });
+    });
+  }
+
   var REGION_BOUNDS = {
     "Northeast US": [[38, -80], [47, -66]],
     "Southeast US": [[24, -92], [38, -75]],
@@ -29,6 +132,7 @@
   var allClubs = [];
   var activeRegion = "All";
   var tripActive = false;
+  var suppressMapClose = false;
 
   // ── Map init ──────────────────────────────────────────
 
@@ -68,6 +172,7 @@
     map.addLayer(markerLayer);
 
     map.on("click", function () {
+      if (suppressMapClose) return;
       closeCard();
     });
   }
@@ -167,6 +272,7 @@
     var dateEl = document.getElementById("card-date");
     var mapsBtn = document.getElementById("card-maps-btn");
     var linkedinBtn = document.getElementById("card-linkedin-btn");
+    var instagramBtn = document.getElementById("card-instagram-btn");
     var siteLink = document.getElementById("card-site-link");
 
     cityEl.textContent = club.displayCity || club.city;
@@ -216,7 +322,17 @@
       linkedinBtn.hidden = true;
     }
 
+    if (club.instagramURL) {
+      instagramBtn.href = club.instagramURL;
+      instagramBtn.hidden = false;
+    } else {
+      instagramBtn.href = "#";
+      instagramBtn.hidden = true;
+    }
+
+    suppressMapClose = true;
     card.classList.add("open");
+    setTimeout(function () { suppressMapClose = false; }, 50);
 
     if (window.innerWidth <= 960 && map) {
       // Keep selected pin visible above the bottom sheet on mobile.
@@ -583,12 +699,18 @@
   function init() {
     initMap();
 
-    fetch("./data/clubs-map.json")
-      .then(function (res) {
+    Promise.all([
+      fetch("./data/clubs-map.json").then(function (res) {
         if (!res.ok) throw new Error("Failed to load map data");
         return res.json();
-      })
-      .then(function (clubs) {
+      }),
+      fetch(SHEET_CSV_URL)
+        .then(function (res) { return res.ok ? res.text() : ""; })
+        .then(function (text) { return text ? parseCSV(text) : [[]]; })
+        .catch(function () { return [[]]; }),
+    ])
+      .then(function (results) {
+        var clubs = mergeCSV(results[0], results[1]);
         allClubs = clubs;
         renderMarkers(clubs);
 
@@ -671,9 +793,6 @@
       openTripPlanner();
     });
 
-    map.on("click", function () {
-      closeCard();
-    });
   }
 
   document.addEventListener("DOMContentLoaded", init);
