@@ -167,25 +167,14 @@ a {
   color: #4a4a4a;
 }
 
-.cta-map {
-  background: #0d6e43;
-  color: #ffffff;
-  border-color: #0a5534;
-}
-
-.cta-map:hover {
-  background: #0f7a4c;
-  color: #ffffff;
-}
-
 .new-feature-badge {
   display: inline-block;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: #ffffff;
-  color: #0d6e43;
+  background: #0d6e43;
+  color: #ffffff;
   border-radius: 4px;
   padding: 2px 5px;
   line-height: 1.2;
@@ -251,6 +240,29 @@ h2 {
   background: #ffffff;
 }
 
+.cta-map {
+  background: #ffffff;
+  color: #0d6e43;
+  border-color: #0d6e43;
+  font-weight: 600;
+}
+
+.cta-map:hover {
+  background: #0d6e43;
+  color: #ffffff;
+  border-color: #0d6e43;
+}
+
+.cta-map .new-feature-badge {
+  background: #0d6e43;
+  color: #ffffff;
+}
+
+.cta-map:hover .new-feature-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
 .status {
   margin: 0 0 14px;
   font-size: 14px;
@@ -310,222 +322,6 @@ h2 {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: #666;
-}
-
-/* === Club Cards === */
-
-.club-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #f9f9f9;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 16px 18px;
-  margin-bottom: 4px;
-}
-
-.club-card.night-edition {
-  background:
-    radial-gradient(circle at top right, rgba(164, 198, 255, 0.22), transparent 34%),
-    linear-gradient(180deg, var(--night-sky) 0%, var(--night-sky-deep) 100%);
-  border-color: var(--night-line);
-  color: var(--night-ink);
-}
-
-.flagship-card {
-  background: linear-gradient(135deg, #fffbef 0%, #fdf3cc 100%);
-  border-color: #e2c96a;
-  box-shadow: 0 0 0 2px rgba(226, 193, 71, 0.2);
-}
-
-/* City name — primary headline */
-
-.city-name {
-  display: block;
-  font-size: clamp(20px, 2.1vw, 28px);
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.city-name:where(a) {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.club-card.night-edition .city-name {
-  color: var(--night-ink);
-}
-
-.city-name.original-bc {
-  color: #0b5f3b;
-}
-
-.city-name.original-bc::after {
-  content: "  The Original BC";
-  font-size: 0.4em;
-  font-weight: 500;
-  color: #0b5f3b;
-  vertical-align: middle;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-/* Subline — frequency, venue, badges */
-
-.card-subline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-  font-size: 13px;
-  color: #4a4a4a;
-  line-height: 1.4;
-}
-
-.card-subline .subline-sep {
-  color: #aaa;
-  user-select: none;
-}
-
-.club-card.night-edition .card-subline {
-  color: #dce4f3;
-}
-
-.club-card.night-edition .card-subline .subline-sep {
-  color: #7a8caa;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 999px;
-  border: 1px solid;
-  line-height: 1.4;
-}
-
-.badge-tbd {
-  color: #5a5a5a;
-  border-color: #b8b8b8;
-  background: transparent;
-}
-
-.badge-night {
-  background: #f2de9a;
-  border-color: #d3b24d;
-  color: #111;
-}
-
-.badge-location {
-  background: #ff5c00;
-  border-color: #cc4900;
-  color: #ffffff;
-  font-weight: 700;
-}
-
-.club-card.night-edition .badge-night {
-  background: rgba(242, 222, 154, 0.15);
-  border-color: rgba(211, 178, 77, 0.6);
-  color: #f2de9a;
-}
-
-/* Host note toggle */
-
-.note-icon-btn {
-  font-size: 13px;
-  line-height: 1;
-  padding: 3px 7px;
-}
-
-.note-icon-btn.open {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
-
-.host-note-body {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.45;
-}
-
-.club-card.night-edition .host-note-body {
-  color: #b0bfd8;
-}
-
-/* Host line */
-
-.card-host {
-  font-size: 12px;
-  color: #555;
-  letter-spacing: 0.01em;
-  line-height: 1.4;
-}
-
-.club-card.night-edition .card-host {
-  color: #dce4f3;
-}
-
-.host-instagram-link {
-  color: inherit;
-  text-decoration: underline;
-}
-
-/* Utility row — maps, socials, contact */
-
-.card-utility {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.card-utility a,
-.card-utility button {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 4px 10px;
-  border: 1px solid #bbb;
-  border-radius: 10px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-  font-family: inherit;
-  line-height: 1.4;
-}
-
-.card-utility a:hover,
-.card-utility button:hover {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
-
-.club-card.night-edition .card-utility a,
-.club-card.night-edition .card-utility button {
-  background: rgba(7, 16, 31, 0.7);
-  border-color: var(--night-line);
-  color: var(--night-ink);
-}
-
-.club-card.night-edition .card-utility a:hover,
-.club-card.night-edition .card-utility button:hover {
-  background: var(--night-line);
-  color: var(--night-ink);
 }
 
 /* === Featured Event Strip === */
@@ -729,14 +525,6 @@ h2 {
 
   .clubs-grid {
     grid-template-columns: 1fr;
-  }
-
-  .club-card {
-    padding: 14px 16px;
-  }
-
-  .city-name {
-    font-size: clamp(22px, 6vw, 30px);
   }
 
   .cta {

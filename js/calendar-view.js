@@ -162,13 +162,9 @@ function appendContactLine(container, label, value) {
   const cleaned = compactText(value);
   if (!cleaned) return;
 
-  const row = document.createElement("p");
-  row.className = "detail-row";
-
-  const rowLabel = document.createElement("span");
-  rowLabel.className = "detail-label";
-  rowLabel.textContent = `${label}: `;
-  row.append(rowLabel);
+  const row = document.createElement("div");
+  row.className = "card-host";
+  row.append(document.createTextNode(`${label}: `));
 
   const parts = toContactParts(cleaned);
   if (!parts.length) {
@@ -400,84 +396,77 @@ function renderDayDetails(isoDate, monthEvents) {
     .sort((a, b) => getDisplayCity(a).localeCompare(getDisplayCity(b)))
     .forEach((club) => {
       const card = document.createElement("article");
-      card.className = "detail-card";
-      if (club.isNight) {
-        card.classList.add("night-edition");
+      card.className = "club-card";
+      if (club.isNight) card.classList.add("night-edition");
+
+      // 1. City name
+      const cityEl = document.createElement("div");
+      cityEl.className = "city-name";
+      cityEl.textContent = getDisplayCity(club);
+      card.append(cityEl);
+
+      // 2. Subline: schedule text + badges
+      const subline = document.createElement("div");
+      subline.className = "card-subline";
+
+      if (club.time || club.cadence) {
+        subline.append(document.createTextNode(club.time || club.cadence));
       }
 
-      const title = document.createElement("h4");
-      title.textContent = getDisplayCity(club);
-      card.append(title);
-
       if (club.isNight) {
-        const nightChip = document.createElement("span");
-        nightChip.className = "night-chip";
-        nightChip.textContent = "At night";
-        card.append(nightChip);
+        const nightBadge = document.createElement("span");
+        nightBadge.className = "badge badge-night";
+        nightBadge.textContent = "Night";
+        subline.append(nightBadge);
       }
 
       if (isPopupEvent(club, isoDate)) {
-        const popupChip = document.createElement("span");
-        popupChip.className = "popup-chip";
-        popupChip.textContent = "Pop-Up";
-        card.append(popupChip);
+        const popupBadge = document.createElement("span");
+        popupBadge.className = "badge badge-popup";
+        popupBadge.textContent = "Pop-Up";
+        subline.append(popupBadge);
       }
 
       if (club.locationNote) {
-        const locChip = document.createElement("span");
-        locChip.className = "popup-chip location-chip";
-        locChip.textContent = club.locationNote;
-        card.append(locChip);
+        const locBadge = document.createElement("span");
+        locBadge.className = "badge badge-location";
+        locBadge.textContent = club.locationNote;
+        subline.append(locBadge);
       }
 
-      if (club.time || club.cadence) {
-        const schedule = document.createElement("p");
-        schedule.className = "detail-row";
-        const scheduleLabel = club.time || club.cadence;
-        schedule.textContent = scheduleLabel;
-        card.append(schedule);
-      }
+      if (subline.childNodes.length) card.append(subline);
 
+      // 3. Venue
       if (club.venue) {
-        const venueRow = document.createElement("p");
-        venueRow.className = "detail-row";
-
-        const venueLabel = document.createElement("span");
-        venueLabel.className = "detail-label";
-        venueLabel.textContent = "Venue: ";
-
-        const venueValue = document.createElement("span");
-        venueValue.textContent = club.venue;
-
-        venueRow.append(venueLabel, venueValue);
+        const venueRow = document.createElement("div");
+        venueRow.className = "card-host";
+        venueRow.textContent = `Venue: ${club.venue}`;
         card.append(venueRow);
       }
 
+      // 4. Host + contact
       appendContactLine(card, "Host", club.hostName);
 
       if (club.instagramHandles && club.instagramHandles.length) {
-        const primary = document.createElement("p");
-        primary.className = "detail-row";
-
-        const label = document.createElement("span");
-        label.className = "detail-label";
-        label.textContent = "Primary Contact: ";
-        primary.append(label);
+        const contactRow = document.createElement("div");
+        contactRow.className = "card-host";
+        contactRow.append(document.createTextNode("Contact: "));
 
         club.instagramHandles.forEach((handle, idx) => {
-          if (idx > 0) primary.append(document.createTextNode(" | "));
+          if (idx > 0) contactRow.append(document.createTextNode(" | "));
           const igLink = document.createElement("a");
           igLink.href = `https://www.instagram.com/${handle.slice(1)}/`;
           igLink.target = "_blank";
           igLink.rel = "noreferrer";
           igLink.textContent = handle;
-          primary.append(igLink);
+          contactRow.append(igLink);
         });
-        card.append(primary);
+        card.append(contactRow);
       } else if (club.hostEmail) {
-        appendContactLine(card, "Primary Contact", club.hostEmail);
+        appendContactLine(card, "Contact", club.hostEmail);
       }
 
+      // 5. Utility row
       const util = document.createElement("div");
       util.className = "card-utility";
 
@@ -501,17 +490,6 @@ function renderDayDetails(isoDate, monthEvents) {
         liLink.className = "li-icon-link";
         liLink.textContent = "in";
         util.append(liLink);
-      }
-
-      if (club.flyerURL) {
-        const flyerBtn = document.createElement("button");
-        flyerBtn.textContent = "View Flyer";
-        flyerBtn.addEventListener("click", () => {
-          if (typeof window.openFlyerLightbox === "function") {
-            window.openFlyerLightbox(club.flyerURL, getDisplayCity(club));
-          }
-        });
-        util.append(flyerBtn);
       }
 
       if (util.children.length) card.append(util);

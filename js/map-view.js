@@ -166,9 +166,7 @@
     var venueEl = document.getElementById("card-venue");
     var dateEl = document.getElementById("card-date");
     var mapsBtn = document.getElementById("card-maps-btn");
-    var emailBtn = document.getElementById("card-email-btn");
     var linkedinBtn = document.getElementById("card-linkedin-btn");
-    var flyerBtn = document.getElementById("card-flyer-btn");
     var siteLink = document.getElementById("card-site-link");
 
     cityEl.textContent = club.displayCity || club.city;
@@ -210,32 +208,12 @@
 
     siteLink.href = club.link || "./index.html";
 
-    if (club.email) {
-      emailBtn.href = "mailto:" + club.email;
-      emailBtn.hidden = false;
-    } else {
-      emailBtn.href = "#";
-      emailBtn.hidden = true;
-    }
-
     if (club.linkedinURL) {
       linkedinBtn.href = club.linkedinURL;
       linkedinBtn.hidden = false;
     } else {
       linkedinBtn.href = "#";
       linkedinBtn.hidden = true;
-    }
-
-    if (club.flyerURL) {
-      flyerBtn.hidden = false;
-      flyerBtn.onclick = function () {
-        if (typeof window.openFlyerLightbox === "function") {
-          window.openFlyerLightbox(club.flyerURL, club.displayCity || club.city);
-        }
-      };
-    } else {
-      flyerBtn.hidden = true;
-      flyerBtn.onclick = null;
     }
 
     card.classList.add("open");
