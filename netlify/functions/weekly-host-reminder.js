@@ -6,7 +6,44 @@
 //   SHEET_CSV_URL      — Google Sheet CSV export URL (same as in script.js)
 
 const SHEET_CSV_URL = process.env.SHEET_CSV_URL ||
-  "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=0";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRMNG01d9e9EXWFE8p97q1HnUj1ikPttYoO1fP1kV-izueziGqw0oDEmDWp1ZukS3pSrnR4EBCQoKJu/pub?output=csv";
+
+// Fallback host list — used if the sheet fetch fails.
+// Each entry: { city, hostName, emails: ["a@b.com", ...] }
+const FALLBACK_HOSTS = [
+  { city: "Amsterdam",                  hostName: "Sheila Guo",                                    emails: ["sheilaguo42@gmail.com"] },
+  { city: "Barcelona",                  hostName: "Nicole Ingra & Kevin Maguire",                  emails: ["hello@nicoleingra.com", "kevmaguire@gmail.com"] },
+  { city: "Bassano del Grappa",         hostName: "Charla Caponi & Amy Rich",                      emails: ["charlanoelcaponi@gmail.com"] },
+  { city: "Biarritz",                   hostName: "Maggie Spicer",                                 emails: ["maggie@whisksf.com"] },
+  { city: "Boulder",                    hostName: "Joy Shure",                                     emails: ["joy.s@skratchlabs.com"] },
+  { city: "Copenhagen",                 hostName: "Denize Maaloe, Diego Marini & team",            emails: ["denize@yummycolours.com"] },
+  { city: "Denver",                     hostName: "Kate Gagnon",                                   emails: ["Kate.gagnon@gmail.com"] },
+  { city: "London",                     hostName: "Victoria Gates Fleming",                        emails: ["victoria.gatesfleming@gmail.com"] },
+  { city: "Lugano",                     hostName: "Camilla Finocchiaro Aprile & Elettra Fiumi",   emails: ["camillandreaprile@gmail.com", "elettra.fiumi@gmail.com"] },
+  { city: "Melbourne — Fitzroy",        hostName: "Celeste Blewitt & Josh Gardiner",               emails: ["celeste@celesteblewitt.com", "josh@gardinercommunications.com"] },
+  { city: "Melbourne — Richmond",       hostName: "Steph Clarke",                                  emails: ["steph@28thursdays.com"] },
+  { city: "Mexico City",                hostName: "Steve Bryant",                                  emails: ["steev@thisisdelightful.com"] },
+  { city: "Milano",                     hostName: "Charla Caponi, Moritz Gaudlitz & Giorgio Bartoli", emails: ["charlanoelcaponi@gmail.com", "giorgio@golabagency.com", "mg@cultureshifts.net"] },
+  { city: "New York — Downtown Brooklyn", hostName: "Kat Popiel & Lynn Juang",                    emails: ["Kat.popiel@gmail.com"] },
+  { city: "New York — Hamptons",        hostName: "Michael Kilcoyne & Adam H.",                    emails: ["mk@yellowsatinjacket.com"] },
+  { city: "New York — LES",             hostName: "Heidi Hartwig",                                 emails: ["Heidi@friendsfromnewyork.com"] },
+  { city: "New York — Williamsburg",    hostName: "Ben Dietz",                                     emails: ["ben.dietz@gmail.com"] },
+  { city: "Norwich",                    hostName: "Rusty Nash & Emily Delva",                      emails: ["rusty@opalescent.com", "emily@opalescent.com"] },
+  { city: "Panama City",                hostName: "Carla Batista, Jacob Larrinaga & Daniela Jované", emails: ["cbatistajf@gmail.com", "crecer@academiadespierta.com", "djovaner@gmail.com"] },
+  { city: "Paris",                      hostName: "Lisa Ono, Karla Rodriguez & Sarah Garcia Delporte", emails: ["lisaonocreate@icloud.com", "sarah_garciadelporte@yahoo.fr", "karlarodriguezcespedes@gmail.com"] },
+  { city: "Philadelphia",               hostName: "Julie Gerstein",                                emails: ["julie.gerstein@gmail.com"] },
+  { city: "Portland, ME",               hostName: "Michele Martin & Lydia Wagner",                 emails: ["michelemartin207@gmail.com", "wagnerlk@gmail.com"] },
+  { city: "Portland, OR",               hostName: "Nina Sers & Chelsea Place",                     emails: ["Ninasers@gmail.com"] },
+  { city: "San Francisco",              hostName: "Chris Gillespie",                               emails: ["chris@fenwick.media"] },
+  { city: "Seattle",                    hostName: "Mike Burlin",                                   emails: ["michael.burlin@gmail.com"] },
+  { city: "Singapore",                  hostName: "Seraphina Woon",                                emails: ["seraphina.woon@gmail.com"] },
+  { city: "Maplewood, NJ",             hostName: "James Friedman",                                emails: ["james.friedman@gmail.com"] },
+  { city: "Torquay, AU",               hostName: "Steph Clarke",                                  emails: ["steph@28thursdays.com"] },
+  { city: "Sydney",                     hostName: "Elisha Akhtar",                                 emails: ["eliakhtar89@gmail.com"] },
+  { city: "Toronto",                    hostName: "Jared Gordon & Sarah Phillips",                 emails: ["jared@gordonintl.com", "phillips.a.sarah@gmail.com"] },
+  { city: "Vienna",                     hostName: "Carla Moss & Laura Pana",                       emails: ["mariacarlamoss@gmail.com"] },
+  { city: "Washington DC",             hostName: "Michael Hastings-Black",                        emails: ["michael@askmhb.com"] },
+];
 
 const FROM_EMAIL = "ben@breakfastclubbing.com";
 const FROM_NAME  = "Breakfast Club HQ";
@@ -135,31 +172,33 @@ export async function handler() {
     return { statusCode: 500, body: "Missing SENDGRID_API_KEY" };
   }
 
-  // 1. Fetch sheet
-  let rows;
+  // 1. Fetch sheet (fall back to hardcoded list on any error)
+  let recipients;
   try {
     const res = await fetch(SHEET_CSV_URL);
     if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
     const csv = await res.text();
-    rows = parseCSV(csv);
+    const rows = parseCSV(csv);
+    recipients = rows
+      .filter(row => row.Active !== "No" && row.Emails)
+      .flatMap(row => {
+        const city     = row.City || "";
+        const hostName = row.Host_Name || "";
+        return row.Emails.split(";").map(email => ({
+          email: email.trim().toLowerCase(),
+          city,
+          hostName,
+        }));
+      })
+      .filter(r => r.email && r.email.includes("@"));
+    console.log(`Sheet fetched — ${recipients.length} recipients`);
   } catch (err) {
-    console.error("Failed to fetch sheet:", err.message);
-    return { statusCode: 500, body: "Sheet fetch failed" };
+    console.error("Failed to fetch sheet, using fallback list:", err.message);
+    recipients = FALLBACK_HOSTS.flatMap(({ city, hostName, emails }) =>
+      emails.map(email => ({ email: email.trim().toLowerCase(), city, hostName }))
+    );
+    console.log(`Fallback list — ${recipients.length} recipients`);
   }
-
-  // 2. Filter active hosts with emails
-  const recipients = rows
-    .filter(row => row.Active !== "No" && row.Emails)
-    .flatMap(row => {
-      const city      = row.City || "";
-      const hostName  = row.Host_Name || "";
-      return row.Emails.split(";").map(email => ({
-        email: email.trim().toLowerCase(),
-        city,
-        hostName,
-      }));
-    })
-    .filter(r => r.email && r.email.includes("@"));
 
   if (!recipients.length) {
     console.log("No recipients found — check Host_Email column in sheet");
