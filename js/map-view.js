@@ -2,7 +2,7 @@
   "use strict";
 
   var SHEET_CSV_URL =
-    "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
+    "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
 
   // ── CSV parsing (same pipeline as home + calendar) ────
 
@@ -59,6 +59,15 @@
     return cleanCell(loc) || cleanCell(addr) || "";
   }
 
+  function normalizeFlyer(url) {
+    if (!url) return "";
+    var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
+    var match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match2) return "https://drive.google.com/uc?export=view&id=" + match2[1];
+    return url;
+  }
+
   function extractInstagramURL(value) {
     var raw = (value || "").trim();
     var matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
@@ -96,10 +105,11 @@
       var cells = byCity[key] || [];
       return Object.assign({}, club, {
         displayCity: override.displayCity || club.displayCity || club.city,
-        host: override.hostDisplay || cleanCell(cells[3] || "") || club.host || "",
-        venue: override.venue || getVenueFromCells(cells[8] || "", cells[9] || "") || club.venue || "",
-        linkedinURL: override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || "") || club.linkedinURL || "",
-        instagramURL: override.instagramURL || extractInstagramURL(cells[5] || "") || "",
+        host: override.hostDisplay || cleanCell(cells[8] || "") || club.host || "",
+        venue: override.venue || cleanCell(cells[3] || "") || club.venue || "",
+        linkedinURL: override.linkedinURL || extractLinkedInURL(cells[11] || "", cells[12] || "") || club.linkedinURL || "",
+        instagramURL: override.instagramURL || extractInstagramURL(cells[10] || "") || "",
+        flyerURL: override.flyerURL || normalizeFlyer(cells[13] || "") || "",
       });
     });
   }

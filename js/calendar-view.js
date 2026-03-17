@@ -1,5 +1,5 @@
 const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
+  "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
 const statusText = document.querySelector("#status");
@@ -85,6 +85,15 @@ function cleanLocationValue(value) {
 
 function getVenue(location, addressInfo) {
   return cleanLocationValue(location) || cleanLocationValue(addressInfo) || "";
+}
+
+function normalizeFlyer(url) {
+  if (!url) return "";
+  var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
+  var match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2) return "https://drive.google.com/uc?export=view&id=" + match2[1];
+  return url;
 }
 
 function getMapURL(place) {
@@ -599,27 +608,34 @@ async function loadClubs() {
     const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
+    // New sheet schema (0-indexed):
+    // 0=City 1=Region 2=Country 3=Venue_Name 4=Frequency 5=Upcoming_Date
+    // 6=Latitude 7=Longitude 8=Host_Name 9=Emails 10=Host_Instagram
+    // 11=Host_LinkedIn 12=Host_LinkedIn_2 13=Flyer_URL 14=Featured
+    // 15=Active 16=Is_New 17=Banner_Until 18=Host_Image_URL 19=Host_Bio 20=Host_Video_URL
     clubs = rows
       .slice(1)
       .map((cells) => {
         const city = (cells[0] || "").trim();
         const override = CLUB_OVERRIDES[normalize(city)] || {};
-        const cadence = (override.cadence || cells[1] || "").trim();
-        const time = formatTimeLabel(override.time || cells[2] || "");
-        const instagramHandles = collectInstagramHandles(cells[5] || "", override);
-        const hostEmail = extractEmail(cells[4] || "");
-        const linkedinURL = override.linkedinURL || extractLinkedInURL(cells[4] || "", cells[7] || "");
+        const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
+        const cadence = (override.cadence || (isActive ? cells[4] : "Every now and again") || "").trim();
+        const time = formatTimeLabel(override.time || "");
+        const instagramHandles = collectInstagramHandles(cells[10] || "", override);
+        const hostEmail = extractEmail(cells[9] || "");
+        const linkedinURL = override.linkedinURL || extractLinkedInURL(cells[11] || "", cells[12] || "");
         return {
           city,
           displayCity: override.displayCity || city,
           cadence,
           time,
           isNight: isNightClub(time, override.isNight),
-          venue: override.venue || getVenue(cells[8] || "", cells[9] || ""),
-          hostName: override.hostDisplay || cells[3] || "",
+          venue: override.venue || getVenue(cells[3] || "", ""),
+          hostName: override.hostDisplay || cells[8] || "",
           hostEmail,
           instagramHandles,
           linkedinURL,
+          flyerURL: override.flyerURL || normalizeFlyer(cells[13] || ""),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
           rule: getScheduleRule(cadence, time),

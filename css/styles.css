@@ -656,3 +656,41 @@ h2 {
     justify-self: start;
   }
 }
+
+/* ── Region filter ─────────────────────────────────────────────────────────── */
+
+#region-headline {
+  margin: 0 0 10px;
+}
+
+.region-filter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 18px;
+}
+
+.region-pill {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ink);
+  line-height: 1.4;
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+
+.region-pill:hover {
+  border-color: #0d6e43;
+  color: #0d6e43;
+}
+
+.region-pill.active {
+  background: #0d6e43;
+  border-color: #0d6e43;
+  color: #ffffff;
+  font-weight: 600;
+}

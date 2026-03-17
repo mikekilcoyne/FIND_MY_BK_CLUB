@@ -1,5 +1,5 @@
 const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1HTp01deXz7TjPxXtM-a6tXhtUi40XX0K9U_LyLL1aUk/export?format=csv&gid=0";
+  "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
 const GROWTH_TITLE_SUFFIX = "clubs worldwide (and counting)";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 let growthTitleTimer = null;
@@ -10,9 +10,80 @@ const searchInput = document.querySelector("#club-search");
 const daysNav = document.querySelector("#days-nav");
 const siteTitle = document.querySelector("#site-title");
 const mainHeadline = document.querySelector("#main-headline");
+const regionHeadline = document.querySelector("#region-headline");
+const regionFilter = document.querySelector("#region-filter");
 const calendarViewLink = document.querySelector(".calendar-headline-link");
 const mobileResourcesToggle = document.querySelector(".mobile-resources-toggle");
 const mobileResourcesBody = document.querySelector("#mobile-resources-body");
+
+const REGION_ORDER = [
+  "Northeast US",
+  "Southeast US",
+  "West Coast",
+  "UK",
+  "Europe",
+  "Australia",
+  "Other",
+];
+
+// Exact sheet city names (lowercase) → granular region
+const CITY_REGION = {
+  "amsterdam": "Europe",
+  "atlanta": "Southeast US",
+  "austin": "Southeast US",
+  "austin, tx": "Southeast US",
+  "barcelona": "Europe",
+  "bassano del grappa": "Europe",
+  "berlin": "Europe",
+  "biarritz": "Europe",
+  "boston": "Northeast US",
+  "boulder": "Other",
+  "brighton": "UK",
+  "burlington, vt": "Northeast US",
+  "burlington, vermont": "Northeast US",
+  "cambridge, ma": "Northeast US",
+  "chicago": "Other",
+  "copenhagen": "Europe",
+  "denver": "Other",
+  "ibiza": "Europe",
+  "london": "UK",
+  "los angeles": "West Coast",
+  "lugano": "Europe",
+  "manila": "Other",
+  "maplewood, nj": "Northeast US",
+  "melbourne \u2014 fitzroy": "Australia",
+  "melbourne \u2014 richmond": "Australia",
+  "mexico city": "Other",
+  "miami": "Southeast US",
+  "milano": "Europe",
+  "milan": "Europe",
+  "new york \u2014 downtown brooklyn": "Northeast US",
+  "new york \u2014 hamptons": "Northeast US",
+  "new york \u2014 hudson": "Northeast US",
+  "new york \u2014 kingston": "Northeast US",
+  "new york \u2014 les": "Northeast US",
+  "new york \u2014 williamsburg": "Northeast US",
+  "norwich": "UK",
+  "panama city": "Other",
+  "paris": "Europe",
+  "perth": "Australia",
+  "philadelphia": "Northeast US",
+  "portland, me": "Northeast US",
+  "portland, maine": "Northeast US",
+  "portland, or": "West Coast",
+  "san francisco": "West Coast",
+  "seattle": "West Coast",
+  "singapore": "Other",
+  "torquay, au": "Australia",
+  "surf coast - torquay": "Australia",
+  "sydney": "Australia",
+  "toronto": "Other",
+  "las vegas": "Other",
+  "vienna": "Europe",
+  "washington dc": "Northeast US",
+};
+
+let activeRegion = "All";
 
 const DEFAULT_COPY = {
   siteTitle: "Breakfast Club",
@@ -118,6 +189,15 @@ function getVenue(location, addressInfo) {
   return cleanLocationValue(location) || cleanLocationValue(addressInfo) || "";
 }
 
+function normalizeFlyer(url) {
+  if (!url) return "";
+  var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
+  var match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2) return "https://drive.google.com/uc?export=view&id=" + match2[1];
+  return url;
+}
+
 function extractInstagramURL(value) {
   const handles = extractInstagramHandles(value);
   if (!handles.length) return "";
@@ -209,7 +289,7 @@ function formatTimeLabel(value) {
 }
 
 function getDay(cadence, timeValue) {
-  const weekday = parseWeekday(timeValue);
+  const weekday = parseWeekday(timeValue) || parseWeekday(cadence);
   if (weekday && hasRegularCadence(cadence, timeValue)) {
     return weekday;
   }
@@ -227,16 +307,17 @@ function extractScheduleLabel(cadence, timeValue) {
   const t = (timeValue || "").trim();
   const c = (cadence || "").trim();
   const lower = normalize(t);
-  if (lower.includes("first thursday")) return "First Thursday";
-  if (lower.includes("first wednesday")) return "First Wednesday";
-  if (lower.includes("second monday")) return "Second Monday";
-  if (lower.includes("second thursday")) return "Second Thursday";
-  if (lower.includes("third friday")) return "Third Friday";
-  if (lower.includes("wednesday")) return "Wednesday";
-  if (lower.includes("thursday")) return "Thursday";
-  if (lower.includes("friday")) return "Friday";
-  if (lower.includes("tuesday")) return "Tuesday";
-  if (lower.includes("monday")) return "Monday";
+  const lowerC = normalize(c);
+  if (lower.includes("first thursday") || lowerC.includes("first thursday")) return "First Thursday";
+  if (lower.includes("first wednesday") || lowerC.includes("first wednesday")) return "First Wednesday";
+  if (lower.includes("second monday") || lowerC.includes("second monday")) return "Second Monday";
+  if (lower.includes("second thursday") || lowerC.includes("second thursday")) return "Second Thursday";
+  if (lower.includes("third friday") || lowerC.includes("third friday")) return "Third Friday";
+  if (lower.includes("wednesday") || lowerC.includes("wednesday")) return "Wednesday";
+  if (lower.includes("thursday") || lowerC.includes("thursday")) return "Thursday";
+  if (lower.includes("friday") || lowerC.includes("friday")) return "Friday";
+  if (lower.includes("tuesday") || lowerC.includes("tuesday")) return "Tuesday";
+  if (lower.includes("monday") || lowerC.includes("monday")) return "Monday";
   if (c) return c;
   return "First Thursday";
 }
@@ -559,53 +640,99 @@ function setupMobileResourcesToggle() {
   });
 }
 
+function getFilteredClubs() {
+  if (activeRegion === "All") return clubs;
+  return clubs.filter((c) => c.region === activeRegion);
+}
+
+const REGION_HEADLINES = {
+  "All": "Coming up this week around the world",
+  "Northeast US": "Coming up this week in the northeast",
+  "Southeast US": "Coming up this week in the South (roughly)",
+  "West Coast": "Coming up this week on the West Coast \uD83E\uDD18",
+  "Australia": "Coming up this week in Aus (it's tomorrow, there!)",
+  "UK": "Coming up this week in The UK (mate!)",
+  "Other": "Coming up this week wherever else",
+  "Europe": "Coming up in Europe (not including UK because... yeah)",
+};
+
+function setRegion(region) {
+  activeRegion = region;
+  document.querySelectorAll(".region-pill").forEach((pill) => {
+    pill.classList.toggle("active", pill.dataset.region === region);
+  });
+  if (regionHeadline) {
+    regionHeadline.textContent = REGION_HEADLINES[region] || `Coming up this week in ${region}`;
+  }
+  render(getFilteredClubs());
+}
+
+function renderRegionFilter() {
+  if (!regionFilter) return;
+  regionFilter.innerHTML = "";
+  ["All", ...REGION_ORDER].forEach((region) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "region-pill" + (region === activeRegion ? " active" : "");
+    btn.dataset.region = region;
+    btn.textContent = region;
+    btn.addEventListener("click", () => setRegion(region));
+    regionFilter.append(btn);
+  });
+}
+
 async function loadClubs() {
   try {
     const sheetRes = await fetch(SHEET_CSV_URL);
-    if (!sheetRes.ok) {
-      throw new Error(`Sheet request failed with ${sheetRes.status}`);
-    }
+    if (!sheetRes.ok) throw new Error(`Sheet request failed with ${sheetRes.status}`);
     const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
 
+    // New sheet schema (0-indexed):
+    // 0=City 1=Region 2=Country 3=Venue_Name 4=Frequency 5=Upcoming_Date
+    // 6=Latitude 7=Longitude 8=Host_Name 9=Emails 10=Host_Instagram
+    // 11=Host_LinkedIn 12=Host_LinkedIn_2 13=Flyer_URL 14=Featured
+    // 15=Active 16=Is_New 17=Banner_Until 18=Host_Image_URL 19=Host_Bio 20=Host_Video_URL
     clubs = rows
       .slice(1)
       .map((cells) => {
         const city = (cells[0] || "").trim();
         const override = CLUB_OVERRIDES[normalize(city)] || {};
-        const cadence = override.cadence || cells[1] || "";
-        const time = formatTimeLabel(override.time || cells[2] || "");
-        const igHandles = override.hideInstagram ? [] : extractInstagramHandles(cells[5] || "");
+        const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
+        const cadence = override.cadence || (isActive ? cells[4] : "Every now and again") || "";
+        const time = formatTimeLabel(override.time || "");
+        const igHandles = override.hideInstagram ? [] : extractInstagramHandles(cells[10] || "");
 
         return {
           city,
+          region: CITY_REGION[city.toLowerCase().trim()] || "",
           displayCity: override.displayCity || city,
           cadence,
           time,
           scheduleLabel: extractScheduleLabel(cadence, time),
-          venue: override.venue || getVenue(cells[8] || "", cells[9] || ""),
+          venue: override.venue || getVenue(cells[3] || "", ""),
           day: getDay(cadence, time),
           isNight: isNightClub(time, override.isNight),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
-          instagramURL: override.hideInstagram ? "" : extractInstagramURL(cells[5] || ""),
+          instagramURL: override.hideInstagram ? "" : extractInstagramURL(cells[10] || ""),
           linkedinURL:
             override.linkedinURL ||
-            extractLinkedInURL(cells[4] || "", cells[7] || ""),
-          flyerURL: override.flyerURL || "",
+            extractLinkedInURL(cells[11] || "", cells[12] || ""),
+          flyerURL: override.flyerURL || normalizeFlyer(cells[13] || ""),
           extraSocials: override.extraSocials || [],
           hostDisplay: formatHostDisplay(
-            cells[3] || "",
+            cells[8] || "",
             igHandles,
             override.hostDisplay || "",
           ),
           isIncomplete:
-            !getVenue(override.venue || cells[8] || "", cells[9] || "") ||
-            (!extractInstagramURL(cells[5] || "") &&
+            !getVenue(override.venue || cells[3] || "", "") ||
+            (!extractInstagramURL(cells[10] || "") &&
               !(
                 override.linkedinURL ||
-                extractLinkedInURL(cells[4] || "", cells[7] || "")
+                extractLinkedInURL(cells[11] || "", cells[12] || "")
               ) &&
               !(override.extraSocials || []).length),
         };
@@ -614,6 +741,7 @@ async function loadClubs() {
 
     statusText.textContent = "";
     animateGrowthTitle(clubs.length);
+    renderRegionFilter();
     render(clubs);
   } catch (error) {
     statusText.textContent = "Could not load clubs from the sheet right now.";
@@ -623,13 +751,14 @@ async function loadClubs() {
 
 searchInput.addEventListener("input", () => {
   const term = normalize(searchInput.value);
+  const base = getFilteredClubs();
 
   if (!term) {
-    render(clubs);
+    render(base);
     return;
   }
 
-  const filtered = clubs.filter((club) => {
+  const filtered = base.filter((club) => {
     return normalize(
       `${club.city} ${club.displayCity || ""} ${club.cadence} ${club.time} ${club.venue || ""}`,
     ).includes(term);
