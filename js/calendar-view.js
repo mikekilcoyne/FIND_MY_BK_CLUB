@@ -617,7 +617,7 @@ async function loadClubs() {
       .slice(1)
       .map((cells) => {
         const city = (cells[0] || "").trim();
-        const override = CLUB_OVERRIDES[normalize(city)] || {};
+        const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
         const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
         const cadence = (override.cadence || (isActive ? cells[4] : "Every now and again") || "").trim();
         const time = formatTimeLabel(override.time || "");

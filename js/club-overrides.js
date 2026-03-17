@@ -40,7 +40,7 @@ window.CLUB_OVERRIDES = {
   "ibiza, spain":        { displayCity: "Ibiza, ES" },
   "lugano, switzerland": { displayCity: "Lugano, CH" },
   "paris, france":       { displayCity: "Paris, FR" },
-  milan: {
+  "milano": {
     displayCity: "Milano, IT",
     cadence: "Monthly",
     time: "Fourth Tuesday, 6:00pm - 9:00pm",

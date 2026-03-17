@@ -428,7 +428,7 @@ function render(items) {
       if (club.isNight) card.classList.add("night-edition");
 
       const displayCity = getDisplayCity(club);
-      const isOriginal = normalize(club.city) === "new york - williamsburg";
+      const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
       if (isOriginal) card.classList.add("flagship-card");
 
       // 1. City name (primary headline)
@@ -588,7 +588,7 @@ function normalize(value) {
   return value.toLowerCase().trim();
 }
 
-function animateGrowthTitle(clubCount) {
+function animateGrowthTitle(clubCount, suffix = GROWTH_TITLE_SUFFIX) {
   const finalCount = Math.max(0, Number(clubCount) || 0);
   if (!siteTitle) return;
 
@@ -603,7 +603,7 @@ function animateGrowthTitle(clubCount) {
 
   siteTitle.classList.remove("growth-title");
   siteTitle.classList.add("counting");
-  siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${GROWTH_TITLE_SUFFIX}`;
+  siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${suffix}`;
 
   const tick = (now) => {
     const elapsed = now - start;
@@ -613,7 +613,7 @@ function animateGrowthTitle(clubCount) {
 
     if (next !== current) {
       current = next;
-      siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${GROWTH_TITLE_SUFFIX}`;
+      siteTitle.innerHTML = `<span class="growth-count">${current}</span> ${suffix}`;
     }
 
     if (progress < 1) {
@@ -622,7 +622,7 @@ function animateGrowthTitle(clubCount) {
     }
 
     siteTitle.classList.remove("counting");
-    siteTitle.innerHTML = `<span class="growth-count">${finalCount}</span> ${GROWTH_TITLE_SUFFIX}`;
+    siteTitle.innerHTML = `<span class="growth-count">${finalCount}</span> ${suffix}`;
     growthTitleTimer = null;
   };
 
@@ -664,7 +664,12 @@ function setRegion(region) {
   if (regionHeadline) {
     regionHeadline.textContent = REGION_HEADLINES[region] || `Coming up this week in ${region}`;
   }
-  render(getFilteredClubs());
+  const filtered = getFilteredClubs();
+  render(filtered);
+  const suffix = activeRegion === "All"
+    ? GROWTH_TITLE_SUFFIX
+    : "clubs coming up this month";
+  animateGrowthTitle(filtered.length, suffix);
 }
 
 function renderRegionFilter() {
@@ -698,7 +703,7 @@ async function loadClubs() {
       .slice(1)
       .map((cells) => {
         const city = (cells[0] || "").trim();
-        const override = CLUB_OVERRIDES[normalize(city)] || {};
+        const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
         const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
         const cadence = override.cadence || (isActive ? cells[4] : "Every now and again") || "";
         const time = formatTimeLabel(override.time || "");
