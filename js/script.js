@@ -538,7 +538,7 @@ function render(items) {
         util.append(mapsBtn);
       }
 
-      if (club.communityLink) {
+      if (club.communityLink && club.communityLink.startsWith("http")) {
         const chatBtn = document.createElement("a");
         chatBtn.href = club.communityLink;
         chatBtn.target = "_blank";
