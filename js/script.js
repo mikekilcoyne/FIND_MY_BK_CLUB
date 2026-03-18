@@ -455,15 +455,24 @@ function render(items) {
         subline.append(freq);
       }
 
+      if (club.eventTime) {
+        const sep = document.createElement("span");
+        sep.className = "subline-sep";
+        sep.textContent = "|";
+        subline.append(sep);
+        const timeEl = document.createElement("span");
+        timeEl.className = "card-time";
+        timeEl.textContent = `Starts at ${club.eventTime}`;
+        subline.append(timeEl);
+      }
+
       const isLongVenue = club.venue && club.venue.length > 55;
 
       if (club.venue && !isLongVenue) {
-        if (club.scheduleLabel) {
-          const sep = document.createElement("span");
-          sep.className = "subline-sep";
-          sep.textContent = "|";
-          subline.append(sep);
-        }
+        const sep = document.createElement("span");
+        sep.className = "subline-sep";
+        sep.textContent = "|";
+        subline.append(sep);
         const venueEl = document.createElement("span");
         venueEl.textContent = club.venue;
         subline.append(venueEl);
@@ -527,6 +536,16 @@ function render(items) {
         mapsBtn.title = `Open ${club.venue} in Google Maps`;
         mapsBtn.textContent = "Google Maps";
         util.append(mapsBtn);
+      }
+
+      if (club.communityLink) {
+        const chatBtn = document.createElement("a");
+        chatBtn.href = club.communityLink;
+        chatBtn.target = "_blank";
+        chatBtn.rel = "noreferrer";
+        chatBtn.className = "community-link-btn";
+        chatBtn.textContent = "Join the Chat";
+        util.append(chatBtn);
       }
 
       if (club.instagramURL) {
@@ -694,20 +713,25 @@ async function loadClubs() {
 
     const rows = parseCSV(csv);
 
-    // New sheet schema (0-indexed):
-    // 0=City 1=Region 2=Country 3=Venue_Name 4=Frequency 5=Upcoming_Date
-    // 6=Latitude 7=Longitude 8=Host_Name 9=Emails 10=Host_Instagram
-    // 11=Host_LinkedIn 12=Host_LinkedIn_2 13=Flyer_URL 14=Featured
-    // 15=Active 16=Is_New 17=Banner_Until 18=Host_Image_URL 19=Host_Bio 20=Host_Video_URL
+    // Build a header → index map so column moves never break lookups.
+    const headers = (rows[0] || []).map((h) => h.toLowerCase().replace(/[\s_]+/g, "_").trim());
+    const colIdx = {};
+    headers.forEach((h, i) => { colIdx[h] = i; });
+    const col = (name, cells) => (cells[colIdx[name]] || "").trim();
+    // Aliases for columns whose names have spaces in the sheet
+    colIdx["start_time"] = colIdx["start_time"] ?? colIdx["start time"];
+    colIdx["whatsapp"] = colIdx["whatsapp"] ?? colIdx["whatsapp_link"] ?? colIdx["community_link"];
+    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] ?? colIdx["host_linkedin 2"];
+
     clubs = rows
       .slice(1)
       .map((cells) => {
-        const city = (cells[0] || "").trim();
+        const city = col("city", cells);
         const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
-        const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
-        const cadence = override.cadence || (isActive ? cells[4] : "Every now and again") || "";
+        const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
+        const cadence = override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "";
         const time = formatTimeLabel(override.time || "");
-        const igHandles = override.hideInstagram ? [] : extractInstagramHandles(cells[10] || "");
+        const igHandles = override.hideInstagram ? [] : extractInstagramHandles(col("host_instagram", cells));
 
         return {
           city,
@@ -716,28 +740,30 @@ async function loadClubs() {
           cadence,
           time,
           scheduleLabel: extractScheduleLabel(cadence, time),
-          venue: override.venue || getVenue(cells[3] || "", ""),
+          venue: override.venue || getVenue(col("venue_name", cells), ""),
           day: getDay(cadence, time),
           isNight: isNightClub(time, override.isNight),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
-          instagramURL: override.hideInstagram ? "" : extractInstagramURL(cells[10] || ""),
+          instagramURL: override.hideInstagram ? "" : extractInstagramURL(col("host_instagram", cells)),
           linkedinURL:
             override.linkedinURL ||
-            extractLinkedInURL(cells[11] || "", cells[12] || ""),
-          flyerURL: override.flyerURL || normalizeFlyer(cells[13] || ""),
+            extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)),
+          flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
           extraSocials: override.extraSocials || [],
           hostDisplay: formatHostDisplay(
-            cells[8] || "",
+            col("host_name", cells),
             igHandles,
             override.hostDisplay || "",
           ),
+          eventTime: override.eventTime || col("start_time", cells),
+          communityLink: override.communityLink || col("whatsapp", cells),
           isIncomplete:
-            !getVenue(override.venue || cells[3] || "", "") ||
-            (!extractInstagramURL(cells[10] || "") &&
+            !getVenue(override.venue || col("venue_name", cells), "") ||
+            (!extractInstagramURL(col("host_instagram", cells)) &&
               !(
                 override.linkedinURL ||
-                extractLinkedInURL(cells[11] || "", cells[12] || "")
+                extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells))
               ) &&
               !(override.extraSocials || []).length),
         };

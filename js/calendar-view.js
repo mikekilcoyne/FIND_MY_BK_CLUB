@@ -501,6 +501,16 @@ function renderDayDetails(isoDate, monthEvents) {
         util.append(liLink);
       }
 
+      if (club.communityLink) {
+        const chatBtn = document.createElement("a");
+        chatBtn.href = club.communityLink;
+        chatBtn.target = "_blank";
+        chatBtn.rel = "noreferrer";
+        chatBtn.className = "community-link-btn";
+        chatBtn.textContent = "Join the Chat";
+        util.append(chatBtn);
+      }
+
       if (util.children.length) card.append(util);
 
       selectedDateList.append(card);
@@ -608,36 +618,43 @@ async function loadClubs() {
     const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
-    // New sheet schema (0-indexed):
-    // 0=City 1=Region 2=Country 3=Venue_Name 4=Frequency 5=Upcoming_Date
-    // 6=Latitude 7=Longitude 8=Host_Name 9=Emails 10=Host_Instagram
-    // 11=Host_LinkedIn 12=Host_LinkedIn_2 13=Flyer_URL 14=Featured
-    // 15=Active 16=Is_New 17=Banner_Until 18=Host_Image_URL 19=Host_Bio 20=Host_Video_URL
+    // Build a header → index map so column moves never break lookups.
+    const headers = (rows[0] || []).map((h) => h.toLowerCase().replace(/[\s_]+/g, "_").trim());
+    const colIdx = {};
+    headers.forEach((h, i) => { colIdx[h] = i; });
+    const col = (name, cells) => (cells[colIdx[name]] || "").trim();
+    // Aliases for columns whose names have spaces in the sheet
+    colIdx["start_time"] = colIdx["start_time"] ?? colIdx["start time"];
+    colIdx["whatsapp"] = colIdx["whatsapp"] ?? colIdx["whatsapp_link"] ?? colIdx["community_link"];
+    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] ?? colIdx["host_linkedin 2"];
+
     clubs = rows
       .slice(1)
       .map((cells) => {
-        const city = (cells[0] || "").trim();
+        const city = col("city", cells);
         const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
-        const isActive = (cells[15] || "yes").trim().toLowerCase() !== "no";
-        const cadence = (override.cadence || (isActive ? cells[4] : "Every now and again") || "").trim();
+        const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
+        const cadence = (override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "").trim();
         const time = formatTimeLabel(override.time || "");
-        const instagramHandles = collectInstagramHandles(cells[10] || "", override);
-        const hostEmail = extractEmail(cells[9] || "");
-        const linkedinURL = override.linkedinURL || extractLinkedInURL(cells[11] || "", cells[12] || "");
+        const instagramHandles = collectInstagramHandles(col("host_instagram", cells), override);
+        const hostEmail = extractEmail(col("emails", cells));
+        const linkedinURL = override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells));
         return {
           city,
           displayCity: override.displayCity || city,
           cadence,
           time,
           isNight: isNightClub(time, override.isNight),
-          venue: override.venue || getVenue(cells[3] || "", ""),
-          hostName: override.hostDisplay || cells[8] || "",
+          venue: override.venue || getVenue(col("venue_name", cells), ""),
+          hostName: override.hostDisplay || col("host_name", cells),
           hostEmail,
           instagramHandles,
           linkedinURL,
-          flyerURL: override.flyerURL || normalizeFlyer(cells[13] || ""),
+          flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
+          eventTime: override.eventTime || col("start_time", cells),
+          communityLink: override.communityLink || col("whatsapp", cells),
           rule: getScheduleRule(cadence, time),
         };
       })

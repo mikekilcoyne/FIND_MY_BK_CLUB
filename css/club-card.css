@@ -160,6 +160,16 @@
   color: #b0bfd8;
 }
 
+/* Event time — inline in subline */
+
+.card-time {
+  font-weight: 600;
+}
+
+.club-card.night-edition .card-time {
+  color: #f2de9a;
+}
+
 /* Host line */
 
 .card-host {
@@ -224,6 +234,21 @@
 .club-card.night-edition .card-utility button:hover {
   background: var(--night-line);
   color: var(--night-ink);
+}
+
+/* Community link button */
+
+.community-link-btn {
+  background: #25d366 !important;
+  border-color: #1da851 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.community-link-btn:hover {
+  background: #1da851 !important;
+  border-color: #128c3e !important;
+  color: #fff !important;
 }
 
 /* Responsive */
