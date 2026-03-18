@@ -93,9 +93,20 @@
 
   function mergeCSV(geoClubs, csvRows) {
     var OVERRIDES = window.CLUB_OVERRIDES || {};
+
+    // Build header → index map so column moves never break lookups.
+    var headers = (csvRows[0] || []).map(function (h) {
+      return h.toLowerCase().replace(/[\s_]+/g, "_").trim();
+    });
+    var colIdx = {};
+    headers.forEach(function (h, i) { colIdx[h] = i; });
+    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] != null ? colIdx["host_linkedin_2"] : colIdx["host_linkedin 2"];
+    colIdx["whatsapp"] = colIdx["whatsapp"] != null ? colIdx["whatsapp"] : (colIdx["whatsapp_link"] != null ? colIdx["whatsapp_link"] : colIdx["community_link"]);
+    function col(name, cells) { return (cells[colIdx[name]] || "").trim(); }
+
     var byCity = {};
     csvRows.slice(1).forEach(function (cells) {
-      var key = normCity(cells[0] || "");
+      var key = normCity(col("city", cells));
       if (key) byCity[key] = cells;
     });
 
@@ -105,11 +116,12 @@
       var cells = byCity[key] || [];
       return Object.assign({}, club, {
         displayCity: override.displayCity || club.displayCity || club.city,
-        host: override.hostDisplay || cleanCell(cells[8] || "") || club.host || "",
-        venue: override.venue || cleanCell(cells[3] || "") || club.venue || "",
-        linkedinURL: override.linkedinURL || extractLinkedInURL(cells[11] || "", cells[12] || "") || club.linkedinURL || "",
-        instagramURL: override.instagramURL || extractInstagramURL(cells[10] || "") || "",
-        flyerURL: override.flyerURL || normalizeFlyer(cells[13] || "") || "",
+        host: override.hostDisplay || cleanCell(col("host_name", cells)) || club.host || "",
+        venue: override.venue || cleanCell(col("venue_name", cells)) || club.venue || "",
+        linkedinURL: override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)) || club.linkedinURL || "",
+        instagramURL: override.instagramURL || extractInstagramURL(col("host_instagram", cells)) || "",
+        flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)) || "",
+        communityLink: override.communityLink || col("whatsapp", cells) || "",
       });
     });
   }
