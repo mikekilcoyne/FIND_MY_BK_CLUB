@@ -93,11 +93,15 @@ function buildEmailBody(hostName, city) {
   nextSunday.setDate(nextSunday.getDate() + (7 - nextSunday.getDay()) % 7 || 7);
   const dateStr = nextSunday.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
-  return `Hey y'all —
+  return `Hey hosts —
 
-We're working on automating this whole thing so your listings get automagically updated on breakfastclubbing.com. You'll see one email from me every week asking for updates.
+Recently got this article forwarded from CDMX's host Steve, called "The Great Friendship Flattening" — https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg
 
-The site pulls directly from the doc + the flyers folder — so keeping both up to date is all you have to do.
+Quick thought from my end: We breakfast for the people (familiar and new), the conversation (pointed and arcane) and especially for the vibes (positive, collaborative, forward-looking). Because it's fun. And we can all use a little more of that.
+
+You can read the full article here: https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg
+
+Anywho, call for updates (I'm gonna aim to make these more dynamic).
 
 ──────────────────────────
 
@@ -114,6 +118,8 @@ Questions? ben@breakfastclubbing.com
 
 p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll make it happen. Big thanks to Kilcoyne for making this happen.
 
+p.p.s. — We're working on making the site more dynamic, including figuring out cool ways to display flyers on the site, and a 'Word Cloud' feature. So save your "What we talked about" convos.
+
 ---
 Breakfast Club HQ · New York, NY
 You're receiving this because you host a Breakfast Club location.
@@ -128,13 +134,17 @@ function buildEmailHTML(hostName, city) {
 
   return `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
-  <p style="font-size: 15px; line-height: 1.6;">Hey y'all —</p>
+  <p style="font-size: 15px; line-height: 1.6;">Hey hosts —</p>
   <p style="font-size: 15px; line-height: 1.6;">
-    We're working on automating this whole thing so your listings get <strong>automagically</strong> updated on <a href="https://breakfastclubbing.com" style="color: #b07d3a;">breakfastclubbing.com</a>. You'll see one email from me every week asking for updates.
+    Recently got this article forwarded from CDMX's host Steve, called <a href="https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg" style="color: #b07d3a;">"The Great Friendship Flattening"</a>.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
-    The site pulls directly from the doc + the flyers folder — so keeping both up to date is all you have to do.
+    Quick thought from my end: We breakfast for the people (familiar and new), the conversation (pointed and arcane) and especially for the vibes (positive, collaborative, forward-looking). Because it's fun. And we can all use a little more of that.
   </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    You can read the full article <a href="https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg" style="color: #b07d3a;">here</a>.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">Anywho, call for updates (I'm gonna aim to make these more dynamic).</p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   <p style="font-size: 15px; line-height: 1.6;">
     For <strong>${city}</strong>, here's where to update:
@@ -154,6 +164,9 @@ function buildEmailHTML(hostName, city) {
   </p>
   <p style="font-size: 14px; line-height: 1.6; color: #666;">
     p.s. — Any cool ideas for the site? Email <a href="mailto:mike@breakfastclubbing.com" style="color: #b07d3a;">mike@breakfastclubbing.com</a> and he'll make it happen. Big thanks to Kilcoyne for making this happen.
+  </p>
+  <p style="font-size: 14px; line-height: 1.6; color: #666;">
+    p.p.s. — We're working on making the site more dynamic, including figuring out cool ways to display flyers on the site, and a 'Word Cloud' feature. So save your "What we talked about" convos.
   </p>
   <p style="font-size: 12px; line-height: 1.6; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
     Breakfast Club HQ &middot; New York, NY<br>
