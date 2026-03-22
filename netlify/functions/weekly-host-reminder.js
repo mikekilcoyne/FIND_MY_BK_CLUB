@@ -1,4 +1,4 @@
-// Runs every Sunday at 17:00 UTC (12pm ET)
+// Runs every Sunday at 16:30 UTC (12:30pm ET)
 // Fetches active host emails from the Google Sheet and sends a weekly reminder via SendGrid.
 //
 // Required env vars (set in Netlify Dashboard → Site settings → Environment variables):
@@ -118,7 +118,7 @@ Questions? ben@breakfastclubbing.com
 
 p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll make it happen. Big thanks to Kilcoyne for making this happen.
 
-p.p.s. — We're working on making the site more dynamic, including figuring out cool ways to display flyers on the site, and a 'Word Cloud' feature. So save your "What we talked about" convos.
+p.p.s. — Kilcoyne's working on a 'Word Cloud' feature that was inspired by another BC International host. It's gonna be super sick, so I encourage you to share your 'What We Talked About' posts and make sure they're in your updates.
 
 ---
 Breakfast Club HQ · New York, NY
@@ -166,7 +166,7 @@ function buildEmailHTML(hostName, city) {
     p.s. — Any cool ideas for the site? Email <a href="mailto:mike@breakfastclubbing.com" style="color: #b07d3a;">mike@breakfastclubbing.com</a> and he'll make it happen. Big thanks to Kilcoyne for making this happen.
   </p>
   <p style="font-size: 14px; line-height: 1.6; color: #666;">
-    p.p.s. — We're working on making the site more dynamic, including figuring out cool ways to display flyers on the site, and a 'Word Cloud' feature. So save your "What we talked about" convos.
+    p.p.s. — Kilcoyne's working on a 'Word Cloud' feature that was inspired by another BC International host. It's gonna be super sick, so I encourage you to share your 'What We Talked About' posts and make sure they're in your updates.
   </p>
   <p style="font-size: 12px; line-height: 1.6; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
     Breakfast Club HQ &middot; New York, NY<br>
