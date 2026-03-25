@@ -167,6 +167,35 @@ a {
   color: #4a4a4a;
 }
 
+.recap-box {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.recap-box h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.recap-headline-link {
+  color: #173157;
+  text-decoration: none;
+  border-bottom: 1px solid #173157;
+}
+
+.recap-headline-link:hover {
+  opacity: 0.8;
+}
+
+.recap-box p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #4a4a4a;
+}
+
 .new-feature-badge {
   display: inline-block;
   font-size: 9px;
@@ -245,6 +274,19 @@ h2 {
   color: #0d6e43;
   border-color: #0d6e43;
   font-weight: 600;
+}
+
+.cta-recaps {
+  background: #ffffff;
+  color: #173157;
+  border-color: #173157;
+  font-weight: 600;
+}
+
+.cta-recaps:hover {
+  background: #173157;
+  color: #ffffff;
+  border-color: #173157;
 }
 
 .cta-map:hover {
@@ -565,7 +607,17 @@ h2 {
     color: #ffffff;
   }
 
+  .mobile-action-btn--recaps {
+    background: #173157;
+    border-color: #122845;
+    color: #ffffff;
+  }
+
   .mobile-action-btn--map .mobile-action-icon {
+    stroke: #ffffff;
+  }
+
+  .mobile-action-btn--recaps .mobile-action-icon {
     stroke: #ffffff;
   }
 
@@ -634,7 +686,8 @@ h2 {
 
   .rail-cta,
   .calendar-box,
-  .map-box {
+  .map-box,
+  .recap-box {
     display: none;
   }
 }

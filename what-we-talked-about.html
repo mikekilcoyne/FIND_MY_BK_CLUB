@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club — What We Talked About</title>
+    <meta
+      name="description"
+      content="Scope the Breakfast Club recap view with dynamic club metadata, topics, and photo treatments."
+    />
+    <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
+    <link rel="stylesheet" href="./css/responsive-framework.css" />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/what-we-talked-about.css" />
+  </head>
+  <body class="wwta-page">
+    <div class="site-shell">
+      <aside class="left-rail">
+        <div class="logo-wrap">
+          <div class="logo-dot">BREAKFAST<br />CLUB</div>
+        </div>
+
+        <a class="back-link" href="./index.html">← Back to Club List</a>
+
+        <section class="wwta-launch">
+          <h3>What We Talked About</h3>
+          <p>
+            Standalone recap view scoped on top of the latest live site. This page
+            is where dynamic topics and club-by-club media will come together.
+          </p>
+        </section>
+
+        <nav class="wwta-rail-nav" aria-label="Alternate views">
+          <a href="./calendar-view.html">Calendar View</a>
+          <a href="./map-view.html">Map View</a>
+        </nav>
+      </aside>
+
+      <main class="main-pane">
+        <header class="wwta-top-bar">
+          <h1>What We Talked About</h1>
+          <p id="wwta-status" class="status">Loading recap scope...</p>
+        </header>
+
+        <section class="wwta-stage-shell" aria-labelledby="wwta-club-title">
+          <div id="wwta-media" class="wwta-media" aria-live="polite"></div>
+
+          <div class="wwta-copy">
+            <p class="wwta-eyebrow">Scoped On Latest Site</p>
+            <p class="wwta-preamble">What we talked about...</p>
+            <h2 id="wwta-club-title" class="wwta-club-title">Loading club...</h2>
+            <p id="wwta-meta" class="wwta-meta"></p>
+            <p id="wwta-source" class="wwta-source"></p>
+
+            <div class="wwta-topic-block">
+              <h3>Topic Flow</h3>
+              <div id="wwta-topics" class="wwta-topics"></div>
+            </div>
+
+            <div class="wwta-nav-row">
+              <button id="wwta-prev" class="wwta-nav-btn" type="button">← Previous</button>
+              <span id="wwta-counter" class="wwta-counter"></span>
+              <button id="wwta-next" class="wwta-nav-btn" type="button">Next →</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="wwta-panel">
+          <div class="wwta-panel-header">
+            <div>
+              <p class="wwta-panel-label">Browse Clubs</p>
+              <h3>Click around and scope placement locally</h3>
+            </div>
+            <p class="wwta-panel-note">
+              This page is reading live site club metadata now. Topic/media fallbacks
+              will be replaced by the recap feed and media manifest.
+            </p>
+          </div>
+          <div id="wwta-club-pills" class="wwta-club-pills"></div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
+    </footer>
+
+    <script src="./js/analytics-config.js"></script>
+    <script src="./js/analytics.js"></script>
+    <script src="./js/what-we-talked-about.js"></script>
+  </body>
+</html>
+
