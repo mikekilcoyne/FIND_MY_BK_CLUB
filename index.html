@@ -37,6 +37,7 @@
     <link rel="stylesheet" href="./css/responsive-framework.css" />
     <link rel="stylesheet" href="./css/styles.css" />
     <link rel="stylesheet" href="./css/club-card.css" />
+    <link rel="stylesheet" href="./css/word-cloud.css" />
   </head>
   <body>
     <div class="site-shell">
@@ -124,6 +125,9 @@
       </aside>
 
       <main class="main-pane">
+        <!-- Word cloud ambient background — populated by word-cloud.js -->
+        <div id="word-cloud-stage" aria-hidden="true"></div>
+
         <header class="top-bar">
           <h1 id="site-title">Everyone's invited. Especially you.</h1>
           <a href="./map-view.html" class="cta cta-map">Map View <span class="new-feature-badge">NEW</span></a>
@@ -138,6 +142,30 @@
       </main>
     </div>
 
+    <!-- Word cloud club overlay -->
+    <div id="wc-overlay" class="wc-overlay" hidden aria-modal="true" role="dialog" aria-label="What we talked about">
+      <button class="wc-overlay-close" id="wc-overlay-close" aria-label="Close">×</button>
+      <button class="wc-overlay-nav wc-overlay-nav--prev" id="wc-overlay-prev" aria-label="Previous club">&#8592;</button>
+      <button class="wc-overlay-nav wc-overlay-nav--next" id="wc-overlay-next" aria-label="Next club">&#8594;</button>
+      <div class="wc-overlay-header">
+        <span class="wc-overlay-preamble" id="wc-overlay-preamble">
+          <span id="wc-overlay-preamble-text">What we talked about...</span>
+          <span class="wc-overlay-preamble-caret" aria-hidden="true"></span>
+        </span>
+        <span class="wc-overlay-city" id="wc-overlay-city"></span>
+        <span class="wc-overlay-meta" id="wc-overlay-meta"></span>
+        <span class="wc-overlay-source-date" id="wc-overlay-source-date" hidden></span>
+      </div>
+      <div class="wc-overlay-body">
+        <div id="wc-overlay-stage" class="wc-overlay-stage"></div>
+        <div id="wc-overlay-art" class="wc-overlay-art" aria-hidden="true" hidden>
+          <img id="wc-overlay-photo" class="wc-overlay-photo" src="" alt="" aria-hidden="true" hidden />
+          <span class="wc-overlay-attribution" id="wc-overlay-attribution" hidden></span>
+        </div>
+      </div>
+      <p class="wc-overlay-hint">swipe or use arrows to browse · swipe up to close</p>
+    </div>
+
     <footer class="site-footer">
       <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
     </footer>
@@ -146,5 +174,9 @@
     <script src="./js/analytics.js"></script>
     <script src="./js/club-overrides.js"></script>
     <script src="./js/script.js"></script>
+    <!-- Word cloud -->
+    <script src="./js/wordcloud2.js"></script>
+    <script src="./js/word-cloud-topics.js"></script>
+    <script src="./js/word-cloud.js"></script>
   </body>
 </html>

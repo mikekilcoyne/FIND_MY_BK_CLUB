@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hamptons Word Cloud Preview</title>
+    <link rel="stylesheet" href="./css/word-cloud.css" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #0d1824;
+      }
+
+      .wc-preview-launcher {
+        position: fixed;
+        left: 18px;
+        bottom: 18px;
+        z-index: 1200;
+        padding: 12px 16px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      body.wc-preview-open .wc-preview-launcher {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+    <script>
+      window.WORD_CLOUD_PREVIEW = {
+        cityKey: "new york - hamptons",
+        displayCity: "Hamptons",
+        scheduleLabel: "Every Wednesday",
+        eventTime: "8:30 AM",
+        venue: "Tutto Cafe",
+      };
+    </script>
+  </head>
+  <body data-word-cloud-preview="true">
+    <button class="wc-preview-launcher" id="wc-preview-launcher" type="button">
+      Reopen Hamptons preview
+    </button>
+
+    <div id="wc-overlay" class="wc-overlay" hidden aria-modal="true" role="dialog" aria-label="What we talked about">
+      <button class="wc-overlay-close" id="wc-overlay-close" aria-label="Close">×</button>
+      <button class="wc-overlay-nav wc-overlay-nav--prev" id="wc-overlay-prev" aria-label="Previous club">&#8592;</button>
+      <button class="wc-overlay-nav wc-overlay-nav--next" id="wc-overlay-next" aria-label="Next club">&#8594;</button>
+      <div class="wc-overlay-header">
+        <span class="wc-overlay-preamble" id="wc-overlay-preamble">
+          <span id="wc-overlay-preamble-text">What we talked about...</span>
+          <span class="wc-overlay-preamble-caret" aria-hidden="true"></span>
+        </span>
+        <span class="wc-overlay-city" id="wc-overlay-city"></span>
+        <span class="wc-overlay-meta" id="wc-overlay-meta"></span>
+        <span class="wc-overlay-source-date" id="wc-overlay-source-date" hidden></span>
+      </div>
+      <div class="wc-overlay-body">
+        <div id="wc-overlay-stage" class="wc-overlay-stage"></div>
+        <div id="wc-overlay-art" class="wc-overlay-art" aria-hidden="true" hidden>
+          <img id="wc-overlay-photo" class="wc-overlay-photo" src="" alt="" aria-hidden="true" hidden />
+          <span class="wc-overlay-attribution" id="wc-overlay-attribution" hidden></span>
+        </div>
+      </div>
+      <p class="wc-overlay-hint">swipe or use arrows to browse · swipe up to close</p>
+    </div>
+
+    <script src="./js/wordcloud2.js"></script>
+    <script src="./js/word-cloud-topics.js"></script>
+    <script src="./js/word-cloud.js"></script>
+    <script>
+      const overlay = document.getElementById("wc-overlay");
+      const syncPreviewState = () => {
+        document.body.classList.toggle("wc-preview-open", !overlay.hasAttribute("hidden"));
+      };
+
+      document.getElementById("wc-preview-launcher").addEventListener("click", function () {
+        window.openWordCloudOverlay(
+          window.WORD_CLOUD_PREVIEW.cityKey,
+          window.WORD_CLOUD_PREVIEW.displayCity,
+          window.WORD_CLOUD_PREVIEW.scheduleLabel,
+          window.WORD_CLOUD_PREVIEW.eventTime,
+          window.WORD_CLOUD_PREVIEW.venue,
+        );
+        syncPreviewState();
+      });
+
+      new MutationObserver(syncPreviewState).observe(overlay, { attributes: true, attributeFilter: ["hidden"] });
+      window.addEventListener("load", syncPreviewState);
+    </script>
+  </body>
+</html>

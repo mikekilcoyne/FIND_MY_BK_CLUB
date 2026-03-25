@@ -428,6 +428,9 @@ function render(items) {
       if (club.isNight) card.classList.add("night-edition");
 
       const displayCity = getDisplayCity(club);
+      // Word cloud overlay: store city keys so JS can look up topics
+      card.dataset.city = (club.city || "").toLowerCase().trim();
+      card.dataset.displayCity = displayCity;
       const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
       if (isOriginal) card.classList.add("flagship-card");
 
@@ -596,6 +599,17 @@ function render(items) {
 
       if (noteBody) card.append(noteBody);
 
+      // Word cloud topics trigger
+      const topicsBtn = document.createElement("button");
+      topicsBtn.className = "wc-topics-btn";
+      topicsBtn.textContent = "What we talked about";
+      topicsBtn.dataset.city = card.dataset.city;
+      topicsBtn.dataset.displayCity = card.dataset.displayCity;
+      if (club.scheduleLabel) topicsBtn.dataset.scheduleLabel = club.scheduleLabel;
+      if (club.eventTime)     topicsBtn.dataset.eventTime     = club.eventTime;
+      if (club.venue)         topicsBtn.dataset.venue         = club.venue;
+      card.append(topicsBtn);
+
       section.append(card);
     }
 
@@ -689,6 +703,10 @@ function setRegion(region) {
     ? GROWTH_TITLE_SUFFIX
     : "clubs coming up this month";
   animateGrowthTitle(filtered.length, suffix);
+  // Update word cloud topics to match selected region
+  if (typeof window.updateWordCloud === "function") {
+    window.updateWordCloud(region);
+  }
 }
 
 function renderRegionFilter() {
@@ -757,7 +775,7 @@ async function loadClubs() {
             override.hostDisplay || "",
           ),
           eventTime: override.eventTime || col("start_time", cells),
-          communityLink: override.communityLink || col("whatsapp", cells),
+          communityLink: override.communityLink || col("whatsapp", cells) || club.whatsapp || "",
           isIncomplete:
             !getVenue(override.venue || col("venue_name", cells), "") ||
             (!extractInstagramURL(col("host_instagram", cells)) &&
@@ -775,8 +793,41 @@ async function loadClubs() {
     renderRegionFilter();
     render(clubs);
   } catch (error) {
-    statusText.textContent = "Could not load clubs from the sheet right now.";
-    clubsList.innerHTML = "";
+    // Sheet unavailable — try static JSON fallback (useful for local dev)
+    try {
+      const fallbackRes = await fetch("./data/clubs-map.json");
+      if (!fallbackRes.ok) throw new Error("fallback unavailable");
+      const data = await fallbackRes.json();
+      clubs = data
+        .map((entry) => ({
+          city:          entry.city || "",
+          region:        entry.region || CITY_REGION[(entry.city || "").toLowerCase().trim()] || "",
+          displayCity:   entry.displayCity || entry.city || "",
+          cadence:       "",
+          time:          "",
+          scheduleLabel: "",
+          venue:         entry.venue || "",
+          day:           (["Monday","Tuesday","Wednesday","Thursday","Friday"][((entry.schedule || {}).weekday || 1) - 1]) || "Every now and again",
+          isNight:       false,
+          specificDates: [],
+          locationNote:  "",
+          host:          entry.host || "",
+          whatsapp:      "",
+          mapURL:        entry.mapsURL || "",
+          igHandles:     [],
+          upcoming_date: entry.upcoming_date || "",
+          eventTime:     "",
+          flyer:         null,
+        }))
+        .filter((c) => c.city);
+      statusText.textContent = "(offline – showing cached data)";
+      animateGrowthTitle(clubs.length);
+      renderRegionFilter();
+      render(clubs);
+    } catch (_) {
+      statusText.textContent = "Could not load clubs right now.";
+      clubsList.innerHTML = "";
+    }
   }
 }
 
