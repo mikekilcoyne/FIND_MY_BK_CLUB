@@ -6,89 +6,61 @@
     <title>Breakfast Club — What We Talked About</title>
     <meta
       name="description"
-      content="Scope the Breakfast Club recap view with dynamic club metadata, topics, and photo treatments."
+      content="See what Breakfast Clubs around the world have been talking about, in the approved full-screen recap view."
     />
     <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
     <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
-    <link rel="stylesheet" href="./css/responsive-framework.css" />
-    <link rel="stylesheet" href="./css/styles.css" />
     <link rel="stylesheet" href="./css/what-we-talked-about.css" />
   </head>
   <body class="wwta-page">
-    <div class="site-shell">
-      <aside class="left-rail">
-        <div class="logo-wrap">
-          <div class="logo-dot">BREAKFAST<br />CLUB</div>
+    <main class="wwta-view" aria-label="What we talked about">
+      <div id="wwta-photo-layer" class="wwta-photo-layer" aria-hidden="true"></div>
+
+      <a class="wwta-back-link" href="./index.html">← Back to club list</a>
+      <a class="wwta-close-link" href="./index.html" aria-label="Close recap view">×</a>
+
+      <button class="wwta-nav wwta-nav--prev" id="wwta-prev" type="button" aria-label="Previous club">
+        ←
+      </button>
+      <button class="wwta-nav wwta-nav--next" id="wwta-next" type="button" aria-label="Next club">
+        →
+      </button>
+
+      <header class="wwta-header">
+        <span class="wwta-preamble" id="wwta-preamble">
+          <span id="wwta-preamble-text">What we talked about...</span>
+          <span class="wwta-preamble-caret" aria-hidden="true"></span>
+        </span>
+        <span class="wwta-city" id="wwta-club-title">BK Club Hamptons</span>
+        <span class="wwta-meta" id="wwta-meta">Tutto Cafe | Every Wednesday | 8:30 AM</span>
+        <span class="wwta-source-date" id="wwta-source-date" hidden></span>
+        <a
+          class="wwta-source-link"
+          id="wwta-source-link"
+          href="#"
+          target="_blank"
+          rel="noreferrer"
+          hidden
+        >Open source recap ↗</a>
+      </header>
+
+      <section class="wwta-body">
+        <div id="wwta-stage" class="wwta-stage" aria-live="polite"></div>
+      </section>
+
+      <footer class="wwta-footer">
+        <div class="wwta-footer-row">
+          <p id="wwta-status" class="wwta-status">Loading recap feed...</p>
+          <p id="wwta-counter" class="wwta-counter"></p>
         </div>
-
-        <a class="back-link" href="./index.html">← Back to Club List</a>
-
-        <section class="wwta-launch">
-          <h3>What We Talked About</h3>
-          <p>
-            Standalone recap view scoped on top of the latest live site. This page
-            is where dynamic topics and club-by-club media will come together.
-          </p>
-        </section>
-
-        <nav class="wwta-rail-nav" aria-label="Alternate views">
-          <a href="./calendar-view.html">Calendar View</a>
-          <a href="./map-view.html">Map View</a>
-        </nav>
-      </aside>
-
-      <main class="main-pane">
-        <header class="wwta-top-bar">
-          <h1>What We Talked About</h1>
-          <p id="wwta-status" class="status">Loading recap scope...</p>
-        </header>
-
-        <section class="wwta-stage-shell" aria-labelledby="wwta-club-title">
-          <div id="wwta-media" class="wwta-media" aria-live="polite"></div>
-
-          <div class="wwta-copy">
-            <p class="wwta-eyebrow">Scoped On Latest Site</p>
-            <p class="wwta-preamble">What we talked about...</p>
-            <h2 id="wwta-club-title" class="wwta-club-title">Loading club...</h2>
-            <p id="wwta-meta" class="wwta-meta"></p>
-            <p id="wwta-source" class="wwta-source"></p>
-
-            <div class="wwta-topic-block">
-              <h3>Topic Flow</h3>
-              <div id="wwta-topics" class="wwta-topics"></div>
-            </div>
-
-            <div class="wwta-nav-row">
-              <button id="wwta-prev" class="wwta-nav-btn" type="button">← Previous</button>
-              <span id="wwta-counter" class="wwta-counter"></span>
-              <button id="wwta-next" class="wwta-nav-btn" type="button">Next →</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="wwta-panel">
-          <div class="wwta-panel-header">
-            <div>
-              <p class="wwta-panel-label">Browse Clubs</p>
-              <h3>Click around and scope placement locally</h3>
-            </div>
-            <p class="wwta-panel-note">
-              This page is reading live site club metadata now. Topic/media fallbacks
-              will be replaced by the recap feed and media manifest.
-            </p>
-          </div>
-          <div id="wwta-club-pills" class="wwta-club-pills"></div>
-        </section>
-      </main>
-    </div>
-
-    <footer class="site-footer">
-      <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
-    </footer>
+        <div id="wwta-club-pills" class="wwta-club-pills" aria-label="Browse clubs"></div>
+        <p class="wwta-hint">swipe or use arrows to browse · source feed: Breakfast Clubbing on Substack</p>
+      </footer>
+    </main>
 
     <script src="./js/analytics-config.js"></script>
     <script src="./js/analytics.js"></script>
+    <script src="./js/club-overrides.js"></script>
     <script src="./js/what-we-talked-about.js"></script>
   </body>
 </html>
-

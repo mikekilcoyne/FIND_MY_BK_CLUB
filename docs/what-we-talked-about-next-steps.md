@@ -5,18 +5,20 @@
 - branch: `codex/wwta-view-scope`
 - base: `origin/main`
 
-This branch is the clean latest-site scaffold for the standalone `What We Talked About` view.
+This branch is the clean latest-site implementation branch for the standalone `What We Talked About` view.
 
 ---
 
 ## What Is Already Built
 
-The standalone view is scaffolded into the current live-site structure:
+The standalone view now uses the approved Hamptons V1 full-screen treatment on top of the latest live site:
 
 - new route: `what-we-talked-about.html`
 - new styles: `css/what-we-talked-about.css`
 - new page logic: `js/what-we-talked-about.js`
-- new media manifest stub: `data/wwta-media.json`
+- new Substack parser: `netlify/functions/fetch-substack-topics.js`
+- new local recap snapshot: `data/wwta-substack-cache.json`
+- media manifest stub: `data/wwta-media.json`
 
 Homepage entry points were also added:
 
@@ -27,43 +29,47 @@ Homepage entry points were also added:
 The page currently:
 
 - loads club metadata from `data/clubs-map.json`
-- renders a standalone recap-view shell
+- renders the Hamptons-style full-screen recap layout
 - supports previous/next club browsing
 - supports club pill navigation
-- supports placeholder media treatment per city
-- attempts live recap-topic loading from a future Netlify function, but falls back cleanly for now
+- keeps `What we talked about...` typed at the top with blinking caret
+- types the topic words in sequentially as they populate
+- cycles recap photos with the framed/blurred-polaroid treatment
+- attempts live recap loading from the Netlify function first
+- falls back to the local cached Substack snapshot on a plain static server
+- currently matches roughly 30+ clubs from the Substack cache into the standalone local view
 
 ---
 
 ## What Is Not Done Yet
 
-This is still a scaffold, not the final feature.
+This is no longer just a scaffold, but it is still not the final feature.
 
 Still needed:
 
-- real recap-topic source via `fetch-substack-topics` function
-- actual club photo coverage across all clubs
-- final V1 design port from the saved word-cloud/overlay branch
+- tighten city parsing / alias handling in the Substack parser
+- improve topic cleanup for some noisy recap sections
+- expand / tune photo positioning for individual clubs in `data/wwta-media.json`
+- decide whether to hide clubs with weak recap text or keep them visible with photo-first treatment
 - final decision on exact navigation placement after Ben feedback
-
-The current page is mainly for local scoping and structure review.
+- optional richer sourcing beyond Substack:
+  - LinkedIn
+  - Instagram
+  - WhatsApp/manual host notes
 
 ---
 
 ## Important Branch Context
 
-Approved V1 design work lives separately on:
+Approved V1 design work originally lived separately on:
 
 - `codex/word-cloud-v1`
 
-That branch contains the approved Hamptons visual direction.
+That branch contains the original approved Hamptons visual direction.
 
-This branch is intentionally based on latest `origin/main` so the feature can be integrated without losing or re-introducing older site issues.
+That direction has now been ported into this clean latest-site branch, so future work should continue here unless there is a reason to revisit the original experiments.
 
-When implementation resumes, the right move is:
-
-- bring over only the approved design pieces from `codex/word-cloud-v1`
-- not the whole experimental branch wholesale
+Keep treating this branch as the integration source of truth.
 
 ---
 
@@ -85,29 +91,27 @@ Decide:
 
 ## Recommended Next Build Steps
 
-1. Add the dynamic recap function:
-   - `netlify/functions/fetch-substack-topics.js`
+1. Tighten the recap parser:
+   - merge duplicate city variants such as `williamsburg 3 11 26`, `cph`, `db`
+   - improve topic cleaning so shorter/high-signal phrases win
 
-2. Port the approved V1 composition into the standalone page:
-   - typed `What we talked about...`
-   - city title
-   - venue/cadence/time subhead
-   - photo stage
-   - animated topic reveal
-
-3. Expand `data/wwta-media.json` so all clubs have a media plan:
+2. Expand `data/wwta-media.json` so all clubs have a media plan:
    - real photos where available
-   - placeholder query/curation where not
-   - `photoTreatment` for consistent club-to-club styling
+   - tuned `photoPositionY`
+   - any city-specific photo-treatment overrides
 
-4. Add the synthetic polaroid treatment for raw group photos:
-   - framed foreground image
-   - blurred duplicate behind it
+3. Decide which clubs should ship in V1:
+   - first 10–20 strongest recap/photo matches
+   - or all matched clubs with weaker ones lower in the pill rail
 
-5. Re-test placement and responsiveness at:
+4. Re-test placement and responsiveness at:
    - desktop
    - tablet
    - mobile
+
+5. After Ben feedback, finalize homepage placement / copy:
+   - `Latest Club Recaps`
+   - `New feature: what we talked about. Try it now.`
 
 ---
 
@@ -116,7 +120,6 @@ Decide:
 Keep this branch focused on:
 
 - latest-site-safe integration
-- standalone view structure
+- standalone recap view
 - dynamic data/media plumbing
-
-Keep visual lock decisions tied back to the approved V1 branch unless Ben wants the placement or framing strategy to change.
+- the approved Hamptons full-screen visual system as the base framework for all clubs

@@ -45,6 +45,23 @@ a {
   justify-content: center;
 }
 
+.feature-tease {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.feature-tease a {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.feature-tease a:hover {
+  text-decoration: underline;
+}
+
 .logo-dot {
   width: 136px;
   height: 136px;
@@ -183,6 +200,9 @@ a {
   color: #173157;
   text-decoration: none;
   border-bottom: 1px solid #173157;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .recap-headline-link:hover {
@@ -688,6 +708,10 @@ h2 {
   .calendar-box,
   .map-box,
   .recap-box {
+    display: none;
+  }
+
+  .feature-tease {
     display: none;
   }
 }
