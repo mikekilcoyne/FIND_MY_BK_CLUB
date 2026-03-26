@@ -1,66 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Breakfast Club — What We Talked About</title>
-    <meta
-      name="description"
-      content="See what Breakfast Clubs around the world have been talking about, in the approved full-screen recap view."
-    />
-    <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
-    <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
-    <link rel="stylesheet" href="./css/what-we-talked-about.css" />
+    <link rel="stylesheet" href="./css/word-cloud.css" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #0d1824;
+      }
+
+      #clubs-list {
+        display: none;
+      }
+    </style>
   </head>
-  <body class="wwta-page">
-    <main class="wwta-view" aria-label="What we talked about">
-      <div id="wwta-photo-layer" class="wwta-photo-layer" aria-hidden="true"></div>
+  <body data-word-cloud-preview="true">
+    <div id="clubs-list" aria-hidden="true"></div>
 
-      <a class="wwta-back-link" href="./index.html">← Back to club list</a>
-      <a class="wwta-close-link" href="./index.html" aria-label="Close recap view">×</a>
-
-      <button class="wwta-nav wwta-nav--prev" id="wwta-prev" type="button" aria-label="Previous club">
-        ←
-      </button>
-      <button class="wwta-nav wwta-nav--next" id="wwta-next" type="button" aria-label="Next club">
-        →
-      </button>
-
-      <header class="wwta-header">
-        <span class="wwta-preamble" id="wwta-preamble">
-          <span id="wwta-preamble-text">What we talked about...</span>
-          <span class="wwta-preamble-caret" aria-hidden="true"></span>
+    <div id="wc-overlay" class="wc-overlay" hidden aria-modal="true" role="dialog" aria-label="What we talked about">
+      <button class="wc-overlay-close" id="wc-overlay-close" aria-label="Close">×</button>
+      <button class="wc-overlay-nav wc-overlay-nav--prev" id="wc-overlay-prev" aria-label="Previous club">&#8592;</button>
+      <button class="wc-overlay-nav wc-overlay-nav--next" id="wc-overlay-next" aria-label="Next club">&#8594;</button>
+      <div class="wc-overlay-header">
+        <span class="wc-overlay-preamble" id="wc-overlay-preamble">
+          <span id="wc-overlay-preamble-text">What we talked about...</span>
+          <span class="wc-overlay-preamble-caret" aria-hidden="true"></span>
         </span>
-        <span class="wwta-city" id="wwta-club-title">BK Club Hamptons</span>
-        <span class="wwta-meta" id="wwta-meta">Tutto Cafe | Every Wednesday | 8:30 AM</span>
-        <span class="wwta-source-date" id="wwta-source-date" hidden></span>
-        <a
-          class="wwta-source-link"
-          id="wwta-source-link"
-          href="#"
-          target="_blank"
-          rel="noreferrer"
-          hidden
-        >Open source recap ↗</a>
-      </header>
-
-      <section class="wwta-body">
-        <div id="wwta-stage" class="wwta-stage" aria-live="polite"></div>
-      </section>
-
-      <footer class="wwta-footer">
-        <div class="wwta-footer-row">
-          <p id="wwta-status" class="wwta-status">Loading recap feed...</p>
-          <p id="wwta-counter" class="wwta-counter"></p>
+        <span class="wc-overlay-city" id="wc-overlay-city"></span>
+        <span class="wc-overlay-meta" id="wc-overlay-meta"></span>
+        <span class="wc-overlay-source-date" id="wc-overlay-source-date" hidden></span>
+      </div>
+      <div class="wc-overlay-body">
+        <div id="wc-overlay-stage" class="wc-overlay-stage"></div>
+        <div id="wc-overlay-art" class="wc-overlay-art" aria-hidden="true" hidden>
+          <img id="wc-overlay-photo" class="wc-overlay-photo" src="" alt="" aria-hidden="true" hidden />
+          <span class="wc-overlay-attribution" id="wc-overlay-attribution" hidden></span>
         </div>
-        <div id="wwta-club-pills" class="wwta-club-pills" aria-label="Browse clubs"></div>
-        <p class="wwta-hint">swipe or use arrows to browse · source feed: Breakfast Clubbing on Substack</p>
-      </footer>
-    </main>
+      </div>
+      <p class="wc-overlay-hint">swipe or use arrows to browse · swipe up to close</p>
+    </div>
 
     <script src="./js/analytics-config.js"></script>
     <script src="./js/analytics.js"></script>
     <script src="./js/club-overrides.js"></script>
+    <script src="./js/wordcloud2.js"></script>
+    <script src="./js/word-cloud-topics.js"></script>
+    <script src="./js/word-cloud.js"></script>
     <script src="./js/what-we-talked-about.js"></script>
   </body>
 </html>
