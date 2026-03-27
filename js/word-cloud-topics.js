@@ -83,98 +83,27 @@ const WC_TOPICS = {
 // Spotlights: used for the floating "What we talked about at BK Club X" phrase
 // Topics array is used to illuminate matching words in the background cloud
 const WC_SPOTLIGHTS = [
-  {
-    displayName: "New York",
-    region: "Northeast US",
-    topics: ["NYC grind", "rent prices", "startup scene", "subway delays", "bagels", "Brooklyn vibes", "Williamsburg"],
-  },
-  {
-    displayName: "London",
-    region: "UK",
-    topics: ["London calling", "fintech", "proper breakfast", "pub culture", "the tube", "flat whites", "Shoreditch scene"],
-  },
-  {
-    displayName: "Amsterdam",
-    region: "Europe",
-    topics: ["Amsterdam canals", "digital nomads", "remote first", "flat whites", "expat life", "co-living"],
-  },
-  {
-    displayName: "Los Angeles",
-    region: "West Coast",
-    topics: ["LA hustle", "venture capital", "startup pivots", "avocado toast", "surf before work", "taco trucks"],
-  },
-  {
-    displayName: "Melbourne",
-    region: "Australia",
-    topics: ["Melbourne coffee", "flat whites", "beach before work", "startup culture", "early risers"],
-  },
-  {
-    displayName: "Copenhagen",
-    region: "Europe",
-    topics: ["Copenhagen design", "work-life balance", "weekend rail", "EU funding", "proper coffee", "slow mornings"],
-  },
-  {
-    displayName: "Brooklyn",
-    region: "Northeast US",
-    topics: ["Brooklyn vibes", "bodega cats", "rooftop season", "bagels", "cold brew", "Williamsburg"],
-  },
-  {
-    displayName: "San Francisco",
-    region: "West Coast",
-    topics: ["SF housing", "venture capital", "tech layoffs", "climate tech", "startup pivots", "the mission"],
-  },
-  {
-    displayName: "Berlin",
-    region: "Europe",
-    photos: [
-      "./assets/photos/Berlin 1.jpg",
-      "./assets/photos/Berlin 2.jpg",
-    ],
-    photoTreatment: "polaroid-frame",
-    topics: [
-      "creative community",
-      "timeless ideas",
-      "shared mornings",
-      "infinite conversations",
-      "new perspectives",
-      "building together",
-      "design culture",
-      "breakfast rituals",
-    ],
-  },
-  {
-    displayName: "Miami",
-    region: "Southeast US",
-    topics: ["Miami energy", "beach mornings", "warm winters", "tech migration", "southern hospitality"],
-  },
-  {
-    displayName: "Sydney",
-    region: "Australia",
-    topics: ["Sydney harbour", "beach before work", "early risers", "outdoor bbq", "Sunday sessions"],
-  },
-  {
-    displayName: "Paris",
-    region: "Europe",
-    topics: ["Paris mornings", "flat whites", "proper coffee", "slow mornings", "expat life", "cultural exchange"],
-  },
+  { displayName: "New York", region: "Northeast US", topics: [] },
+  { displayName: "London", region: "UK", topics: [] },
+  { displayName: "Amsterdam", region: "Europe", topics: [] },
+  { displayName: "Los Angeles", region: "West Coast", topics: [] },
+  { displayName: "Melbourne", region: "Australia", topics: [] },
+  { displayName: "Copenhagen", region: "Europe", topics: [] },
+  { displayName: "San Francisco", region: "West Coast", topics: [] },
+  { displayName: "Berlin", region: "Europe", topics: [], photoTreatment: "polaroid-frame" },
+  { displayName: "Miami", region: "Southeast US", topics: [] },
+  { displayName: "Sydney", region: "Australia", topics: [] },
+  { displayName: "Paris", region: "Europe", topics: [] },
   {
     displayName: "SOMa",
     region: "Northeast US",
     photo: "./assets/ken_stanek_watercolor_BK_Club_NJ.jpeg",
     attribution: "Artwork by Ken Stanek",
-    topics: ["how sora videos are giving us body dysmorphia", "wondering if ai could help us use ai better", "limp bizkit", "suburban dive bars", "destruction of work", "eating your way through paris", "is jimmy fallon nice"],
+    topics: []
   },
   {
     displayName: "Hamptons",
     region: "Northeast US",
-    photoTreatment: "full-bleed",
-    notesMode: true,
-    noteTitle: "What we talked about...",
-    noteLines: [
-      "Coffee, early risers, and who actually likes being up before 8:30.",
-      "Side projects, co-founders, remote work, and what everyone is building next.",
-      "Real estate, Hamptons summer energy, and the kind of serendipity that keeps people coming back.",
-    ],
     photos: [
       "./assets/photos/Polaroid.png",
       "./assets/photos/Polaroid 2.png",
@@ -183,6 +112,6 @@ const WC_SPOTLIGHTS = [
       "./assets/photos/Polaroid 5.png",
       "./assets/photos/Polaroid 6.png",
     ],
-    topics: ["Hamptons summer", "rooftop season", "real estate", "side projects", "what's next", "co-founders", "serendipity", "remote work", "early risers", "coffee"],
-  },
+    topics: []
+  }
 ];

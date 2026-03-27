@@ -22,7 +22,7 @@
     "https://substackcdn.com/image/fetch/$s_!f4ZK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8abd7d7-bb85-4bf3-895b-17bad8f0ab9d_5712x4284.jpeg";
   const FRAME_VARIANTS = ["auto", "black", "red", "orange", "white"];
   const FRAME_TEXTURES = {
-    black: "./assets/polaroid-backdrops/polaroid-backdrop-01.png",
+    black: "./assets/polaroid-backdrops/polaroid-backdrop-08-blank-dark.png",
     red: "./assets/polaroid-backdrops/polaroid-backdrop-04.png",
     orange: "./assets/polaroid-backdrops/polaroid-backdrop-04.png",
     white: "./assets/polaroid-backdrops/polaroid-backdrop-07-white.png",
@@ -38,6 +38,7 @@
   let photoCycleTimer  = null; // interval handle for polaroid cycling
   let overlayTypeTimers = [];
   let overlayFrameVariantIndex = 0;
+  let overlayPreambleHasTyped = false;
   const liveDates = {}; // normalised city key → ISO date string from Substack recap
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -77,6 +78,17 @@
   function getOverlayPreambleCharDelay(ch, deleting) {
     if (deleting) return ch === "." ? 72 : ch === " " ? 34 : 48;
     return ch === "." ? 240 : ch === " " ? 80 : 105;
+  }
+
+  function formatOverlayDate(dateValue) {
+    if (!dateValue) return "";
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return "";
+    return parsed.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
   }
 
   function getFrameVariantLabel(value) {
@@ -131,11 +143,12 @@
       ? explicitVariant
       : (shell.getAttribute("data-overlay-frame-variant") || "black");
     const texturePath = FRAME_TEXTURES[resolvedVariant] || FRAME_TEXTURES.black;
+
     frameEl.style.setProperty("--wc-frame-texture", 'url("' + texturePath + '")');
 
     if (frameSwapImg) {
       frameSwapImg.src = resolvedVariant === "white"
-        ? "./assets/ui/change-frame-script-black.png"
+        ? "./assets/ui/change-frame-script-black.png?v=2"
         : "./assets/ui/change-frame-script-white.png";
     }
   }
@@ -158,12 +171,6 @@
 
     syncOverlayFrameControls(true);
 
-    if (!opts.skipWordFade) {
-      setOverlayWordFade(true);
-      setTimeout(function () {
-        setOverlayWordFade(false);
-      }, 420);
-    }
   }
 
   function cycleOverlayFrame(delta) {
@@ -187,6 +194,74 @@
     refreshOverlayFrameVariant(scope);
   }
 
+  function getOverlayExposureProfile(cityKey) {
+    const key = normaliseCity(cityKey || "");
+    if (key.includes("soma") || key.includes("maplewood")) {
+      return {
+        defaultFrameVariant: "white",
+        blurBrightness: 0.98,
+        blurOpacity: 0.96,
+        blurRadius: "40px",
+        blurRadiusPortrait: "32px",
+      };
+    }
+    if (key.includes("hamptons")) {
+      return {
+        defaultFrameVariant: "white",
+      };
+    }
+    if (key.includes("amsterdam")) {
+      return {
+        defaultFrameVariant: "white",
+        blurBrightness: 1.02,
+        blurOpacity: 0.9,
+        framePhotoBrightness: 1.18,
+      };
+    }
+    if (key.includes("biarritz")) {
+      return {
+        defaultFrameVariant: "black",
+      };
+    }
+    return null;
+  }
+
+  function applyOverlayExposureProfile(scope, cityKey) {
+    if (!scope) return;
+    const shell = scope.matches("[data-overlay-frame-shell]")
+      ? scope
+      : scope.querySelector("[data-overlay-frame-shell]");
+    if (!shell) return;
+
+    const profile = getOverlayExposureProfile(cityKey);
+    if (!profile) {
+      shell.style.removeProperty("--wc-blur-brightness");
+      shell.style.removeProperty("--wc-blur-opacity");
+      shell.style.removeProperty("--wc-blur-radius");
+      shell.style.removeProperty("--wc-blur-radius-portrait");
+      shell.style.removeProperty("--wc-frame-photo-brightness");
+      shell.style.removeProperty("--wc-bg-photo-position-x");
+      shell.style.removeProperty("--wc-bg-photo-position-y");
+      shell.style.removeProperty("--wc-bg-photo-scale");
+      shell.style.removeProperty("--wc-frame-photo-position-x");
+      shell.style.removeProperty("--wc-frame-photo-position-y");
+      shell.style.removeProperty("--wc-frame-photo-scale");
+      return;
+    }
+
+    shell.style.setProperty("--wc-blur-brightness", String(profile.blurBrightness));
+    shell.style.setProperty("--wc-blur-opacity", String(profile.blurOpacity));
+    if (profile.blurRadius) shell.style.setProperty("--wc-blur-radius", profile.blurRadius);
+    if (profile.blurRadiusPortrait) shell.style.setProperty("--wc-blur-radius-portrait", profile.blurRadiusPortrait);
+    shell.style.setProperty("--wc-frame-photo-brightness", String(profile.framePhotoBrightness));
+    if (profile.bgPhotoPositionX) shell.style.setProperty("--wc-bg-photo-position-x", profile.bgPhotoPositionX);
+    if (profile.bgPhotoPositionY) shell.style.setProperty("--wc-bg-photo-position-y", profile.bgPhotoPositionY);
+    if (profile.bgPhotoScale) shell.style.setProperty("--wc-bg-photo-scale", String(profile.bgPhotoScale));
+    if (profile.framePhotoPositionX) shell.style.setProperty("--wc-frame-photo-position-x", profile.framePhotoPositionX);
+    if (profile.framePhotoPositionY) shell.style.setProperty("--wc-frame-photo-position-y", profile.framePhotoPositionY);
+    if (profile.framePhotoScale) shell.style.setProperty("--wc-frame-photo-scale", String(profile.framePhotoScale));
+  }
+
   function setOverlayFramedPhotoSource(scope, src) {
     if (!scope) return;
     const framedNode = scope.querySelector('.wc-overlay-bg-photo-framed.is-visible') ||
@@ -198,46 +273,7 @@
   }
 
   function detectOverlayFrameVariant(imageEl) {
-    if (!imageEl || !imageEl.naturalWidth || !imageEl.naturalHeight) return "black";
-
-    try {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      const sampleSize = 24;
-      canvas.width = sampleSize;
-      canvas.height = sampleSize;
-      context.drawImage(imageEl, 0, 0, sampleSize, sampleSize);
-
-      const pixels = context.getImageData(0, 0, sampleSize, sampleSize).data;
-      let totalR = 0;
-      let totalG = 0;
-      let totalB = 0;
-      let totalLuma = 0;
-      const pixelCount = pixels.length / 4;
-
-      for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        totalR += r;
-        totalG += g;
-        totalB += b;
-        totalLuma += (r * 0.299) + (g * 0.587) + (b * 0.114);
-      }
-
-      const avgR = totalR / pixelCount;
-      const avgG = totalG / pixelCount;
-      const avgB = totalB / pixelCount;
-      const avgLuma = totalLuma / pixelCount;
-      const warmth = avgR - avgB;
-
-      if (avgLuma <= 108) return "black";
-      if (avgLuma >= 186) return "black";
-      if (warmth >= 34 && avgG >= 112) return "orange";
-      return "red";
-    } catch (error) {
-      return "black";
-    }
+    return "black";
   }
 
   function refreshOverlayFrameVariant(scope) {
@@ -288,7 +324,7 @@
           '<div class="wc-overlay-bg-photo-frame">' +
             '<div class="wc-overlay-bg-photo-frame-inner">' +
               '<img class="wc-overlay-bg-photo-framed wc-overlay-bg-photo--push is-visible" data-overlay-photo-role="framed" src="' + src + '" alt="" aria-hidden="true">' +
-              '<img class="wc-overlay-bg-photo-framed" data-overlay-photo-role="framed" src="' + src + '" alt="" aria-hidden="true">' +
+              '<img class="wc-overlay-bg-photo-framed is-swapping" data-overlay-photo-role="framed" src="' + src + '" alt="" aria-hidden="true">' +
             "</div>" +
             '<button class="wc-overlay-frame-script" data-overlay-frame-swap type="button" aria-label="Change frame">' +
               '<img class="wc-overlay-frame-script-img" src="./assets/ui/change-frame-script-white.png" alt="Change Frame">' +
@@ -344,6 +380,16 @@
     }
   }
 
+  function showOverlayPreamble(text) {
+    const preambleEl = document.getElementById("wc-overlay-preamble");
+    const preambleTextEl = document.getElementById("wc-overlay-preamble-text");
+    if (!preambleEl || !preambleTextEl) return;
+
+    clearOverlayTyping();
+    preambleTextEl.textContent = text;
+    preambleEl.classList.add("wc-overlay-preamble--active");
+  }
+
   function typeOverlayWordsSequentially(wordSpans) {
     if (!wordSpans || wordSpans.length === 0) return;
 
@@ -373,11 +419,11 @@
 
   // ── Photo cycling (scatter-bg mode) ────────────────────────────────────────
 
-  function startPhotoCycle(photos) {
+  function startPhotoCycle(photos, startingIndex) {
     stopPhotoCycle();
     if (!photos || photos.length <= 1) return;
 
-    let idx = 0;
+    let idx = Number.isInteger(startingIndex) ? startingIndex : 0;
 
     photoCycleTimer = setInterval(function () {
       idx = (idx + 1) % photos.length;
@@ -386,39 +432,36 @@
       const photoShell = shell.querySelector(".wc-overlay-bg-photo-shell");
 
       if (photoShell) {
-        typeOverlayPreamble("Loading next photo...", {
-          deleteFirst: true,
-          onComplete: function () {
-            const framedNodes = Array.from(photoShell.querySelectorAll('[data-overlay-photo-role="framed"]'));
-            if (framedNodes.length < 2) return;
-            const outgoing = framedNodes.find(function (node) {
-              return node.classList.contains("is-visible");
-            }) || framedNodes[0];
-            const incoming = framedNodes.find(function (node) {
-              return node !== outgoing;
-            });
-            if (!incoming) return;
-
-            incoming.src = photos[idx];
-            incoming.classList.add("is-entering");
-            restartOverlayPhotoMotion(incoming);
-            void incoming.offsetWidth;
-            incoming.classList.add("is-visible");
-            outgoing.classList.add("is-exiting");
-            outgoing.classList.remove("is-visible");
-
-            setTimeout(function () {
-              if (!photoShell.parentNode) return;
-              refreshOverlayFrameVariant(photoShell);
-            }, PHOTO_FRAME_SWAP_DURATION * 0.72);
-
-            setTimeout(function () {
-              if (!photoShell.parentNode) return;
-              incoming.classList.remove("is-entering");
-              outgoing.classList.remove("is-exiting");
-            }, PHOTO_FRAME_SWAP_DURATION + 80);
-          }
+        const framedNodes = Array.from(photoShell.querySelectorAll('[data-overlay-photo-role="framed"]'));
+        if (framedNodes.length < 2) return;
+        const outgoing = framedNodes.find(function (node) {
+          return node.classList.contains("is-visible");
+        }) || framedNodes[0];
+        const incoming = framedNodes.find(function (node) {
+          return node !== outgoing;
         });
+        if (!incoming) return;
+
+        // 1. Undevelop outgoing photo
+        outgoing.classList.add("is-swapping");
+        outgoing.classList.remove("is-visible");
+
+        // 2. Wait for undevelop, then fade in incoming
+        setTimeout(function () {
+          if (!photoShell.parentNode) return;
+          
+          // Prepare incoming as hidden
+          incoming.classList.add("is-swapping");
+          incoming.src = photos[idx];
+          restartOverlayPhotoMotion(incoming);
+          void incoming.offsetWidth;
+          
+          // Develop incoming photo
+          incoming.classList.remove("is-swapping");
+          incoming.classList.add("is-visible");
+          
+          refreshOverlayFrameVariant(photoShell);
+        }, 1400);
         return;
       }
 
@@ -433,15 +476,10 @@
       });
       if (!incoming) return;
 
-      typeOverlayPreamble("Loading next photo...", {
-        deleteFirst: true,
-        onComplete: function () {
-          incoming.src = photos[idx];
-          restartOverlayPhotoMotion(incoming);
-          incoming.classList.add("is-active");
-          active.classList.remove("is-active");
-        }
-      });
+      incoming.src = photos[idx];
+      restartOverlayPhotoMotion(incoming);
+      incoming.classList.add("is-active");
+      active.classList.remove("is-active");
     }, PHOTO_CYCLE_INTERVAL);
   }
 
@@ -611,7 +649,7 @@
       if (btn) {
         overlayCurrentIdx = btns.indexOf(btn);
         openOverlay(btn.dataset.city, btn.dataset.displayCity,
-                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue);
+                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue, btn.dataset.upcomingDate);
       } else {
         overlayCurrentIdx = 0;
         openOverlay(spotlight.displayName.toLowerCase(), spotlight.displayName, "", "", "");
@@ -806,7 +844,7 @@
     typeOverlayWordsSequentially(typingSpans);
   }
 
-  function openOverlay(cityKey, displayCity, scheduleLabel, eventTime, venue) {
+  function openOverlay(cityKey, displayCity, scheduleLabel, eventTime, venue, upcomingDate) {
     const overlay       = document.getElementById("wc-overlay");
     const stage         = document.getElementById("wc-overlay-stage");
     const cityLabel     = document.getElementById("wc-overlay-city");
@@ -821,19 +859,6 @@
     const cleanCity = (displayCity || cityKey || "").replace(/,\s*[A-Z]{2}$/, "").trim();
     cityLabel.textContent = "BK Club " + cleanCity;
 
-    // Set meta line: "Artie's  |  Weekly  |  9:15 AM"
-    if (metaEl) {
-      const parts = [];
-      if (venue) {
-        // Show just the venue name (before the first comma)
-        const commaIdx = venue.indexOf(",");
-        parts.push(commaIdx > -1 ? venue.slice(0, commaIdx).trim() : venue);
-      }
-      if (scheduleLabel) parts.push(scheduleLabel);
-      if (eventTime)     parts.push(eventTime);
-      metaEl.textContent = parts.join("  |  ");
-    }
-
     // Look up spotlight data (photo/photos, attribution, topics)
     const spotlight    = getSpotlightForCity(cityKey);
     const photos       = spotlight && spotlight.photos && spotlight.photos.length > 0
@@ -843,16 +868,36 @@
     const photoTreatment = spotlight && spotlight.photoTreatment
       ? spotlight.photoTreatment
       : (photos ? "polaroid-frame" : "");
-    const frameVariant = spotlight && spotlight.frameVariant ? spotlight.frameVariant : "black";
-    const usePhotoMode = Boolean(photos);
+    const visualProfile = getOverlayExposureProfile(cityKey);
+    const frameVariant = spotlight && spotlight.frameVariant
+      ? spotlight.frameVariant
+      : ((visualProfile && visualProfile.defaultFrameVariant) || "white");
+    const heroPhotoIndex = spotlight && Number.isInteger(spotlight.heroPhotoIndex)
+      ? Math.max(0, Math.min(spotlight.heroPhotoIndex, photos ? photos.length - 1 : 0))
+      : 0;
+    const heroPhoto = photos && photos.length ? photos[heroPhotoIndex] : null;
+    if (metaEl) {
+      const parts = [];
+      if (venue) {
+        const commaIdx = venue.indexOf(",");
+        parts.push(commaIdx > -1 ? venue.slice(0, commaIdx).trim() : venue);
+      }
+      if (scheduleLabel) parts.push(scheduleLabel);
+      if (eventTime) parts.push(eventTime);
+      metaEl.textContent = parts.join("  |  ");
+    }
 
-    typeOverlayPreamble("What we talked about...");
+    if (!overlayPreambleHasTyped) {
+      typeOverlayPreamble("Latest happenings from...");
+      overlayPreambleHasTyped = true;
+    } else {
+      showOverlayPreamble("Latest happenings from...");
+    }
 
-    // ── Scatter-photo background ──
-    // When spotlight has a `photos` array, scatter polaroids as full-bg; otherwise remove.
     stopPhotoCycle();
     let bgPhotosEl = overlay.querySelector(".wc-overlay-bg-photos");
     if (photos) {
+      overlay.classList.add("wc-overlay--recap-simple");
       overlay.classList.add("wc-overlay--photo-bg");
       if (!bgPhotosEl) {
         bgPhotosEl = document.createElement("div");
@@ -861,15 +906,17 @@
         overlay.insertBefore(bgPhotosEl, overlay.firstChild);
       }
       overlay.classList.toggle("wc-overlay--photo-frame", photoTreatment === "polaroid-frame");
-      bgPhotosEl.innerHTML = buildOverlayPhotoMarkup(photos[0], photoTreatment, frameVariant, SHARED_POLAROID_BACKDROP);
+      bgPhotosEl.innerHTML = buildOverlayPhotoMarkup(heroPhoto || photos[0], photoTreatment, frameVariant, heroPhoto || photos[0]);
+      applyOverlayExposureProfile(bgPhotosEl, cityKey);
       refreshOverlayFrameVariant(bgPhotosEl);
       overlayFrameVariantIndex = FRAME_VARIANTS.indexOf(FRAME_VARIANTS.includes(frameVariant) ? frameVariant : "black");
       syncOverlayFrameControls(photoTreatment === "polaroid-frame");
       if (photoTreatment === "polaroid-frame") {
         setOverlayFrameVariant(frameVariant, { skipWordFade: true });
       }
-      startPhotoCycle(photos);
+      startPhotoCycle(photos, heroPhotoIndex);
     } else {
+      overlay.classList.add("wc-overlay--recap-simple");
       overlay.classList.remove("wc-overlay--photo-bg");
       overlay.classList.remove("wc-overlay--photo-frame");
       syncOverlayFrameControls(false);
@@ -878,19 +925,8 @@
 
     // Source date flag: "from March 10, 2026 recap"
     if (sourceDateEl) {
-      const spotKey = spotlight ? normaliseCity(spotlight.displayName) : null;
-      const dateISO = (spotKey && liveDates[spotKey]) ||
-                      liveDates[normaliseCity(cityKey)] ||
-                      liveDates[normaliseCity(cleanCity)];
-      if (dateISO) {
-        const d = new Date(dateISO);
-        const formatted = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-        sourceDateEl.textContent = "from " + formatted + " recap";
-        sourceDateEl.removeAttribute("hidden");
-      } else {
-        sourceDateEl.textContent = "";
-        sourceDateEl.setAttribute("hidden", "");
-      }
+      sourceDateEl.textContent = "";
+      sourceDateEl.setAttribute("hidden", "");
     }
 
     if (photoEl) {
@@ -915,28 +951,10 @@
       }
     }
 
-    // Build weighted word list from topics
-    const topics = getTopicsForCity(cityKey);
-    const rawTopics = topics.length > 0
-      ? topics
-      : WC_TOPICS["All"].slice(0, 18).map(([w]) => w);
-
-    const topicCount = rawTopics.length;
-    const fewTopics  = topicCount <= 10;
-
-    const wordList = fewTopics
-      ? rawTopics.map((t) => [t, 8])
-      : rawTopics.map((t, i) => [t, Math.max(4, 10 - Math.floor(i / 3))]);
-
-    // Clear and render
     stage.innerHTML = "";
     stage.classList.remove("wc-overlay-stage--zones");
     overlay.removeAttribute("hidden");
     overlay.classList.remove("wc-overlay--closing");
-
-    // Sort by weight descending so biggest words are at the top of each column
-    const sorted = [...wordList].sort((a, b) => b[1] - a[1]);
-    renderOverlayWords(stage, sorted.map(([text, weight]) => ({ text, weight })), usePhotoMode);
 
     // Trap Escape key
     document.addEventListener("keydown", onOverlayKeydown);
@@ -946,6 +964,17 @@
     const overlay = document.getElementById("wc-overlay");
     if (!overlay || overlay.hidden) return;
 
+    if (
+      document.body &&
+      document.body.dataset &&
+      document.body.dataset.wordCloudPreview === "true" &&
+      typeof window !== "undefined" &&
+      window.WWTA_RETURN_URL
+    ) {
+      window.location.href = window.WWTA_RETURN_URL;
+      return;
+    }
+
     stopPhotoCycle();
     clearOverlayTyping();
     overlay.classList.add("wc-overlay--closing");
@@ -954,6 +983,7 @@
     setTimeout(() => {
       overlay.setAttribute("hidden", "");
       overlay.classList.remove("wc-overlay--closing");
+      overlay.classList.remove("wc-overlay--recap-simple");
       overlay.classList.remove("wc-overlay--photo-bg");
       overlay.classList.remove("wc-overlay--photo-frame");
       const bgPhotosEl    = overlay.querySelector(".wc-overlay-bg-photos");
@@ -983,13 +1013,13 @@
       stage.style.opacity    = "0";
       setTimeout(() => {
         openOverlay(btn.dataset.city, btn.dataset.displayCity,
-                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue);
+                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue, btn.dataset.upcomingDate);
         stage.style.opacity = "1";
         setTimeout(() => { stage.style.transition = ""; }, 200);
       }, 200);
     } else {
       openOverlay(btn.dataset.city, btn.dataset.displayCity,
-                  btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue);
+                  btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue, btn.dataset.upcomingDate);
     }
   }
 
@@ -1059,7 +1089,7 @@
         );
         overlayCurrentIdx = overlayClubButtons.indexOf(btn);
         openOverlay(btn.dataset.city, btn.dataset.displayCity,
-                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue);
+                    btn.dataset.scheduleLabel, btn.dataset.eventTime, btn.dataset.venue, btn.dataset.upcomingDate);
       });
     }
   }
@@ -1187,6 +1217,7 @@
             previewConfig.scheduleLabel || "",
             previewConfig.eventTime || "",
             previewConfig.venue || "",
+            previewConfig.upcomingDate || "",
           );
         }
       }, 200);

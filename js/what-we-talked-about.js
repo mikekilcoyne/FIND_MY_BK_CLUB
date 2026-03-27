@@ -3,6 +3,7 @@
 
   var CLUBS_MAP_URL = "./data/clubs-map.json";
   var CACHE_URL = "./data/wwta-substack-cache.json";
+  var RETURN_URL = "http://localhost:4174/";
 
   var CLUB_ALIASES = {
     "new york - hamptons": ["hamptons", "downtown hamptons"],
@@ -88,6 +89,95 @@
     return labels[value] || "";
   }
 
+  function toIsoDate(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function todayStart() {
+    var now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }
+
+  function weekdayToJs(weekday) {
+    if (weekday === 7) return 0;
+    return weekday || 0;
+  }
+
+  function resolveWeeklyUpcomingDate(weekday) {
+    if (!weekday) return "";
+    var base = todayStart();
+    var target = weekdayToJs(weekday);
+    var delta = (target - base.getDay() + 7) % 7;
+    var next = new Date(base);
+    next.setDate(base.getDate() + delta);
+    return toIsoDate(next);
+  }
+
+  function nthWeekdayOfMonth(year, monthIndex, ordinal, weekday) {
+    var target = weekdayToJs(weekday);
+    var date = new Date(year, monthIndex, 1);
+    var matches = 0;
+
+    while (date.getMonth() === monthIndex) {
+      if (date.getDay() === target) {
+        matches += 1;
+        if (matches === ordinal) {
+          return new Date(date);
+        }
+      }
+      date.setDate(date.getDate() + 1);
+    }
+
+    return null;
+  }
+
+  function resolveMonthlyUpcomingDate(ordinal, weekday) {
+    if (!ordinal || !weekday) return "";
+    var base = todayStart();
+    var currentCandidate = nthWeekdayOfMonth(base.getFullYear(), base.getMonth(), ordinal, weekday);
+    if (currentCandidate && currentCandidate >= base) {
+      return toIsoDate(currentCandidate);
+    }
+
+    var nextMonth = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+    var nextCandidate = nthWeekdayOfMonth(nextMonth.getFullYear(), nextMonth.getMonth(), ordinal, weekday);
+    return nextCandidate ? toIsoDate(nextCandidate) : "";
+  }
+
+  function resolveSpecificUpcomingDate(schedule) {
+    if (!schedule || !Array.isArray(schedule.dates) || !schedule.dates.length) return "";
+    var base = todayStart().getTime();
+    var sorted = schedule.dates
+      .slice()
+      .filter(Boolean)
+      .sort();
+    var next = sorted.find(function (dateValue) {
+      return new Date(dateValue).getTime() >= base;
+    });
+    return next || sorted[0] || "";
+  }
+
+  function resolveUpcomingDate(club) {
+    if (club && club.upcoming_date) return club.upcoming_date;
+    if (!club || !club.schedule || !club.schedule.type) return "";
+
+    if (club.schedule.type === "specific") {
+      return resolveSpecificUpcomingDate(club.schedule);
+    }
+    if (club.schedule.type === "weekly") {
+      return resolveWeeklyUpcomingDate(club.schedule.weekday);
+    }
+    if (club.schedule.type === "monthly") {
+      return resolveMonthlyUpcomingDate(club.schedule.ordinal, club.schedule.weekday);
+    }
+
+    return "";
+  }
+
   function formatSchedule(schedule, override) {
     if (override && override.cadence) {
       if (override.cadence === "Bi-Weekly" && schedule && schedule.weekday) {
@@ -136,6 +226,10 @@
       spotlight.topics = Array.from(new Set([].concat(record.topics, spotlight.topics || []))).slice(0, 16);
     }
 
+    if (record && record.sourceDate && !spotlight.sourceDate) {
+      spotlight.sourceDate = record.sourceDate;
+    }
+
     if ((!spotlight.photos || !spotlight.photos.length) && record && record.photos && record.photos.length && spotlightKey !== "hamptons") {
       spotlight.photos = record.photos.slice(0, 6);
       spotlight.photoTreatment = "polaroid-frame";
@@ -175,18 +269,45 @@
     var container = document.getElementById("clubs-list");
     var cacheCities = (cache && cache.cities) || {};
     var filtered = [];
+    var deduped = new Map();
 
     clubs.forEach(function (club) {
       var override = (window.CLUB_OVERRIDES && window.CLUB_OVERRIDES[club.city]) || {};
       var record = findRecordForClub(cacheCities, club);
       var spotlight = mergeSpotlight(Object.assign({}, club, override), record);
-      if (!spotlight || !(spotlight.topics && spotlight.topics.length) && !(spotlight.photos && spotlight.photos.length)) return;
+      var hasVisual = Boolean(
+        (spotlight && spotlight.photos && spotlight.photos.length) ||
+        (spotlight && spotlight.photo)
+      );
+      if (!spotlight || !hasVisual) return;
       filtered.push({
         club: Object.assign({}, club, override),
         spotlight: spotlight,
         record: record,
       });
     });
+
+    filtered.forEach(function (entry) {
+      var key = normalizeCity(cleanDisplayCity(entry.club));
+      var existing = deduped.get(key);
+      if (!existing) {
+        deduped.set(key, entry);
+        return;
+      }
+
+      var existingScore =
+        ((existing.spotlight && existing.spotlight.photos && existing.spotlight.photos.length) || 0) +
+        ((existing.spotlight && existing.spotlight.topics && existing.spotlight.topics.length) || 0);
+      var nextScore =
+        ((entry.spotlight && entry.spotlight.photos && entry.spotlight.photos.length) || 0) +
+        ((entry.spotlight && entry.spotlight.topics && entry.spotlight.topics.length) || 0);
+
+      if (nextScore > existingScore) {
+        deduped.set(key, entry);
+      }
+    });
+
+    filtered = Array.from(deduped.values());
 
     filtered.sort(function (a, b) {
       if (normalizeCity(a.club.city).indexOf("hamptons") !== -1) return -1;
@@ -206,6 +327,7 @@
       button.dataset.displayCity = cleanDisplayCity(club);
       button.dataset.scheduleLabel = scheduleLabel;
       button.dataset.eventTime = club.eventTime || "";
+      button.dataset.upcomingDate = resolveUpcomingDate(club);
       button.dataset.venue = stripVenue(club.venue || "");
       button.textContent = cleanDisplayCity(club);
       container.appendChild(button);
@@ -221,12 +343,13 @@
 
   function wireStandaloneBehavior(buttons) {
     var requestedCity = readRequestedCity();
+    window.WWTA_RETURN_URL = RETURN_URL;
     var closeButton = document.getElementById("wc-overlay-close");
     if (closeButton) {
       closeButton.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.location.href = "./index.html";
+        window.location.href = RETURN_URL;
       }, true);
     }
 
@@ -236,6 +359,8 @@
 
     if (!target) {
       target = buttons.find(function (button) {
+        return normalizeCity(button.dataset.city).indexOf("biarritz") !== -1;
+      }) || buttons.find(function (button) {
         return normalizeCity(button.dataset.city).indexOf("hamptons") !== -1;
       }) || buttons[0];
     }

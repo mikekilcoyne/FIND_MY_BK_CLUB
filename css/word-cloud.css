@@ -213,6 +213,7 @@
   position: relative;
   flex: 1;
   min-height: 0;
+  pointer-events: none;
 }
 
 .wc-overlay-art {
@@ -272,7 +273,7 @@
 .wc-overlay-header {
   position: relative;
   flex-shrink: 0;
-  padding: 28px 24px 20px;
+  padding: 28px clamp(56px, 7vw, 88px) 20px;
   text-align: center;
   z-index: 6;
   pointer-events: none;
@@ -344,8 +345,12 @@
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #111111;
-  line-height: 1;
+  line-height: 1.15;
   margin-top: 2px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: none;
+  white-space: nowrap;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
@@ -358,6 +363,10 @@
   text-transform: uppercase;
   color: rgba(17, 17, 17, 0.48);
   margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: min(100%, 78ch);
+  text-wrap: balance;
 }
 
 /* Source date — "from March 10, 2026 recap" */
@@ -369,6 +378,10 @@
   text-transform: uppercase;
   color: rgba(17, 17, 17, 0.38);
   margin-top: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: min(100%, 72ch);
+  text-wrap: balance;
   font-style: italic;
 }
 
@@ -437,6 +450,7 @@
   width: 100%;
   overflow: hidden;
   z-index: 3;
+  pointer-events: none;
 }
 
 .wc-overlay-stage--zones {
@@ -667,10 +681,11 @@
   }
 
   .wc-overlay-header {
-    padding: 22px 18px 16px;
+    padding: calc(18px + env(safe-area-inset-top)) 54px 16px;
   }
 
   .wc-overlay-city {
+    white-space: normal;
     font-size: clamp(24px, 9vw, 38px);
   }
 
@@ -818,6 +833,11 @@
 .wc-overlay--photo-bg::after {
   background: linear-gradient(
     to bottom,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.10) 100%
+  ),
+  linear-gradient(
+    to bottom,
     rgba(0, 0, 0, 0.1) 0%,
     rgba(0, 0, 0, 0.1) 100%
   ),
@@ -848,6 +868,17 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 280ms ease;
+}
+
+.wc-overlay--recap-simple.wc-overlay--photo-bg .wc-overlay-bg-photos::after {
+  opacity: 0.22;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.07) 0.7px, transparent 0.9px),
+    radial-gradient(rgba(0, 0, 0, 0.07) 0.8px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.05));
+  background-size: 14px 14px, 19px 19px, 100% 100%;
+  background-position: 0 0, 7px 9px, 0 0;
+  mix-blend-mode: soft-light;
 }
 
 .wc-overlay-bg-photos.wc-overlay-bg-photos--cut {
@@ -881,10 +912,22 @@
 }
 
 .wc-overlay-bg-photo-shell--framed {
+  --wc-blur-radius: 8px;
+  --wc-blur-radius-portrait: 6px;
+  --wc-bg-photo-position-x: 50%;
+  --wc-bg-photo-position-y: var(--wc-photo-position-y);
+  --wc-bg-photo-scale: calc(var(--wc-photo-scale-start) + 0.18);
+  --wc-frame-photo-position-x: 50%;
+  --wc-frame-photo-position-y: var(--wc-photo-position-y);
+  --wc-frame-photo-scale: 1;
+  --wc-blur-brightness: 0.92;
+  --wc-blur-opacity: 0.92;
+  --wc-frame-photo-brightness: 1.04;
   --wc-frame-fill: #1e2831;
   --wc-frame-top: rgba(255, 255, 255, 0.08);
   --wc-frame-bottom: rgba(0, 0, 0, 0.18);
   --wc-frame-border: rgba(255, 255, 255, 0.06);
+  --wc-frame-texture: url("../assets/polaroid-backdrops/polaroid-backdrop-08-blank-dark.png");
   --wc-frame-shadow:
     0 22px 48px rgba(0, 0, 0, 0.24),
     0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -895,6 +938,7 @@
   --wc-frame-top: rgba(255, 255, 255, 0.07);
   --wc-frame-bottom: rgba(0, 0, 0, 0.22);
   --wc-frame-border: rgba(255, 255, 255, 0.05);
+  --wc-frame-texture: url("../assets/polaroid-backdrops/polaroid-backdrop-08-blank-dark.png");
 }
 
 .wc-overlay-bg-photo-shell--framed[data-overlay-frame-variant="red"] {
@@ -902,6 +946,7 @@
   --wc-frame-top: rgba(255, 238, 232, 0.2);
   --wc-frame-bottom: rgba(86, 18, 18, 0.2);
   --wc-frame-border: rgba(255, 242, 236, 0.12);
+  --wc-frame-texture: url("../assets/polaroid-backdrops/polaroid-backdrop-04.png");
 }
 
 .wc-overlay-bg-photo-shell--framed[data-overlay-frame-variant="orange"] {
@@ -909,6 +954,7 @@
   --wc-frame-top: rgba(255, 245, 224, 0.2);
   --wc-frame-bottom: rgba(112, 58, 13, 0.18);
   --wc-frame-border: rgba(255, 246, 231, 0.12);
+  --wc-frame-texture: url("../assets/polaroid-backdrops/polaroid-backdrop-04.png");
 }
 
 .wc-overlay-bg-photo-shell--framed[data-overlay-frame-variant="white"] {
@@ -916,6 +962,7 @@
   --wc-frame-top: rgba(255, 255, 255, 0.32);
   --wc-frame-bottom: rgba(136, 111, 80, 0.12);
   --wc-frame-border: rgba(120, 92, 60, 0.12);
+  --wc-frame-texture: url("../assets/polaroid-backdrops/polaroid-backdrop-07-white.png");
   --wc-frame-shadow:
     0 20px 44px rgba(0, 0, 0, 0.18),
     0 0 0 1px rgba(76, 58, 38, 0.08);
@@ -927,34 +974,37 @@
   width: 120%;
   height: 120%;
   object-fit: cover;
-  object-position: center var(--wc-photo-position-y);
-  filter: blur(34px) brightness(0.94) saturate(0.9) sepia(0.04) contrast(0.98);
-  opacity: 0.92;
-  transform: scale(calc(var(--wc-photo-scale-start) + 0.18));
+  object-position: var(--wc-bg-photo-position-x) var(--wc-bg-photo-position-y);
+  filter: blur(var(--wc-blur-radius)) brightness(var(--wc-blur-brightness)) saturate(0.92) sepia(0.03) contrast(0.98);
+  opacity: var(--wc-blur-opacity);
+  transform: scale(var(--wc-bg-photo-scale));
   transform-origin: center center;
   will-change: transform, opacity;
 }
 
 .wc-overlay-bg-photo-shell[data-overlay-photo-shape="portrait"] .wc-overlay-bg-photo-blur,
 .wc-overlay-bg-photo-shell[data-overlay-photo-shape="portrait"] .wc-overlay-bg-photo-framed {
-  object-position: center 68%;
+  object-position: var(--wc-bg-photo-position-x, 50%) 68%;
 }
 
 .wc-overlay-bg-photo-shell[data-overlay-photo-shape="portrait"] .wc-overlay-bg-photo-blur {
-  filter: blur(41px) brightness(0.9) saturate(0.92) contrast(0.98);
-  opacity: 0.96;
+  filter: blur(var(--wc-blur-radius-portrait)) brightness(calc(var(--wc-blur-brightness) + 0.02)) saturate(0.94) contrast(0.99);
+  opacity: var(--wc-blur-opacity);
 }
 
 .wc-overlay-bg-photo-frame {
   position: absolute;
   left: 50%;
-  top: 54%;
-  width: min(36vw, 492px);
+  top: 58%;
+  width: auto;
+  height: clamp(300px, calc(100vh - 240px), 615px);
+  max-width: 86vw;
   aspect-ratio: 4 / 5;
   transform: translate(-50%, -50%);
   box-sizing: border-box;
   padding: clamp(18px, 1.45vw, 22px) clamp(18px, 1.45vw, 22px) clamp(78px, 6vw, 98px);
-  background:
+  background-color: var(--wc-frame-fill);
+  background-image:
     linear-gradient(180deg, var(--wc-frame-top), var(--wc-frame-bottom)),
     var(--wc-frame-texture);
   background-size: 100% 100%, cover;
@@ -983,25 +1033,35 @@
 }
 
 .wc-overlay-bg-photo-framed {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center var(--wc-photo-position-y);
+  object-position: var(--wc-frame-photo-position-x) var(--wc-frame-photo-position-y);
   display: block;
   filter:
-    saturate(0.9)
-    contrast(0.98)
-    brightness(1.05)
-    sepia(0.08);
+    saturate(0.85)
+    contrast(1.1)
+    brightness(var(--wc-frame-photo-brightness))
+    sepia(0.12);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
     0 10px 24px rgba(0, 0, 0, 0.16);
-  position: relative;
   z-index: 0;
   opacity: 1;
+  transform: scale(var(--wc-frame-photo-scale));
+  transform-origin: center center;
   transition:
     opacity 1.55s ease,
-    filter 1.55s ease;
+    filter 1.55s ease,
+    transform 1.55s ease;
+}
+
+/* Force-crop the hard-coded white polaroid borders from older Hamptons assets */
+.wc-overlay-bg-photo-framed[src*="Polaroid"] {
+  transform: scale(1.15) translateY(-3%);
 }
 
 .wc-overlay-bg-photo-framed.is-swapping {
@@ -1191,11 +1251,12 @@
     --wc-photo-position-y: 14%;
   }
 
-  .wc-overlay-bg-photo {
-  }
+
 
   .wc-overlay-bg-photo-frame {
     width: min(72vw, 348px);
+    height: auto;
+    max-width: none;
     top: 56%;
     padding: 14px 14px 58px;
   }
