@@ -110,6 +110,18 @@
   color: #111;
 }
 
+.badge-featured {
+  background: #f5ecd0;
+  border-color: #c7b06a;
+  color: #5a4a18;
+}
+
+.badge-new {
+  background: #0b7144;
+  border-color: #0b7144;
+  color: #fff;
+}
+
 .badge-popup {
   background: #f2de9a;
   border-color: #d3b24d;

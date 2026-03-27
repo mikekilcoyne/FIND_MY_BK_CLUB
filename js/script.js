@@ -62,6 +62,7 @@ const CITY_REGION = {
   "new york \u2014 hudson": "Northeast US",
   "new york \u2014 kingston": "Northeast US",
   "new york \u2014 les": "Northeast US",
+  "new york - upper west": "Northeast US",
   "new york \u2014 williamsburg": "Northeast US",
   "norwich": "UK",
   "panama city": "Other",
@@ -411,7 +412,13 @@ function render(items) {
   renderDayNav(items);
 
   DAYS.forEach((day) => {
-    const dayItems = items.filter((club) => club.day === day);
+    const dayItems = items
+      .filter((club) => club.day === day)
+      .sort((a, b) => {
+        if (a.featured !== b.featured) return Number(b.featured) - Number(a.featured);
+        if (a.isNew !== b.isNew) return Number(b.isNew) - Number(a.isNew);
+        return getDisplayCity(a).localeCompare(getDisplayCity(b));
+      });
     if (!dayItems.length) return;
 
     const section = document.createElement("section");
@@ -488,6 +495,20 @@ function render(items) {
         locBadge.className = "badge badge-location";
         locBadge.textContent = club.locationNote;
         subline.append(locBadge);
+      }
+
+      if (club.featured) {
+        const featuredBadge = document.createElement("span");
+        featuredBadge.className = "badge badge-featured";
+        featuredBadge.textContent = "Featured";
+        subline.append(featuredBadge);
+      }
+
+      if (club.isNew) {
+        const newBadge = document.createElement("span");
+        newBadge.className = "badge badge-new";
+        newBadge.textContent = "New";
+        subline.append(newBadge);
       }
 
       if (club.isNight) {
@@ -571,14 +592,6 @@ function render(items) {
         });
       }
 
-      if (club.flyerURL) {
-        const flyerBtn = document.createElement("button");
-        flyerBtn.className = "flyer-btn";
-        flyerBtn.textContent = "View Flyer";
-        flyerBtn.addEventListener("click", () => openFlyerLightbox(club.flyerURL, getDisplayCity(club)));
-        util.append(flyerBtn);
-      }
-
       if (noteBody) {
         const noteBtn = document.createElement("button");
         noteBtn.className = "note-icon-btn";
@@ -605,6 +618,10 @@ function render(items) {
 
 function normalize(value) {
   return value.toLowerCase().trim();
+}
+
+function isAffirmative(value) {
+  return /^(yes|true|1)$/i.test((value || "").trim());
 }
 
 function animateGrowthTitle(clubCount, suffix = GROWTH_TITLE_SUFFIX) {
@@ -661,11 +678,13 @@ function setupMobileResourcesToggle() {
 
 function getFilteredClubs() {
   if (activeRegion === "All") return clubs;
+  if (activeRegion === "New") return clubs.filter((c) => c.isNew);
   return clubs.filter((c) => c.region === activeRegion);
 }
 
 const REGION_HEADLINES = {
   "All": "Coming up this week around the world",
+  "New": "New clubs on the map",
   "Northeast US": "Coming up this week in the northeast",
   "Southeast US": "Coming up this week in the South (roughly)",
   "West Coast": "Coming up this week on the West Coast \uD83E\uDD18",
@@ -687,17 +706,20 @@ function setRegion(region) {
   render(filtered);
   const suffix = activeRegion === "All"
     ? GROWTH_TITLE_SUFFIX
-    : "clubs coming up this month";
+    : activeRegion === "New"
+      ? "new clubs"
+      : "clubs coming up this month";
   animateGrowthTitle(filtered.length, suffix);
 }
 
 function renderRegionFilter() {
   if (!regionFilter) return;
   regionFilter.innerHTML = "";
-  ["All", ...REGION_ORDER].forEach((region) => {
+  ["All", "New", ...REGION_ORDER].forEach((region) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "region-pill" + (region === activeRegion ? " active" : "");
+    if (region === "New") btn.classList.add("region-pill-new");
     btn.dataset.region = region;
     btn.textContent = region;
     btn.addEventListener("click", () => setRegion(region));
@@ -737,6 +759,8 @@ async function loadClubs() {
           city,
           region: CITY_REGION[city.toLowerCase().trim()] || "",
           displayCity: override.displayCity || city,
+          featured: override.featured ?? isAffirmative(col("featured", cells)),
+          isNew: override.isNew ?? isAffirmative(col("is_new", cells)),
           cadence,
           time,
           scheduleLabel: extractScheduleLabel(cadence, time),
@@ -757,7 +781,7 @@ async function loadClubs() {
             override.hostDisplay || "",
           ),
           eventTime: override.eventTime || col("start_time", cells),
-          communityLink: override.communityLink || col("whatsapp", cells),
+          communityLink: override.communityLink || col("whatsapp", cells) || "",
           isIncomplete:
             !getVenue(override.venue || col("venue_name", cells), "") ||
             (!extractInstagramURL(col("host_instagram", cells)) &&
@@ -864,28 +888,8 @@ function renderFeaturedEvent(items) {
     actions.append(mapsBtn);
   }
 
-  if (featured.flyerURL) {
-    const flyerBtn = document.createElement("button");
-    flyerBtn.textContent = "View Flyer";
-    flyerBtn.className = "featured-action-btn featured-action-btn--primary";
-    flyerBtn.addEventListener("click", () => openFlyerLightbox(featured.flyerURL, displayCity));
-    actions.append(flyerBtn);
-  }
-
   info.append(actions);
   strip.append(info);
-
-  if (featured.flyerURL) {
-    const thumb = document.createElement("div");
-    thumb.className = "featured-thumb";
-    const img = document.createElement("img");
-    img.src = featured.flyerURL;
-    img.alt = `${displayCity} flyer`;
-    img.className = "featured-thumb-img";
-    img.addEventListener("click", () => openFlyerLightbox(featured.flyerURL, displayCity));
-    thumb.append(img);
-    strip.append(thumb);
-  }
 
   strip.hidden = false;
 }

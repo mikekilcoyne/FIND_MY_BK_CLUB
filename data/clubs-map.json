@@ -368,6 +368,20 @@
     "schedule": { "type": "weekly", "weekday": 3 }
   },
   {
+    "city": "new york - upper west",
+    "displayCity": "New York — UWS, NY",
+    "latitude": 40.7856099,
+    "longitude": -73.9725709,
+    "region": "Northeast US",
+    "host": "Joshua Rosenthal & Andrew Reuben",
+    "email": "josh0111@gmail.com",
+    "venue": "Le Viand, 517 Columbus Ave",
+    "upcoming_date": "",
+    "mapsURL": "https://maps.google.com/?q=40.7856099,-73.9725709",
+    "link": "https://breakfastclubbing.com",
+    "schedule": { "type": "weekly", "weekday": 3 }
+  },
+  {
     "city": "new york - hudson",
     "displayCity": "New York — Hudson, NY",
     "latitude": 42.2531,

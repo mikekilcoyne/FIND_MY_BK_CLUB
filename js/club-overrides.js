@@ -102,6 +102,16 @@ window.CLUB_OVERRIDES = {
     ],
     hostDisplay: "@themichaelkilcoyne | @adamh929",
   },
+  "new york - upper west": {
+    displayCity: "New York — UWS, NY",
+    cadence: "Weekly",
+    time: "Wednesdays, 8:30am",
+    eventTime: "8:30 AM",
+    venue: "Le Viand, 517 Columbus Ave",
+    hostDisplay: "Joshua Rosenthal & Andrew Reuben",
+    featured: true,
+    isNew: true,
+  },
   "new york - hudson":   { displayCity: "New York — Hudson, NY" },
   "new york - kingston": { displayCity: "New York — Kingston, NY" },
   "new york - les": {
