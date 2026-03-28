@@ -6,3 +6,28 @@ private/
 
 # Local Netlify folder
 .netlify
+
+# Local feature work not part of current clubs/site push
+New Features/
+assets/photos/club_updates/
+assets/videos/Breakfast Club - #1 - Square.mov
+assets/videos/hamptons-bg.mp4
+css/missed-connections.css
+data/club-story-media.json
+data/spreadsheet-fill.txt
+data/start-time-whatsapp-fill.txt
+data/whatsapp_exports/
+data/whatsapp_latest/
+docs/ROADMAP.md
+docs/missed-connections-status.md
+docs/session-log-2026-03-21.md
+docs/session-log-2026-03-23.md
+docs/session-log-2026-03-27.md
+docs/whatsapp-ingestion.md
+docs/whatsapp-photo-pipeline.md
+js/missed-connections.js
+missed-connections.html
+netlify/functions/report-connection.js
+netlify/functions/submit-connection.js
+netlify/functions/verify-connection.js
+scripts/

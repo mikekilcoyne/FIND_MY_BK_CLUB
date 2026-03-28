@@ -3,11 +3,17 @@
 
   var SHEET_CSV_URL =
     "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+  var LOCAL_SHEET_CSV_URL = "./data/clubs-sheet-local.csv";
 
   // ── CSV parsing (same pipeline as home + calendar) ────
 
   function normCity(str) {
     return (str || "").toLowerCase().trim();
+  }
+
+  function shouldHideClub(city) {
+    var key = normCity(city);
+    return key === "austin" || key === "austin, tx";
   }
 
   function parseCSVLine(line) {
@@ -121,7 +127,7 @@
         linkedinURL: override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)) || club.linkedinURL || "",
         instagramURL: override.instagramURL || extractInstagramURL(col("host_instagram", cells)) || "",
         flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)) || "",
-        communityLink: override.communityLink || col("whatsapp", cells) || "",
+        communityLink: override.communityLink || col("whatsapp", cells) || club.whatsapp || "",
       });
     });
   }
@@ -727,12 +733,23 @@
         return res.json();
       }),
       fetch(SHEET_CSV_URL)
-        .then(function (res) { return res.ok ? res.text() : ""; })
+        .then(function (res) {
+          if (res.ok) return res.text();
+          return fetch(LOCAL_SHEET_CSV_URL).then(function (localRes) {
+            return localRes.ok ? localRes.text() : "";
+          });
+        })
         .then(function (text) { return text ? parseCSV(text) : [[]]; })
-        .catch(function () { return [[]]; }),
+        .catch(function () {
+          return fetch(LOCAL_SHEET_CSV_URL)
+            .then(function (res) { return res.ok ? res.text() : ""; })
+            .then(function (text) { return text ? parseCSV(text) : [[]]; });
+        }),
     ])
       .then(function (results) {
-        var clubs = mergeCSV(results[0], results[1]);
+        var clubs = mergeCSV(results[0], results[1]).filter(function (club) {
+          return !shouldHideClub(club.city);
+        });
         allClubs = clubs;
         renderMarkers(clubs);
 
