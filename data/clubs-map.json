@@ -362,8 +362,22 @@
     "email": "mk@yellowsatinjacket.com",
     "linkedinURL": "https://www.linkedin.com/in/mikekilcoyne/",
     "venue": "Tutto Cafe, The Hamptons",
-    "upcoming_date": "",
+    "upcoming_date": "2026-03-25",
     "mapsURL": "https://maps.google.com/?q=Tutto+Cafe+Hampton+Bays+NY",
+    "link": "https://breakfastclubbing.com",
+    "schedule": { "type": "weekly", "weekday": 3 }
+  },
+  {
+    "city": "new york - upper west",
+    "displayCity": "New York — UWS, NY",
+    "latitude": 40.7807958,
+    "longitude": -73.9810743,
+    "region": "Northeast US",
+    "host": "Joshua Rosenthal & Andrew Reuben",
+    "email": "josh0111@gmail.com",
+    "venue": "Viand Cafe, 2130 Broadway",
+    "upcoming_date": "",
+    "mapsURL": "https://maps.google.com/?q=Viand+Cafe,+2130+Broadway,+New+York,+NY+10023",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "weekly", "weekday": 3 }
   },
@@ -531,6 +545,7 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Terrene+1+Hotel+San+Francisco+8+Mission+St",
     "link": "https://breakfastclubbing.com",
+    "whatsapp": "https://chat.whatsapp.com/GWkWebokkQO6bMcynjSb4v?mode=gi_t",
     "schedule": { "type": "weekly", "weekday": 3 }
   },
   {

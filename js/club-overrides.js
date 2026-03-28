@@ -48,6 +48,7 @@ window.CLUB_OVERRIDES = {
     cadence: "Monthly",
     time: "Fourth Tuesday, 6:00pm - 9:00pm",
     eventTime: "6:00 – 9:00 PM",
+    eventTimeLabel: "6:00 PM",
     venue: "The Urban Society, Via Pietrasanta 14",
     specificDates: ["2026-03-24"],
     isNight: true,
@@ -71,18 +72,19 @@ window.CLUB_OVERRIDES = {
   "burlington, vermont": { displayCity: "Burlington, VT" },
   "cambridge, ma":   { displayCity: "Cambridge, MA" },
   "new york - downtown brooklyn": {
-    displayCity: "New York — Downtown Brooklyn, NY",
+    displayCity: "NY - Downtown BK",
     cadence: "Weekly",
     time: "Thursdays, 8:30am",
     eventTime: "8:30 AM",
     venue: "Ace Hotel Downtown Brooklyn (Lobby)",
   },
   "new york - hamptons": {
-    displayCity: "New York — Hamptons, NY",
+    displayCity: "NY - Hamptons",
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     eventTime: "8:30 AM",
     venue: "Tutto Cafe",
+    flyerURL: "assets/photos/club_updates/new-york-hamptons/polaroid-8.png",
     extraSocials: [
       {
         type: "instagram",
@@ -92,7 +94,7 @@ window.CLUB_OVERRIDES = {
       {
         type: "linkedin",
         url: "https://www.linkedin.com/in/mikekilcoyne/",
-        title: "Host LinkedIn",
+        title: "Michael Kilcoyne",
       },
       {
         type: "instagram",
@@ -102,17 +104,27 @@ window.CLUB_OVERRIDES = {
     ],
     hostDisplay: "@themichaelkilcoyne | @adamh929",
   },
-  "new york - hudson":   { displayCity: "New York — Hudson, NY" },
-  "new york - kingston": { displayCity: "New York — Kingston, NY" },
+  "new york - upper west": {
+    displayCity: "NY - UWS",
+    cadence: "Weekly",
+    time: "Wednesdays, 8:30am",
+    eventTime: "8:30 AM",
+    venue: "Viand Cafe, 2130 Broadway",
+    hostDisplay: "Joshua Rosenthal & Andrew Reuben",
+    featured: true,
+    isNew: true,
+  },
+  "new york - hudson":   { displayCity: "NY - Hudson" },
+  "new york - kingston": { displayCity: "NY - Kingston" },
   "new york - les": {
-    displayCity: "New York — LES, NY",
+    displayCity: "NY - LES",
     cadence: "Weekly",
     time: "Thursdays, 9:00am",
     eventTime: "9:00 AM",
     venue: "Rule 257, 234 Eldridge",
   },
   "new york - williamsburg": {
-    displayCity: "New York — Williamsburg, NY",
+    displayCity: "NY - Williamsburg",
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     eventTime: "8:30 AM",
@@ -210,19 +222,4 @@ window.CLUB_OVERRIDES = {
 };
 
 // Pop-up and one-off clubs not in the main sheet — merged directly into calendar + list views.
-window.STATIC_CLUBS = [
-  {
-    city: "Austin",
-    displayCity: "Austin",
-    cadence: "Pop-Up",
-    time: "Sunday, 8:30am CDT",
-    eventTime: "8:30 AM CDT",
-    venue: "Nate's Baked Goods & Coffee, 401 W 18th St",
-    hostName: "Eric Korsh",
-    instagramHandles: ["@erickorsh"],
-    specificDates: ["2026-03-15"],
-    locationNote: "SXSW Pop-Up",
-    flyerURL: "assets/SXSW_2026-3-15.png",
-    isNight: false,
-  },
-];
+window.STATIC_CLUBS = [];

@@ -1,5 +1,6 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+const LOCAL_SHEET_CSV_URL = "./data/clubs-sheet-local.csv";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
 const statusText = document.querySelector("#status");
@@ -28,6 +29,11 @@ let selectedDateISO = toISODate(
 
 function normalize(value) {
   return (value || "").toLowerCase().trim();
+}
+
+function shouldHideClub(city) {
+  const key = normalize(city);
+  return key === "austin" || key === "austin, tx";
 }
 
 function formatTimeLabel(value) {
@@ -611,11 +617,21 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
-    const sheetRes = await fetch(SHEET_CSV_URL);
-    if (!sheetRes.ok) {
-      throw new Error(`Sheet request failed with ${sheetRes.status}`);
+    let csv = "";
+    let usedLocalSnapshot = false;
+
+    try {
+      const sheetRes = await fetch(SHEET_CSV_URL);
+      if (!sheetRes.ok) {
+        throw new Error(`Sheet request failed with ${sheetRes.status}`);
+      }
+      csv = await sheetRes.text();
+    } catch (_error) {
+      const localRes = await fetch(LOCAL_SHEET_CSV_URL);
+      if (!localRes.ok) throw new Error("local sheet snapshot unavailable");
+      csv = await localRes.text();
+      usedLocalSnapshot = true;
     }
-    const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
     // Build a header → index map so column moves never break lookups.
@@ -654,20 +670,22 @@ async function loadClubs() {
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
           eventTime: override.eventTime || col("start_time", cells),
-          communityLink: override.communityLink || col("whatsapp", cells),
+          communityLink: override.communityLink || col("whatsapp", cells) || "",
           rule: getScheduleRule(cadence, time),
         };
       })
-      .filter((club) => club.city);
+      .filter((club) => club.city && !shouldHideClub(club.city));
 
     // Merge pop-up / one-off clubs not in the sheet
     const staticEntries = (window.STATIC_CLUBS || []).map((s) => ({
       ...s,
       rule: { type: "unscheduled" },
-    }));
+    })).filter((club) => !shouldHideClub(club.city));
     clubs = clubs.concat(staticEntries);
 
-    statusText.textContent = `${clubs.length} clubs loaded.`;
+    statusText.textContent = usedLocalSnapshot
+      ? `${clubs.length} clubs loaded from local snapshot.`
+      : `${clubs.length} clubs loaded.`;
     statusText.classList.remove("error");
     renderCalendar();
   } catch (_error) {
