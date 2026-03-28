@@ -221,6 +221,13 @@
     if (key.includes("biarritz")) {
       return {
         defaultFrameVariant: "black",
+        blurBrightness: 0.82,
+        blurOpacity: 0.9,
+        blurRadius: "18px",
+        blurRadiusPortrait: "16px",
+        bgPhotoScale: 1.42,
+        bgPhotoPositionY: "60%",
+        framePhotoPositionY: "62%",
       };
     }
     return null;
