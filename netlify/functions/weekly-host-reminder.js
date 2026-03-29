@@ -1,5 +1,8 @@
+import { getStore } from "@netlify/blobs";
+
 // Runs every Sunday at 16:30 UTC (12:30pm ET)
 // Fetches active host emails from the Google Sheet and sends a weekly reminder via SendGrid.
+// Source copy reference: docs/host-email-template.md
 //
 // Required env vars (set in Netlify Dashboard → Site settings → Environment variables):
 //   SENDGRID_API_KEY   — from the existing SendGrid account
@@ -48,9 +51,13 @@ const FALLBACK_HOSTS = [
 const FROM_EMAIL = "ben@breakfastclubbing.com";
 const FROM_NAME  = "Breakfast Club HQ";
 const REPLY_TO   = "ben@breakfastclubbing.com";
+const REMINDER_LOCK_STORE = "weekly-host-reminder";
+const REMINDER_LOCK_KEY_PREFIX = "scheduled-send";
 
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
+const ARTICLE_URL = "https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html";
+const LATEST_HAPPENINGS_GIF_URL = "https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif";
 
 // ── CSV parser ────────────────────────────────────────────────────────────────
 
@@ -85,67 +92,86 @@ function parseCSV(text) {
   });
 }
 
+function getUpcomingSunday(baseDate = new Date()) {
+  const nextSunday = new Date(baseDate);
+  const daysUntilNextSunday = ((7 - nextSunday.getDay()) % 7) || 7;
+  nextSunday.setDate(nextSunday.getDate() + daysUntilNextSunday);
+  return nextSunday;
+}
+
+function sanitizeCityForFlyer(city) {
+  return city.replace(/[^a-zA-Z]/g, "") || "City";
+}
+
+function dedupeRecipients(recipients) {
+  const deduped = new Map();
+
+  for (const { email, city, hostName } of recipients) {
+    if (!deduped.has(email)) {
+      deduped.set(email, {
+        email,
+        cities: [],
+        hostNames: [],
+      });
+    }
+
+    const recipient = deduped.get(email);
+    if (city && !recipient.cities.includes(city)) recipient.cities.push(city);
+    if (hostName && !recipient.hostNames.includes(hostName)) recipient.hostNames.push(hostName);
+  }
+
+  return [...deduped.values()].map(recipient => ({
+    ...recipient,
+    hostName: recipient.hostNames[0] || "",
+  }));
+}
+
+async function claimReminderLock(cycleDate, force = false) {
+  if (force) {
+    return { claimed: true, store: null, key: null };
+  }
+
+  const store = getStore({ name: REMINDER_LOCK_STORE, consistency: "strong" });
+  const key = `${REMINDER_LOCK_KEY_PREFIX}/${cycleDate}`;
+  const { modified } = await store.setJSON(
+    key,
+    {
+      status: "in_progress",
+      cycleDate,
+      claimedAt: new Date().toISOString(),
+    },
+    { onlyIfNew: true }
+  );
+
+  return { claimed: modified, store, key };
+}
+
+async function completeReminderLock(store, key, summary) {
+  if (!store || !key) return;
+
+  await store.setJSON(key, {
+    status: "completed",
+    completedAt: new Date().toISOString(),
+    ...summary,
+  });
+}
+
 // ── Email builder ─────────────────────────────────────────────────────────────
 
-function buildEmailBody(hostName, city) {
-  const firstName = (hostName || "").split(" ")[0] || "there";
-  const nextSunday = new Date();
-  nextSunday.setDate(nextSunday.getDate() + (7 - nextSunday.getDay()) % 7 || 7);
-  const dateStr = nextSunday.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+function buildUpdateBlock(cities, targetSunday) {
+  const cycleDate = targetSunday.toISOString().split("T")[0];
+  const flyerExamples = cities.map(city => `${city}: ${sanitizeCityForFlyer(city)}_${cycleDate}.jpg`);
 
-  return `Hey hosts —
-
-Recently got this article forwarded from CDMX's host Steve, called "The Great Friendship Flattening" — https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg
-
-Quick thought from my end: We breakfast for the people (familiar and new), the conversation (pointed and arcane) and especially for the vibes (positive, collaborative, forward-looking). Because it's fun. And we can all use a little more of that.
-
-You can read the full article here: https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg
-
-Anywho, call for updates (I'm gonna aim to make these more dynamic).
-
-──────────────────────────
-
-For ${city}, here's where to update:
+  if (cities.length <= 1) {
+    const city = cities[0] || "your club";
+    return {
+      text: `For ${city}, here's where to update:
 
 → Master Sheet (update your listing): ${SHEET_LINK}
 → Flyer Folder (upload this week's flyer): ${DRIVE_LINK}
 
-Flyer naming: City_YYYY-MM-DD.jpg (e.g. ${city.replace(/[^a-zA-Z]/g, "")}_${nextSunday.toISOString().split("T")[0]}.jpg)
-
-If everything looks right, no action needed. See you at the table.
-
-Questions? ben@breakfastclubbing.com
-
-p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll make it happen. Big thanks to Kilcoyne for making this happen.
-
-p.p.s. — Kilcoyne's working on a 'Word Cloud' feature that was inspired by another BC International host. It's gonna be super sick, so I encourage you to share your 'What We Talked About' posts and make sure they're in your updates.
-
----
-Breakfast Club HQ · New York, NY
-You're receiving this because you host a Breakfast Club location.
-To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
-}
-
-function buildEmailHTML(hostName, city) {
-  const firstName = (hostName || "").split(" ")[0] || "there";
-  const nextSunday = new Date();
-  nextSunday.setDate(nextSunday.getDate() + (7 - nextSunday.getDay()) % 7 || 7);
-  const flyerName = `${city.replace(/[^a-zA-Z]/g, "")}_${nextSunday.toISOString().split("T")[0]}.jpg`;
-
-  return `
-<div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
-  <p style="font-size: 15px; line-height: 1.6;">Hey hosts —</p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    Recently got this article forwarded from CDMX's host Steve, called <a href="https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg" style="color: #b07d3a;">"The Great Friendship Flattening"</a>.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    Quick thought from my end: We breakfast for the people (familiar and new), the conversation (pointed and arcane) and especially for the vibes (positive, collaborative, forward-looking). Because it's fun. And we can all use a little more of that.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    You can read the full article <a href="https://www.theatlantic.com/family/2025/10/social-media-relationships-parasocial/684551/?gift=j9r7avb6p-KY8zdjhsiSZ606rXO3GbWdg9lVmnLOvJg" style="color: #b07d3a;">here</a>.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">Anywho, call for updates (I'm gonna aim to make these more dynamic).</p>
-  <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+Flyer naming: City_YYYY-MM-DD.jpg (e.g. ${sanitizeCityForFlyer(city)}_${cycleDate}.jpg)`,
+      html: `
   <p style="font-size: 15px; line-height: 1.6;">
     For <strong>${city}</strong>, here's where to update:
   </p>
@@ -154,8 +180,117 @@ function buildEmailHTML(hostName, city) {
     → <a href="${DRIVE_LINK}" style="color: #b07d3a;">Flyer Folder</a> (upload this week's flyer)
   </p>
   <p style="font-size: 13px; line-height: 1.6; color: #666;">
-    Flyer naming: City_YYYY-MM-DD.jpg (e.g. <code>${flyerName}</code>)
+    Flyer naming: City_YYYY-MM-DD.jpg (e.g. <code>${sanitizeCityForFlyer(city)}_${cycleDate}.jpg</code>)
+  </p>`,
+    };
+  }
+
+  return {
+    text: `For your clubs, here's where to update:
+
+Clubs on your list: ${cities.join(", ")}
+
+→ Master Sheet (update your listings): ${SHEET_LINK}
+→ Flyer Folder (upload this week's flyers): ${DRIVE_LINK}
+
+Flyer naming: City_YYYY-MM-DD.jpg
+${flyerExamples.map(example => `- ${example}`).join("\n")}`,
+    html: `
+  <p style="font-size: 15px; line-height: 1.6;">
+    For your clubs, here's where to update:
   </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    <strong>Clubs on your list:</strong> ${cities.join(", ")}
+  </p>
+  <p style="font-size: 15px; line-height: 1.8;">
+    → <a href="${SHEET_LINK}" style="color: #b07d3a;">Master Sheet</a> (update your listings)<br>
+    → <a href="${DRIVE_LINK}" style="color: #b07d3a;">Flyer Folder</a> (upload this week's flyers)
+  </p>
+  <p style="font-size: 13px; line-height: 1.6; color: #666;">
+    Flyer naming: City_YYYY-MM-DD.jpg<br>
+    ${flyerExamples.map(example => `<span style="display: block;">- <code>${example}</code></span>`).join("")}
+  </p>`,
+  };
+}
+
+function buildEmailBody(cities, targetSunday) {
+  const { text: updateBlock } = buildUpdateBlock(cities, targetSunday);
+  const cityLead = cities.length <= 1
+    ? `For ${cities[0] || "your club"}, here's where to update:`
+    : "For your clubs, here's where to update:";
+
+  return `Hey hosts,
+
+Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+
+This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
+
+Stoked that we're helping create those micro-scenes around the globe.
+
+Newest micro-scene:
+NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
+
+We're also getting close on a new site feature: 'Latest Happenings.'
+
+Here's an early preview:
+${LATEST_HAPPENINGS_GIF_URL}
+
+It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
+
+Anywho, call for updates. ${cityLead}
+
+──────────────────────────
+
+${updateBlock}
+
+If everything looks right, no action needed. See you at the table.
+
+Questions? ben@breakfastclubbing.com
+
+p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll make it happen. Big thanks to Kilcoyne for making this happen.
+
+---
+Breakfast Club HQ · New York, NY
+You're receiving this because you host a Breakfast Club location.
+To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
+}
+
+function buildEmailHTML(cities, targetSunday) {
+  const { html: updateBlock } = buildUpdateBlock(cities, targetSunday);
+  const cityLead = cities.length <= 1
+    ? `For <strong>${cities[0] || "your club"}</strong>, here's where to update:`
+    : "For your clubs, here's where to update:";
+
+  return `
+<div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
+  <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    This week, it was this piece in T Magazine:
+    <a href="${ARTICLE_URL}" style="color: #b07d3a;">Have You Found Your Microscene?</a>
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    Stoked that we're helping create those micro-scenes around the globe.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    <strong>Newest micro-scene:</strong><br>
+    NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    We're also getting close on a new site feature: <strong>'Latest Happenings.'</strong>
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">Here's an early preview:</p>
+  <div style="margin: 24px 0; text-align: center;">
+    <img src="${LATEST_HAPPENINGS_GIF_URL}" alt="Latest Happenings preview" style="display: block; width: 100%; max-width: 492px; height: auto; margin: 0 auto; border: 1px solid #eee;">
+  </div>
+  <p style="font-size: 15px; line-height: 1.6;">
+    It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">Anywho, call for updates. ${cityLead}</p>
+  <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+  ${updateBlock}
   <p style="font-size: 15px; line-height: 1.6;">
     If everything looks right, no action needed. See you at the table.
   </p>
@@ -165,9 +300,6 @@ function buildEmailHTML(hostName, city) {
   <p style="font-size: 14px; line-height: 1.6; color: #666;">
     p.s. — Any cool ideas for the site? Email <a href="mailto:mike@breakfastclubbing.com" style="color: #b07d3a;">mike@breakfastclubbing.com</a> and he'll make it happen. Big thanks to Kilcoyne for making this happen.
   </p>
-  <p style="font-size: 14px; line-height: 1.6; color: #666;">
-    p.p.s. — Kilcoyne's working on a 'Word Cloud' feature that was inspired by another BC International host. It's gonna be super sick, so I encourage you to share your 'What We Talked About' posts and make sure they're in your updates.
-  </p>
   <p style="font-size: 12px; line-height: 1.6; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
     Breakfast Club HQ &middot; New York, NY<br>
     You're receiving this because you host a Breakfast Club location.<br>
@@ -176,14 +308,26 @@ function buildEmailHTML(hostName, city) {
 </div>`;
 }
 
+function buildSubject(cities) {
+  if (cities.length <= 1) {
+    return `Breakfast Club reminder — update your ${cities[0] || "club"} listing`;
+  }
+
+  return "Breakfast Club reminder — update your club listings";
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
-export async function handler() {
+export async function handler(event) {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
     console.error("SENDGRID_API_KEY not set");
     return { statusCode: 500, body: "Missing SENDGRID_API_KEY" };
   }
+
+  const force = event?.queryStringParameters?.force === "1";
+  const targetSunday = getUpcomingSunday();
+  const cycleDate = targetSunday.toISOString().split("T")[0];
 
   // 1. Fetch sheet (fall back to hardcoded list on any error)
   let recipients;
@@ -218,13 +362,42 @@ export async function handler() {
     return { statusCode: 200, body: "No recipients" };
   }
 
-  console.log(`Sending to ${recipients.length} hosts`);
+  const dedupedRecipients = dedupeRecipients(recipients);
+  const mergedCount = recipients.length - dedupedRecipients.length;
+  if (mergedCount > 0) {
+    console.log(`Merged ${mergedCount} duplicate recipient record(s)`);
+  }
+
+  let reminderLock;
+  try {
+    reminderLock = await claimReminderLock(cycleDate, force);
+  } catch (err) {
+    console.error(`Unable to claim reminder lock for ${cycleDate}:`, err.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Unable to claim reminder lock", cycleDate }),
+    };
+  }
+
+  if (!reminderLock.claimed) {
+    console.log(`Skipping send for ${cycleDate} — reminder already sent or in progress`);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ skipped: true, reason: "already-sent", cycleDate }),
+    };
+  }
+
+  if (force) {
+    console.warn(`Force send requested for ${cycleDate} — bypassing reminder lock`);
+  }
+
+  console.log(`Sending to ${dedupedRecipients.length} unique host inboxes`);
 
   // 3. Send via SendGrid
   let sent = 0;
   let failed = 0;
 
-  for (const { email, city, hostName } of recipients) {
+  for (const { email, cities } of dedupedRecipients) {
     const payload = {
       personalizations: [{ to: [{ email }] }],
       from: { email: FROM_EMAIL, name: FROM_NAME },
@@ -233,10 +406,10 @@ export async function handler() {
         "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
-      subject: `Breakfast Club reminder — update your ${city} listing`,
+      subject: buildSubject(cities),
       content: [
-        { type: "text/plain", value: buildEmailBody(hostName, city) },
-        { type: "text/html",  value: buildEmailHTML(hostName, city) },
+        { type: "text/plain", value: buildEmailBody(cities, targetSunday) },
+        { type: "text/html",  value: buildEmailHTML(cities, targetSunday) },
       ],
     };
 
@@ -252,7 +425,7 @@ export async function handler() {
 
       if (res.status === 202) {
         sent++;
-        console.log(`✓ Sent to ${email} (${city})`);
+        console.log(`✓ Sent to ${email} (${cities.join(", ") || "no city"})`);
       } else {
         const body = await res.text();
         console.error(`✗ Failed for ${email}: ${res.status} ${body}`);
@@ -264,8 +437,15 @@ export async function handler() {
     }
   }
 
+  await completeReminderLock(reminderLock.store, reminderLock.key, {
+    cycleDate,
+    sent,
+    failed,
+    recipients: dedupedRecipients.length,
+  });
+
   return {
     statusCode: 200,
-    body: JSON.stringify({ sent, failed }),
+    body: JSON.stringify({ sent, failed, recipients: dedupedRecipients.length, cycleDate }),
   };
 }
