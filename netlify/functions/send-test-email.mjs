@@ -21,6 +21,10 @@ if (!apiKey) { console.error("Set SENDGRID_API_KEY env var"); process.exit(1); }
 
 const plain = `Hey hosts,
 
+Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+
+What I meant to send below:
+
 Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
 
 This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
@@ -60,6 +64,12 @@ To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
 const html = `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
+    What I meant to send below:
+  </p>
   <p style="font-size: 15px; line-height: 1.6;">
     Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
   </p>
@@ -120,7 +130,7 @@ const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
       "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
-    subject: `[TEST] Breakfast Club — ${TEST_CITY_LABEL} weekly update link`,
+    subject: `Sorry!`,
     content: [
       { type: "text/plain", value: plain },
       { type: "text/html",  value: html },

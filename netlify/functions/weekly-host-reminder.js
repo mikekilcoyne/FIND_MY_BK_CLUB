@@ -53,6 +53,7 @@ const FROM_NAME  = "Breakfast Club HQ";
 const REPLY_TO   = "ben@breakfastclubbing.com";
 const REMINDER_LOCK_STORE = "weekly-host-reminder";
 const REMINDER_LOCK_KEY_PREFIX = "scheduled-send";
+const CORRECTION_LOCK_KEY_PREFIX = "correction-send";
 
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
@@ -126,18 +127,38 @@ function dedupeRecipients(recipients) {
   }));
 }
 
-async function claimReminderLock(cycleDate, force = false) {
+function buildTopNotice(mode) {
+  if (mode !== "correction") {
+    return { text: "", html: "" };
+  }
+
+  return {
+    text: `Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+
+What I meant to send below:
+`,
+    html: `
+  <p style="font-size: 15px; line-height: 1.6;">
+    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
+    What I meant to send below:
+  </p>`,
+  };
+}
+
+async function claimSendLock(lockPrefix, lockValue, force = false) {
   if (force) {
     return { claimed: true, store: null, key: null };
   }
 
   const store = getStore({ name: REMINDER_LOCK_STORE, consistency: "strong" });
-  const key = `${REMINDER_LOCK_KEY_PREFIX}/${cycleDate}`;
+  const key = `${lockPrefix}/${lockValue}`;
   const { modified } = await store.setJSON(
     key,
     {
       status: "in_progress",
-      cycleDate,
+      lockValue,
       claimedAt: new Date().toISOString(),
     },
     { onlyIfNew: true }
@@ -213,13 +234,16 @@ ${flyerExamples.map(example => `- ${example}`).join("\n")}`,
   };
 }
 
-function buildEmailBody(cities, targetSunday) {
+function buildEmailBody(cities, targetSunday, mode = "scheduled") {
   const { text: updateBlock } = buildUpdateBlock(cities, targetSunday);
+  const { text: topNotice } = buildTopNotice(mode);
   const cityLead = cities.length <= 1
     ? `For ${cities[0] || "your club"}, here's where to update:`
     : "For your clubs, here's where to update:";
 
   return `Hey hosts,
+
+${topNotice}
 
 Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
 
@@ -255,8 +279,9 @@ You're receiving this because you host a Breakfast Club location.
 To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
 }
 
-function buildEmailHTML(cities, targetSunday) {
+function buildEmailHTML(cities, targetSunday, mode = "scheduled") {
   const { html: updateBlock } = buildUpdateBlock(cities, targetSunday);
+  const { html: topNotice } = buildTopNotice(mode);
   const cityLead = cities.length <= 1
     ? `For <strong>${cities[0] || "your club"}</strong>, here's where to update:`
     : "For your clubs, here's where to update:";
@@ -264,6 +289,7 @@ function buildEmailHTML(cities, targetSunday) {
   return `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
+  ${topNotice}
   <p style="font-size: 15px; line-height: 1.6;">
     Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
   </p>
@@ -308,7 +334,11 @@ function buildEmailHTML(cities, targetSunday) {
 </div>`;
 }
 
-function buildSubject(cities) {
+function buildSubject(cities, mode = "scheduled") {
+  if (mode === "correction") {
+    return "Sorry!";
+  }
+
   if (cities.length <= 1) {
     return `Breakfast Club reminder — update your ${cities[0] || "club"} listing`;
   }
@@ -325,9 +355,14 @@ export async function handler(event) {
     return { statusCode: 500, body: "Missing SENDGRID_API_KEY" };
   }
 
-  const force = event?.queryStringParameters?.force === "1";
+  const params = event?.queryStringParameters || {};
+  const force = params.force === "1";
+  const mode = params.mode === "correction" ? "correction" : "scheduled";
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
+  const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
+  const lockPrefix = mode === "correction" ? CORRECTION_LOCK_KEY_PREFIX : REMINDER_LOCK_KEY_PREFIX;
+  const lockValue = mode === "correction" ? correctionDate : cycleDate;
 
   // 1. Fetch sheet (fall back to hardcoded list on any error)
   let recipients;
@@ -370,25 +405,25 @@ export async function handler(event) {
 
   let reminderLock;
   try {
-    reminderLock = await claimReminderLock(cycleDate, force);
+    reminderLock = await claimSendLock(lockPrefix, lockValue, force);
   } catch (err) {
-    console.error(`Unable to claim reminder lock for ${cycleDate}:`, err.message);
+    console.error(`Unable to claim send lock for ${lockValue}:`, err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Unable to claim reminder lock", cycleDate }),
+      body: JSON.stringify({ error: "Unable to claim reminder lock", mode, lockValue }),
     };
   }
 
   if (!reminderLock.claimed) {
-    console.log(`Skipping send for ${cycleDate} — reminder already sent or in progress`);
+    console.log(`Skipping send for ${lockValue} — ${mode} email already sent or in progress`);
     return {
       statusCode: 200,
-      body: JSON.stringify({ skipped: true, reason: "already-sent", cycleDate }),
+      body: JSON.stringify({ skipped: true, reason: "already-sent", mode, lockValue }),
     };
   }
 
   if (force) {
-    console.warn(`Force send requested for ${cycleDate} — bypassing reminder lock`);
+    console.warn(`Force send requested for ${lockValue} — bypassing reminder lock`);
   }
 
   console.log(`Sending to ${dedupedRecipients.length} unique host inboxes`);
@@ -406,10 +441,10 @@ export async function handler(event) {
         "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
-      subject: buildSubject(cities),
+      subject: buildSubject(cities, mode),
       content: [
-        { type: "text/plain", value: buildEmailBody(cities, targetSunday) },
-        { type: "text/html",  value: buildEmailHTML(cities, targetSunday) },
+        { type: "text/plain", value: buildEmailBody(cities, targetSunday, mode) },
+        { type: "text/html",  value: buildEmailHTML(cities, targetSunday, mode) },
       ],
     };
 
@@ -439,6 +474,8 @@ export async function handler(event) {
 
   await completeReminderLock(reminderLock.store, reminderLock.key, {
     cycleDate,
+    mode,
+    lockValue,
     sent,
     failed,
     recipients: dedupedRecipients.length,
@@ -446,6 +483,6 @@ export async function handler(event) {
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ sent, failed, recipients: dedupedRecipients.length, cycleDate }),
+    body: JSON.stringify({ sent, failed, recipients: dedupedRecipients.length, cycleDate, mode, lockValue }),
   };
 }
