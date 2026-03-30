@@ -243,9 +243,11 @@ function buildEmailBody(cities, targetSunday, mode = "scheduled") {
 
   return `Hey hosts,
 
-${topNotice}
+Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
 
-Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+What I meant to send below:
+
+Every week, I read something that reminds me what we're building together as a BC community around the world is not only meaningful, but necessary.
 
 This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
 
@@ -291,7 +293,13 @@ function buildEmailHTML(cities, targetSunday, mode = "scheduled") {
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
   ${topNotice}
   <p style="font-size: 15px; line-height: 1.6;">
-    Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
+    What I meant to send below:
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    Every week, I read something that reminds me what we're building together as a BC community around the world is not only meaningful, but necessary.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
     This week, it was this piece in T Magazine:
@@ -355,9 +363,8 @@ export async function handler(event) {
     return { statusCode: 500, body: "Missing SENDGRID_API_KEY" };
   }
 
-  const params = event?.queryStringParameters || {};
-  const force = params.force === "1";
-  const mode = params.mode === "correction" ? "correction" : "scheduled";
+  const force = event?.queryStringParameters?.force === "1";
+  const audienceTest = event?.queryStringParameters?.audience === "test";
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
@@ -397,7 +404,18 @@ export async function handler(event) {
     return { statusCode: 200, body: "No recipients" };
   }
 
-  const dedupedRecipients = dedupeRecipients(recipients);
+  let dedupedRecipients = dedupeRecipients(recipients);
+
+  if (audienceTest) {
+    const TEST_EMAIL = "mk@yellowsatinjacket.com";
+    dedupedRecipients = dedupedRecipients.filter(r => r.email === TEST_EMAIL);
+    if (!dedupedRecipients.length) {
+      // Test email not in sheet — synthesize a single test recipient
+      dedupedRecipients = [{ email: TEST_EMAIL, cities: ["New York — Hamptons"], hostName: "Michael Kilcoyne" }];
+    }
+    console.log(`audience=test — sending only to ${TEST_EMAIL}`);
+  }
+
   const mergedCount = recipients.length - dedupedRecipients.length;
   if (mergedCount > 0) {
     console.log(`Merged ${mergedCount} duplicate recipient record(s)`);

@@ -12,7 +12,7 @@ const FROM_EMAIL = "ben@breakfastclubbing.com";
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
 const ARTICLE_URL = process.env.TEST_ARTICLE_URL || "https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html";
-const LATEST_HAPPENINGS_GIF_URL = process.env.TEST_GIF_URL || "https://69c91f509b35a6b3b3e908f2--luxury-toffee-ec4a34.netlify.app/LATEST_HAPPENINS.gif";
+const LATEST_HAPPENINGS_GIF_URL = process.env.TEST_GIF_URL || "https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif";
 const TEST_CITY_LABEL = process.env.TEST_CITY_LABEL || "New York — Williamsburg";
 const TEST_FLYER_EXAMPLE = process.env.TEST_FLYER_EXAMPLE || "NewYorkWilliamsburg_2026-03-23.jpg";
 
