@@ -1,5 +1,18 @@
-const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+const BKClubData = window.BKClubData || {};
+const {
+  normalize: sharedNormalize,
+  shouldHideClub: sharedShouldHideClub,
+  fetchSheetRows,
+  createSheetAccess,
+  getOverrideForCity,
+  getVenue: sharedGetVenue,
+  normalizeFlyer: sharedNormalizeFlyer,
+  extractInstagramHandles: sharedExtractInstagramHandles,
+  extractLinkedInURL: sharedExtractLinkedInURL,
+  extractEmail: sharedExtractEmail,
+  parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
+  toISODate: sharedToISODate,
+} = BKClubData;
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
 const statusText = document.querySelector("#status");
@@ -12,10 +25,30 @@ const todayBtn = document.querySelector("#jump-today");
 const selectedDateLabel = document.querySelector("#selected-date-label");
 const selectedDateSummary = document.querySelector("#selected-date-summary");
 const selectedDateList = document.querySelector("#selected-date-list");
+const clubUpdateModal = document.querySelector("#club-update-modal");
+const clubUpdateForm = document.querySelector("#club-update-form");
+const clubUpdateCloseBtn = document.querySelector("#club-update-close");
+const clubUpdateCityInput = document.querySelector("#club-update-city");
+const clubUpdateNotesInput = document.querySelector("#club-update-notes");
+const clubUpdateEmailInput = document.querySelector("#club-update-email");
+const clubUpdateStatus = document.querySelector("#club-update-status");
+const CLUB_UPDATE_ENDPOINT = "/.netlify/functions/submit-club-update";
+let activeClubUpdateContext = null;
 
 function trackEvent(name, params) {
   if (!window.BKAnalytics) return;
   window.BKAnalytics.track(name, params);
+}
+
+async function submitClubUpdate(payload) {
+  const response = await fetch(CLUB_UPDATE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not submit right now.");
+  return data;
 }
 
 let clubs = [];
@@ -27,7 +60,14 @@ let selectedDateISO = toISODate(
 );
 
 function normalize(value) {
+  if (sharedNormalize) return sharedNormalize(value || "");
   return (value || "").toLowerCase().trim();
+}
+
+function shouldHideClub(city) {
+  if (sharedShouldHideClub) return sharedShouldHideClub(city);
+  const key = normalize(city);
+  return key === "austin" || key === "austin, tx";
 }
 
 function formatTimeLabel(value) {
@@ -66,6 +106,63 @@ function getDisplayCity(club) {
   return club.displayCity || club.city;
 }
 
+function buildClubUpdateContext(club) {
+  return {
+    city: club.city || "",
+    displayCity: getDisplayCity(club),
+    host: club.hostName || "",
+    venue: club.venue || "",
+    day: club.day || "",
+    scheduleLabel: club.cadence || "",
+    eventTime: club.time || club.eventTime || "",
+  };
+}
+
+function resetClubUpdateModal() {
+  if (!clubUpdateForm || !clubUpdateStatus) return;
+  clubUpdateForm.reset();
+  clubUpdateStatus.textContent = "";
+  clubUpdateStatus.classList.remove("is-error");
+  clubUpdateStatus.hidden = true;
+  const submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Send update";
+  }
+}
+
+function openClubUpdateModal(club, triggerEl) {
+  if (!clubUpdateModal || !clubUpdateCityInput || !clubUpdateNotesInput) return;
+  activeClubUpdateContext = { club, triggerEl: triggerEl || null };
+  resetClubUpdateModal();
+  clubUpdateCityInput.value = getDisplayCity(club);
+  document.body.classList.add("club-update-modal-open");
+  clubUpdateModal.showModal();
+  if (triggerEl) triggerEl.setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => clubUpdateNotesInput.focus());
+}
+
+function closeClubUpdateModal() {
+  if (!clubUpdateModal || !clubUpdateModal.open) return;
+  document.body.classList.remove("club-update-modal-open");
+  clubUpdateModal.close();
+}
+
+function createClubUpdateTrigger(club) {
+  const wrap = document.createElement("div");
+  wrap.className = "card-update";
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "card-update-link";
+  trigger.textContent = "?";
+  trigger.setAttribute("aria-label", "Spotted something off? Submit an update.");
+  trigger.title = "Spotted something off? Submit an update.";
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.addEventListener("click", () => openClubUpdateModal(club, trigger));
+  wrap.append(trigger);
+  return wrap;
+}
+
 function isPopupEvent(club, isoDate) {
   if (!club || !isoDate) return false;
   const city = normalize(club.city || "");
@@ -73,6 +170,7 @@ function isPopupEvent(club, isoDate) {
 }
 
 function cleanLocationValue(value) {
+  if (BKClubData.cleanLocationValue) return BKClubData.cleanLocationValue(value);
   const raw = (value || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
   const lowered = normalize(raw);
@@ -84,10 +182,12 @@ function cleanLocationValue(value) {
 }
 
 function getVenue(location, addressInfo) {
+  if (sharedGetVenue) return sharedGetVenue(location, addressInfo);
   return cleanLocationValue(location) || cleanLocationValue(addressInfo) || "";
 }
 
 function normalizeFlyer(url) {
+  if (sharedNormalizeFlyer) return sharedNormalizeFlyer(url);
   if (!url) return "";
   var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
   if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
@@ -105,6 +205,7 @@ function compactText(value) {
 }
 
 function extractInstagramHandles(value) {
+  if (sharedExtractInstagramHandles) return sharedExtractInstagramHandles(value);
   const raw = (value || "").trim();
   if (!raw) return [];
   const matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
@@ -119,6 +220,7 @@ function extractInstagramHandleFromURL(value) {
 }
 
 function extractLinkedInURL(...values) {
+  if (sharedExtractLinkedInURL) return sharedExtractLinkedInURL(...values);
   for (const value of values) {
     const raw = (value || "").trim();
     if (!raw) continue;
@@ -131,6 +233,7 @@ function extractLinkedInURL(...values) {
 }
 
 function extractEmail(value) {
+  if (sharedExtractEmail) return sharedExtractEmail(value);
   const raw = (value || "").trim();
   if (!raw) return "";
   const match = raw.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
@@ -238,6 +341,7 @@ function parseCSVLine(line) {
 }
 
 function parseCSV(text) {
+  if (BKClubData.parseCSV) return BKClubData.parseCSV(text);
   const lines = text
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
@@ -301,11 +405,38 @@ function getScheduleRule(cadence, timeValue) {
   return { type: "weekly", weekday };
 }
 
+function parseSheetUpcomingDate(value) {
+  if (sharedParseSheetUpcomingDate) return sharedParseSheetUpcomingDate(value);
+  const raw = (value || "").trim();
+  if (!raw) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  const monthDay = raw.match(/^(\d{1,2})\s+([A-Za-z]+)$/);
+  if (monthDay) {
+    const currentYear = new Date().getFullYear();
+    const parsed = new Date(`${monthDay[2]} ${monthDay[1]}, ${currentYear} 12:00:00`);
+    if (!Number.isNaN(parsed.getTime())) {
+      return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) {
+    return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  }
+
+  return "";
+}
+
 function getDaysInMonth(year, monthIndex) {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
 
 function toISODate(year, monthIndex, day) {
+  if (sharedToISODate) return sharedToISODate(year, monthIndex, day);
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(
     2,
     "0",
@@ -511,6 +642,8 @@ function renderDayDetails(isoDate, monthEvents) {
         util.append(chatBtn);
       }
 
+      util.append(createClubUpdateTrigger(club));
+
       if (util.children.length) card.append(util);
 
       selectedDateList.append(card);
@@ -611,34 +744,21 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
-    const sheetRes = await fetch(SHEET_CSV_URL);
-    if (!sheetRes.ok) {
-      throw new Error(`Sheet request failed with ${sheetRes.status}`);
-    }
-    const csv = await sheetRes.text();
-
-    const rows = parseCSV(csv);
-    // Build a header → index map so column moves never break lookups.
-    const headers = (rows[0] || []).map((h) => h.toLowerCase().replace(/[\s_]+/g, "_").trim());
-    const colIdx = {};
-    headers.forEach((h, i) => { colIdx[h] = i; });
-    const col = (name, cells) => (cells[colIdx[name]] || "").trim();
-    // Aliases for columns whose names have spaces in the sheet
-    colIdx["start_time"] = colIdx["start_time"] ?? colIdx["start time"];
-    colIdx["whatsapp"] = colIdx["whatsapp"] ?? colIdx["whatsapp_link"] ?? colIdx["community_link"];
-    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] ?? colIdx["host_linkedin 2"];
+    const { rows, usedLocalSnapshot } = await fetchSheetRows();
+    const { col } = createSheetAccess(rows);
 
     clubs = rows
       .slice(1)
       .map((cells) => {
         const city = col("city", cells);
-        const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
+        const override = getOverrideForCity(city);
         const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
         const cadence = (override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "").trim();
         const time = formatTimeLabel(override.time || "");
         const instagramHandles = collectInstagramHandles(col("host_instagram", cells), override);
         const hostEmail = extractEmail(col("emails", cells));
         const linkedinURL = override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells));
+        const sheetUpcomingDate = parseSheetUpcomingDate(col("upcoming_date", cells));
         return {
           city,
           displayCity: override.displayCity || city,
@@ -651,23 +771,25 @@ async function loadClubs() {
           instagramHandles,
           linkedinURL,
           flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
-          specificDates: override.specificDates || [],
+          specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : []),
           locationNote: override.locationNote || "",
           eventTime: override.eventTime || col("start_time", cells),
-          communityLink: override.communityLink || col("whatsapp", cells),
+          communityLink: override.communityLink || col("whatsapp", cells) || "",
           rule: getScheduleRule(cadence, time),
         };
       })
-      .filter((club) => club.city);
+      .filter((club) => club.city && !shouldHideClub(club.city));
 
     // Merge pop-up / one-off clubs not in the sheet
     const staticEntries = (window.STATIC_CLUBS || []).map((s) => ({
       ...s,
       rule: { type: "unscheduled" },
-    }));
+    })).filter((club) => !shouldHideClub(club.city));
     clubs = clubs.concat(staticEntries);
 
-    statusText.textContent = `${clubs.length} clubs loaded.`;
+    statusText.textContent = usedLocalSnapshot
+      ? `${clubs.length} clubs loaded from local snapshot.`
+      : `${clubs.length} clubs loaded.`;
     statusText.classList.remove("error");
     renderCalendar();
   } catch (_error) {
@@ -712,5 +834,68 @@ todayBtn.addEventListener("click", () => {
   );
   renderCalendar();
 });
+
+if (clubUpdateCloseBtn) {
+  clubUpdateCloseBtn.addEventListener("click", closeClubUpdateModal);
+}
+
+if (clubUpdateModal) {
+  clubUpdateModal.addEventListener("click", (event) => {
+    const rect = clubUpdateModal.getBoundingClientRect();
+    const inDialog =
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom;
+    if (!inDialog) closeClubUpdateModal();
+  });
+
+  clubUpdateModal.addEventListener("close", () => {
+    document.body.classList.remove("club-update-modal-open");
+    if (activeClubUpdateContext && activeClubUpdateContext.triggerEl) {
+      activeClubUpdateContext.triggerEl.setAttribute("aria-expanded", "false");
+      activeClubUpdateContext.triggerEl.focus();
+    }
+    activeClubUpdateContext = null;
+  });
+}
+
+if (clubUpdateForm) {
+  clubUpdateForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+    if (!clubUpdateStatus || !submitBtn) return;
+
+    clubUpdateStatus.hidden = true;
+    clubUpdateStatus.textContent = "";
+    clubUpdateStatus.classList.remove("is-error");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+
+    const club = activeClubUpdateContext && activeClubUpdateContext.club;
+
+    try {
+      await submitClubUpdate({
+        club: clubUpdateCityInput.value.trim(),
+        notes: clubUpdateNotesInput.value.trim(),
+        email: clubUpdateEmailInput.value.trim(),
+        submittedAt: new Date().toISOString(),
+        context: club ? buildClubUpdateContext(club) : {},
+      });
+      clubUpdateStatus.textContent = "Got it. We'll review + update shortly.";
+      clubUpdateStatus.hidden = false;
+      submitBtn.textContent = "Sent";
+      trackEvent("calendar_club_update_submit", {
+        city: clubUpdateCityInput.value.trim(),
+      });
+    } catch (error) {
+      clubUpdateStatus.textContent = error.message || "Could not submit right now.";
+      clubUpdateStatus.hidden = false;
+      clubUpdateStatus.classList.add("is-error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send update";
+    }
+  });
+}
 
 loadClubs();

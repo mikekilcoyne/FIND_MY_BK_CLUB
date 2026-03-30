@@ -1,6 +1,17 @@
-const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
-const GROWTH_TITLE_SUFFIX = "clubs worldwide (and counting)";
+const BKClubData = window.BKClubData || {};
+const {
+  normalize: sharedNormalize,
+  shouldHideClub: sharedShouldHideClub,
+  fetchSheetRows,
+  createSheetAccess,
+  getOverrideForCity,
+  getVenue: sharedGetVenue,
+  normalizeFlyer: sharedNormalizeFlyer,
+  extractInstagramHandles: sharedExtractInstagramHandles,
+  extractInstagramURL: sharedExtractInstagramURL,
+  extractLinkedInURL: sharedExtractLinkedInURL,
+} = BKClubData;
+const GROWTH_TITLE_SUFFIX = "clubs worldwide and counting";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 let growthTitleTimer = null;
 
@@ -15,6 +26,17 @@ const regionFilter = document.querySelector("#region-filter");
 const calendarViewLink = document.querySelector(".calendar-headline-link");
 const mobileResourcesToggle = document.querySelector(".mobile-resources-toggle");
 const mobileResourcesBody = document.querySelector("#mobile-resources-body");
+const backToTopBtn = document.querySelector("#back-to-top");
+const clubUpdateModal = document.querySelector("#club-update-modal");
+const clubUpdateForm = document.querySelector("#club-update-form");
+const clubUpdateCloseBtn = document.querySelector("#club-update-close");
+const clubUpdateCityInput = document.querySelector("#club-update-city");
+const clubUpdateNotesInput = document.querySelector("#club-update-notes");
+const clubUpdateEmailInput = document.querySelector("#club-update-email");
+const clubUpdateStatus = document.querySelector("#club-update-status");
+let flyerGalleryItems = [];
+const CLUB_UPDATE_ENDPOINT = "/.netlify/functions/submit-club-update";
+let activeClubUpdateContext = null;
 
 const REGION_ORDER = [
   "Northeast US",
@@ -104,6 +126,11 @@ const DAYS = [
   "Every now and again",
 ];
 
+function shouldHideClub(city) {
+  if (sharedShouldHideClub) return sharedShouldHideClub(city);
+  return normalize(city || "") === "austin" || normalize(city || "") === "austin, tx";
+}
+
 function loadSiteCopy() {
   const copy = DEFAULT_COPY;
   if (siteTitle) siteTitle.textContent = copy.siteTitle;
@@ -144,6 +171,7 @@ function parseCSVLine(line) {
 }
 
 function parseCSV(text) {
+  if (BKClubData.parseCSV) return BKClubData.parseCSV(text);
   const lines = text
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
@@ -175,7 +203,172 @@ function getMapURL(city) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(city)}`;
 }
 
+function getClubUpdateLinkCopy(club) {
+  return club && club.isKnownHost ? "Update your event" : "?";
+}
+
+function buildClubUpdateContext(club) {
+  return {
+    city: club.city || "",
+    displayCity: getDisplayCity(club),
+    host: club.hostDisplay || "",
+    venue: club.venue || "",
+    day: club.day || "",
+    scheduleLabel: club.scheduleLabel || "",
+    eventTime: club.eventTimeLabel || club.eventTime || "",
+  };
+}
+
+async function submitClubUpdate(payload) {
+  const response = await fetch(CLUB_UPDATE_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_error) {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || "Could not submit right now.");
+  }
+
+  return data;
+}
+
+function createClubUpdateModule(club) {
+  const wrap = document.createElement("div");
+  wrap.className = "card-update";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "card-update-link";
+  trigger.textContent = getClubUpdateLinkCopy(club);
+  trigger.setAttribute("aria-label", "Spotted something off? Submit an update.");
+  trigger.title = "Spotted something off? Submit an update.";
+  trigger.setAttribute("aria-expanded", "false");
+  wrap.append(trigger);
+
+  trigger.addEventListener("click", () => {
+    openClubUpdateModal(club, trigger);
+  });
+
+  return wrap;
+}
+
+function resetClubUpdateModal() {
+  if (!clubUpdateForm || !clubUpdateStatus) return;
+  clubUpdateForm.reset();
+  clubUpdateStatus.textContent = "";
+  clubUpdateStatus.classList.remove("is-error");
+  if (clubUpdateStatus) clubUpdateStatus.hidden = true;
+  const submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Send update";
+  }
+}
+
+function openClubUpdateModal(club, triggerEl) {
+  if (!clubUpdateModal || !clubUpdateCityInput || !clubUpdateNotesInput) return;
+  activeClubUpdateContext = {
+    club,
+    triggerEl: triggerEl || null,
+  };
+  resetClubUpdateModal();
+  clubUpdateCityInput.value = getDisplayCity(club);
+  document.body.classList.add("club-update-modal-open");
+  clubUpdateModal.showModal();
+  if (triggerEl) triggerEl.setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => {
+    clubUpdateNotesInput.focus();
+  });
+}
+
+function closeClubUpdateModal() {
+  if (!clubUpdateModal || !clubUpdateModal.open) return;
+  document.body.classList.remove("club-update-modal-open");
+  clubUpdateModal.close();
+  if (activeClubUpdateContext && activeClubUpdateContext.triggerEl) {
+    activeClubUpdateContext.triggerEl.setAttribute("aria-expanded", "false");
+  }
+}
+
+if (clubUpdateCloseBtn) {
+  clubUpdateCloseBtn.addEventListener("click", closeClubUpdateModal);
+}
+
+if (clubUpdateModal) {
+  clubUpdateModal.addEventListener("click", (event) => {
+    const rect = clubUpdateModal.getBoundingClientRect();
+    const inDialog =
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom;
+    if (!inDialog) closeClubUpdateModal();
+  });
+
+  clubUpdateModal.addEventListener("close", () => {
+    document.body.classList.remove("club-update-modal-open");
+    if (activeClubUpdateContext && activeClubUpdateContext.triggerEl) {
+      activeClubUpdateContext.triggerEl.setAttribute("aria-expanded", "false");
+      activeClubUpdateContext.triggerEl.focus();
+    }
+    activeClubUpdateContext = null;
+  });
+}
+
+if (clubUpdateForm) {
+  clubUpdateForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+    if (!clubUpdateStatus || !submitBtn) return;
+
+    clubUpdateStatus.hidden = true;
+    clubUpdateStatus.textContent = "";
+    clubUpdateStatus.classList.remove("is-error");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+
+    const club = activeClubUpdateContext && activeClubUpdateContext.club;
+
+    try {
+      await submitClubUpdate({
+        club: clubUpdateCityInput.value.trim(),
+        notes: clubUpdateNotesInput.value.trim(),
+        email: clubUpdateEmailInput.value.trim(),
+        submittedAt: new Date().toISOString(),
+        context: club ? buildClubUpdateContext(club) : {},
+      });
+
+      clubUpdateStatus.textContent = "Got it. We'll review + update shortly.";
+      clubUpdateStatus.hidden = false;
+      submitBtn.textContent = "Sent";
+      if (window.BKAnalytics) {
+        window.BKAnalytics.track("club_update_submit", {
+          city: clubUpdateCityInput.value.trim(),
+          source: "club_card_modal",
+        });
+      }
+    } catch (error) {
+      clubUpdateStatus.textContent = error.message || "Could not submit right now.";
+      clubUpdateStatus.hidden = false;
+      clubUpdateStatus.classList.add("is-error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send update";
+    }
+  });
+}
+
 function cleanLocationValue(value) {
+  if (BKClubData.cleanLocationValue) return BKClubData.cleanLocationValue(value);
   const raw = (value || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
   const lowered = normalize(raw);
@@ -187,10 +380,12 @@ function cleanLocationValue(value) {
 }
 
 function getVenue(location, addressInfo) {
+  if (sharedGetVenue) return sharedGetVenue(location, addressInfo);
   return cleanLocationValue(location) || cleanLocationValue(addressInfo) || "";
 }
 
 function normalizeFlyer(url) {
+  if (sharedNormalizeFlyer) return sharedNormalizeFlyer(url);
   if (!url) return "";
   var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
   if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
@@ -200,6 +395,7 @@ function normalizeFlyer(url) {
 }
 
 function extractInstagramURL(value) {
+  if (sharedExtractInstagramURL) return sharedExtractInstagramURL(value);
   const handles = extractInstagramHandles(value);
   if (!handles.length) return "";
   const handle = handles[0].replace(/^@/, "");
@@ -208,6 +404,7 @@ function extractInstagramURL(value) {
 }
 
 function extractInstagramHandles(value) {
+  if (sharedExtractInstagramHandles) return sharedExtractInstagramHandles(value);
   const raw = (value || "").trim();
   if (!raw) return [];
   const matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
@@ -217,20 +414,18 @@ function extractInstagramHandles(value) {
 function formatHostDisplay(hostName, handles, overrideHostDisplay) {
   if (overrideHostDisplay) return overrideHostDisplay;
   const cleanName = (hostName || "").trim();
-  if (!handles.length) return cleanName;
-  const names = cleanName
-    ? cleanName
-        .split(/\s*[,+]\s*|\s+and\s+/i)
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
-  if (names.length) {
-    return `${names.join(" & ")} (${handles.join(" | ")})`;
+  if (cleanName) {
+    return cleanName
+      .split(/\s*[,+]\s*|\s+and\s+/i)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" & ");
   }
   return handles.join(" | ");
 }
 
 function extractLinkedInURL(...values) {
+  if (sharedExtractLinkedInURL) return sharedExtractLinkedInURL(...values);
   for (const value of values) {
     const raw = (value || "").trim();
     if (!raw) continue;
@@ -332,72 +527,254 @@ function getDisplayCity(club) {
   return club.displayCity || club.city;
 }
 
+function createSocialGlyph(type) {
+  const glyph = document.createElement("span");
+  glyph.className = `social-glyph social-glyph--${type}`;
+
+  if (type === "linkedin") {
+    glyph.textContent = "in";
+    return glyph;
+  }
+
+  glyph.innerHTML =
+    '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5.25"></rect>' +
+      '<circle cx="12" cy="12" r="4.1"></circle>' +
+      '<circle cx="17.35" cy="6.65" r="1.1" fill="currentColor" stroke="none"></circle>' +
+    "</svg>";
+  return glyph;
+}
+
 function renderSocialIcon(type, url, title) {
   const link = document.createElement("a");
   link.href = url;
   link.target = "_blank";
   link.rel = "noreferrer";
   link.title = title || "";
-  if (type === "linkedin") {
-    link.className = "li-icon-link";
-    link.textContent = "in";
-  } else {
-    link.className = "ig-icon-link";
-    link.textContent = "📷";
-  }
+  link.className = `social-icon-link social-icon-link--${type} ${type === "linkedin" ? "li-icon-link" : "ig-icon-link"}`;
+  link.append(createSocialGlyph(type));
   return link;
 }
 
-function renderTextWithInstagramLinks(text) {
-  const fragment = document.createDocumentFragment();
-  const value = text || "";
-  const regex = /@[A-Za-z0-9._]+/g;
-  let cursor = 0;
-  let match;
+function dedupeSocialItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (!item || !item.url) return false;
+    const key = item.url.replace(/\/$/, "");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
-  while ((match = regex.exec(value)) !== null) {
-    if (match.index > cursor) {
-      fragment.append(
-        document.createTextNode(value.slice(cursor, match.index)),
-      );
-    }
-    const handle = match[0];
-    const handleLink = document.createElement("a");
-    handleLink.href = `https://www.instagram.com/${handle.slice(1)}/`;
-    handleLink.target = "_blank";
-    handleLink.rel = "noreferrer";
-    handleLink.className = "host-instagram-link";
-    handleLink.textContent = handle;
-    fragment.append(handleLink);
-    cursor = match.index + handle.length;
-  }
+function splitHostNames(value) {
+  const cleaned = (value || "")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/@[A-Za-z0-9._]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  if (cursor < value.length) {
-    fragment.append(document.createTextNode(value.slice(cursor)));
-  }
+  if (!cleaned) return [];
 
-  return fragment;
+  return cleaned
+    .split(/\s*(?:,|&|\band\b|\+)\s*/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function extractLinkedInURLs(values = [], hostName = "") {
+  const items = [];
+  const hostNames = splitHostNames(hostName);
+
+  values.forEach((value) => {
+    const raw = (value || "").trim();
+    if (!raw) return;
+
+    const matches = raw.match(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s,]+|(?:www\.)?linkedin\.com\/[^\s,]+/gi) || [];
+    matches.forEach((match) => {
+      const url = /^https?:\/\//i.test(match) ? match : `https://${match}`;
+      items.push({
+        url,
+        title: "",
+      });
+    });
+  });
+
+  return dedupeSocialItems(items).map((item, index, deduped) => ({
+    ...item,
+    title:
+      hostNames[index] ||
+      (deduped.length === 1 ? hostNames[0] || "LinkedIn" : `LinkedIn ${index + 1}`),
+  }));
+}
+
+function buildInstagramSocialItems(handles = [], extraSocials = []) {
+  const fromHandles = handles.map((handle) => ({
+    url: `https://www.instagram.com/${handle.replace(/^@/, "")}/`,
+    title: handle,
+  }));
+  const fromOverrides = extraSocials
+    .filter((item) => item && item.type === "instagram" && item.url)
+    .map((item) => ({
+      url: item.url,
+      title: item.title || "Instagram",
+    }));
+  return dedupeSocialItems(fromHandles.concat(fromOverrides));
+}
+
+function buildLinkedInSocialItems(sheetValues = [], extraSocials = [], overrideURL = "", hostName = "") {
+  const hostNames = splitHostNames(hostName);
+  const fromSheet = extractLinkedInURLs(sheetValues, hostName);
+  const fromOverride = overrideURL ? [{ url: overrideURL, title: hostNames[0] || "LinkedIn" }] : [];
+  const fromExtras = extraSocials
+    .filter((item) => item && item.type === "linkedin" && item.url)
+    .map((item) => ({
+      url: item.url,
+      title: item.title || "LinkedIn",
+    }));
+  return dedupeSocialItems(fromSheet.concat(fromOverride, fromExtras));
+}
+
+function renderSocialMenu(type, items) {
+  const details = document.createElement("details");
+  details.className = "social-menu";
+
+  const summary = document.createElement("summary");
+  summary.className = "social-menu-trigger";
+  summary.append(createSocialGlyph(type));
+  const count = document.createElement("span");
+  count.className = "social-count";
+  count.textContent = `(${items.length})`;
+  summary.append(count);
+  details.append(summary);
+
+  const panel = document.createElement("div");
+  panel.className = "social-menu-panel";
+
+  items.forEach((item, index) => {
+    const link = document.createElement("a");
+    link.href = item.url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.className = "social-menu-link";
+    link.textContent = item.title || `${type === "instagram" ? "Instagram" : "LinkedIn"} ${index + 1}`;
+    panel.append(link);
+  });
+
+  details.append(panel);
+  return details;
+}
+
+function getFlyerGalleryItems() {
+  const seen = new Set();
+  return clubs
+    .filter((club) => club && club.flyerURL)
+    .map((club) => ({
+      city: getDisplayCity(club),
+      url: club.flyerURL,
+      venue: club.venue || "",
+      scheduleLabel: club.scheduleLabel || "",
+      eventTime: club.eventTime || "",
+    }))
+    .filter((item) => {
+      const key = `${item.city}::${item.url}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function renderHostText(text) {
+  return document.createTextNode(text || "");
 }
 
 function renderDayNav(items) {
-  if (!daysNav) return;
-
   const countByDay = new Map(DAYS.map((day) => [day, 0]));
   items.forEach((club) => {
     countByDay.set(club.day, (countByDay.get(club.day) || 0) + 1);
   });
 
-  daysNav.innerHTML = "";
+  if (daysNav) daysNav.innerHTML = "";
+
   DAYS.forEach((day) => {
     if ((countByDay.get(day) || 0) === 0) return;
-    const link = document.createElement("a");
-    link.href = `#day-${slugify(day)}`;
-    link.className = "day-chip";
     const dayLabel =
       day === "Every now and again" ? "Every now + again" : day.slice(0, 3);
-    link.textContent = `${dayLabel} (${countByDay.get(day)})`;
-    daysNav.append(link);
+    const fullLabel =
+      day === "Every now and again"
+        ? `Every now + again (${countByDay.get(day)})`
+        : `${day} (${countByDay.get(day)})`;
+    const railLink = document.createElement("a");
+    railLink.href = `#day-${slugify(day)}`;
+    railLink.className = "day-chip";
+    railLink.textContent = `${dayLabel} (${countByDay.get(day)})`;
+    if (daysNav) daysNav.append(railLink);
   });
+
+  renderMobileResourcesMenu(countByDay);
+}
+
+function appendMobileMenuSection(title, items) {
+  if (!mobileResourcesBody || !items.length) return;
+
+  const section = document.createElement("div");
+  section.className = "mobile-resources-section";
+
+  const heading = document.createElement("p");
+  heading.className = "mobile-resources-heading";
+  heading.textContent = title;
+  section.append(heading);
+
+  items.forEach((item) => section.append(item));
+  mobileResourcesBody.append(section);
+}
+
+function renderMobileResourcesMenu(countByDay) {
+  if (!mobileResourcesBody) return;
+  mobileResourcesBody.innerHTML = "";
+
+  const dayItems = [];
+  DAYS.forEach((day) => {
+    const count = countByDay.get(day) || 0;
+    if (!count) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mobile-day-link";
+    btn.dataset.dayTarget = `day-${slugify(day)}`;
+    btn.textContent =
+      day === "Every now and again"
+        ? `Every now + again (${count})`
+        : `${day} (${count})`;
+    dayItems.push(btn);
+  });
+  appendMobileMenuSection("Pick a Day", dayItems);
+}
+
+function syncActiveDayLink() {
+  const sections = Array.from(document.querySelectorAll(".day-section[id]"));
+  if (!sections.length) return;
+
+  const threshold = window.innerWidth <= 820 ? 120 : 140;
+  let activeSection = sections[0];
+
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top <= threshold) {
+      activeSection = section;
+    }
+  });
+
+  const activeHash = `#${activeSection.id}`;
+  document
+    .querySelectorAll('.day-chip, .mobile-day-link')
+    .forEach((link) => {
+      if (link instanceof HTMLAnchorElement) {
+        link.classList.toggle("is-active", link.getAttribute("href") === activeHash);
+        return;
+      }
+      if (link instanceof HTMLButtonElement) {
+        link.classList.toggle("is-active", link.getAttribute("data-day-target") === activeHash.slice(1));
+      }
+    });
 }
 
 function render(items) {
@@ -423,11 +800,15 @@ function render(items) {
 
     const section = document.createElement("section");
     section.className = "day-section";
+    if (day === "Every now and again") section.classList.add("day-section--wide");
     section.id = `day-${slugify(day)}`;
 
     const heading = document.createElement("h3");
     heading.textContent = day;
     section.append(heading);
+
+    const dayGrid = document.createElement("div");
+    dayGrid.className = "day-section-grid";
 
     for (const club of dayItems) {
       const card = document.createElement("article");
@@ -435,10 +816,16 @@ function render(items) {
       if (club.isNight) card.classList.add("night-edition");
 
       const displayCity = getDisplayCity(club);
+      // Word cloud overlay: store city keys so JS can look up topics
+      card.dataset.city = (club.city || "").toLowerCase().trim();
+      card.dataset.displayCity = displayCity;
       const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
       if (isOriginal) card.classList.add("flagship-card");
 
       // 1. City name (primary headline)
+      const titleRow = document.createElement("div");
+      titleRow.className = "card-title-row";
+
       const cityEl = club.venue
         ? document.createElement("a")
         : document.createElement("span");
@@ -450,27 +837,66 @@ function render(items) {
       cityEl.className = "city-name";
       if (isOriginal) cityEl.classList.add("original-bc");
       cityEl.textContent = displayCity;
-      card.append(cityEl);
+      titleRow.append(cityEl);
+
+      const titleBadges = document.createElement("span");
+      titleBadges.className = "title-badges";
+
+      if (club.featured) {
+        const featuredBadge = document.createElement("span");
+        featuredBadge.className = "badge badge-featured";
+        featuredBadge.textContent = "Featured";
+        titleBadges.append(featuredBadge);
+      }
+
+      if (club.isNew) {
+        const newBadge = document.createElement("span");
+        newBadge.className = "badge badge-new";
+        newBadge.textContent = "New";
+        titleBadges.append(newBadge);
+      }
+
+      if (club.isNight) {
+        const nightBadge = document.createElement("span");
+        nightBadge.className = "badge badge-night";
+        nightBadge.textContent = "Night";
+        titleBadges.append(nightBadge);
+      }
+
+      if (club.locationNote && /\bpop[\s-]?up\b/i.test(club.locationNote)) {
+        const popupBadge = document.createElement("span");
+        popupBadge.className = "badge badge-popup";
+        popupBadge.textContent = club.locationNote;
+        titleBadges.append(popupBadge);
+      }
+
+      if (titleBadges.children.length) {
+        titleRow.append(titleBadges);
+      }
+
+      card.append(titleRow);
 
       // 2. Subline: frequency, venue, status badges
       const subline = document.createElement("div");
       subline.className = "card-subline";
+      const sublineMain = document.createElement("span");
+      sublineMain.className = "card-subline-main";
 
       if (club.scheduleLabel) {
         const freq = document.createElement("span");
         freq.textContent = club.scheduleLabel;
-        subline.append(freq);
+        sublineMain.append(freq);
       }
 
       if (club.eventTime) {
         const sep = document.createElement("span");
         sep.className = "subline-sep";
         sep.textContent = "|";
-        subline.append(sep);
+        if (sublineMain.children.length) sublineMain.append(sep);
         const timeEl = document.createElement("span");
         timeEl.className = "card-time";
-        timeEl.textContent = `Starts at ${club.eventTime}`;
-        subline.append(timeEl);
+        timeEl.textContent = `Starts ${club.eventTimeLabel || club.eventTime}`;
+        sublineMain.append(timeEl);
       }
 
       const isLongVenue = club.venue && club.venue.length > 55;
@@ -479,43 +905,26 @@ function render(items) {
         const sep = document.createElement("span");
         sep.className = "subline-sep";
         sep.textContent = "|";
-        subline.append(sep);
+        if (sublineMain.children.length) sublineMain.append(sep);
         const venueEl = document.createElement("span");
         venueEl.textContent = club.venue;
-        subline.append(venueEl);
+        sublineMain.append(venueEl);
       } else if (!club.venue) {
         const tbd = document.createElement("span");
         tbd.className = "badge badge-tbd";
         tbd.textContent = "TBD";
-        subline.append(tbd);
+        sublineMain.append(tbd);
       }
 
-      if (club.locationNote) {
+      if (sublineMain.children.length) {
+        subline.append(sublineMain);
+      }
+
+      if (club.locationNote && !/\bpop[\s-]?up\b/i.test(club.locationNote)) {
         const locBadge = document.createElement("span");
         locBadge.className = "badge badge-location";
         locBadge.textContent = club.locationNote;
         subline.append(locBadge);
-      }
-
-      if (club.featured) {
-        const featuredBadge = document.createElement("span");
-        featuredBadge.className = "badge badge-featured";
-        featuredBadge.textContent = "Featured";
-        subline.append(featuredBadge);
-      }
-
-      if (club.isNew) {
-        const newBadge = document.createElement("span");
-        newBadge.className = "badge badge-new";
-        newBadge.textContent = "New";
-        subline.append(newBadge);
-      }
-
-      if (club.isNight) {
-        const nightBadge = document.createElement("span");
-        nightBadge.className = "badge badge-night";
-        nightBadge.textContent = "Night";
-        subline.append(nightBadge);
       }
 
       if (subline.children.length) card.append(subline);
@@ -534,7 +943,7 @@ function render(items) {
         const host = document.createElement("div");
         host.className = "card-host";
         host.append(document.createTextNode("Host: "));
-        host.append(renderTextWithInstagramLinks(club.hostDisplay));
+        host.append(renderHostText(club.hostDisplay));
         card.append(host);
       }
 
@@ -569,7 +978,9 @@ function render(items) {
         util.append(chatBtn);
       }
 
-      if (club.instagramURL) {
+      if (club.instagramItems && club.instagramItems.length > 1) {
+        util.append(renderSocialMenu("instagram", club.instagramItems));
+      } else if (club.instagramURL) {
         util.append(renderSocialIcon(
           "instagram",
           club.instagramURL,
@@ -577,7 +988,9 @@ function render(items) {
         ));
       }
 
-      if (club.linkedinURL) {
+      if (club.linkedInItems && club.linkedInItems.length > 1) {
+        util.append(renderSocialMenu("linkedin", club.linkedInItems));
+      } else if (club.linkedinURL) {
         util.append(renderSocialIcon(
           "linkedin",
           club.linkedinURL,
@@ -605,18 +1018,23 @@ function render(items) {
         util.append(noteBtn);
       }
 
+      util.append(createClubUpdateModule(club));
       if (util.children.length) card.append(util);
 
       if (noteBody) card.append(noteBody);
 
-      section.append(card);
+      dayGrid.append(card);
     }
 
+    section.append(dayGrid);
     clubsList.append(section);
   });
+
+  requestAnimationFrame(syncActiveDayLink);
 }
 
 function normalize(value) {
+  if (sharedNormalize) return sharedNormalize(value || "");
   return value.toLowerCase().trim();
 }
 
@@ -668,12 +1086,139 @@ function animateGrowthTitle(clubCount, suffix = GROWTH_TITLE_SUFFIX) {
 function setupMobileResourcesToggle() {
   if (!mobileResourcesToggle || !mobileResourcesBody) return;
 
+  function closeAreaDropdown() {
+    document.querySelectorAll(".region-mobile-dropdown").forEach((dropdown) => {
+      if (dropdown instanceof HTMLDetailsElement) dropdown.open = false;
+    });
+  }
+
+  function closeMobileDayPicker() {
+    mobileResourcesToggle.setAttribute("aria-expanded", "false");
+    mobileResourcesBody.hidden = true;
+  }
+
   mobileResourcesToggle.addEventListener("click", () => {
     const expanded =
       mobileResourcesToggle.getAttribute("aria-expanded") === "true";
+    if (!expanded) closeAreaDropdown();
     mobileResourcesToggle.setAttribute("aria-expanded", String(!expanded));
     mobileResourcesBody.hidden = expanded;
   });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (mobileResourcesToggle.contains(target) || mobileResourcesBody.contains(target)) return;
+    closeMobileDayPicker();
+  });
+}
+
+function setupDayJumpLinks() {
+  function closeMobileDayPicker() {
+    if (!mobileResourcesToggle || !mobileResourcesBody) return;
+    mobileResourcesToggle.setAttribute("aria-expanded", "false");
+    mobileResourcesBody.hidden = true;
+  }
+
+  function jumpToDaySection(target, targetId, shouldUpdateHash) {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const offset = window.innerWidth <= 960 ? 112 : 132;
+
+    const performJump = () => {
+      target.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+
+      window.setTimeout(() => {
+        const targetTop = window.scrollY + target.getBoundingClientRect().top - offset;
+        window.scrollTo({
+          top: Math.max(0, targetTop),
+          left: 0,
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+      }, prefersReducedMotion ? 0 : 40);
+
+      window.setTimeout(() => {
+        target.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
+        const targetTop = window.scrollY + target.getBoundingClientRect().top - offset;
+        window.scrollTo(0, Math.max(0, targetTop));
+        syncActiveDayLink();
+      }, prefersReducedMotion ? 0 : 220);
+    };
+
+    if (shouldUpdateHash) {
+      history.replaceState(null, "", `#${targetId}`);
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(performJump);
+    });
+  }
+
+  function handleDayJump(event) {
+    const origin = event.target instanceof Element
+      ? event.target.closest('[data-day-target], a[href^="#day-"]')
+      : null;
+    if (!(origin instanceof Element)) return;
+
+    const targetId = origin instanceof HTMLAnchorElement
+      ? (origin.getAttribute("href") || "").replace(/^#/, "")
+      : origin.getAttribute("data-day-target") || "";
+    if (!targetId) return;
+
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    event.preventDefault();
+    if (mobileResourcesToggle && mobileResourcesBody && origin instanceof HTMLButtonElement) {
+      closeMobileDayPicker();
+    }
+    jumpToDaySection(target, targetId, origin instanceof HTMLAnchorElement);
+  }
+
+  if (daysNav) {
+    daysNav.addEventListener("click", handleDayJump);
+  }
+
+  if (mobileResourcesBody) {
+    mobileResourcesBody.addEventListener("click", handleDayJump);
+  }
+
+  window.addEventListener("scroll", syncActiveDayLink, { passive: true });
+  window.addEventListener("resize", syncActiveDayLink);
+}
+
+function setupBackToTop() {
+  if (!backToTopBtn) return;
+
+  function scrollToPageTop() {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, left: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+
+    window.setTimeout(() => {
+      if (window.scrollY > 2) {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+    }, prefersReducedMotion ? 0 : 450);
+  }
+
+  function syncBackToTop() {
+    const shouldShow = window.innerWidth <= 960 && window.scrollY > 240;
+    backToTopBtn.hidden = !shouldShow;
+    backToTopBtn.classList.toggle("is-visible", shouldShow);
+  }
+
+  backToTopBtn.addEventListener("click", () => {
+    scrollToPageTop();
+  });
+
+  window.addEventListener("scroll", syncBackToTop, { passive: true });
+  window.addEventListener("resize", syncBackToTop);
+  syncBackToTop();
 }
 
 function getFilteredClubs() {
@@ -700,7 +1245,9 @@ function setRegion(region) {
     pill.classList.toggle("active", pill.dataset.region === region);
   });
   if (regionHeadline) {
-    regionHeadline.textContent = REGION_HEADLINES[region] || `Coming up this week in ${region}`;
+    regionHeadline.textContent = window.innerWidth <= 960
+      ? "Coming up This Week"
+      : (REGION_HEADLINES[region] || `Coming up this week in ${region}`);
   }
   const filtered = getFilteredClubs();
   render(filtered);
@@ -710,11 +1257,71 @@ function setRegion(region) {
       ? "new clubs"
       : "clubs coming up this month";
   animateGrowthTitle(filtered.length, suffix);
+  // Update word cloud topics to match selected region
+  if (typeof window.updateWordCloud === "function") {
+    window.updateWordCloud(region);
+  }
 }
 
 function renderRegionFilter() {
   if (!regionFilter) return;
   regionFilter.innerHTML = "";
+
+  if (window.innerWidth <= 960) {
+    ["All", "New"].forEach((region) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "region-pill" + (region === activeRegion ? " active" : "");
+      if (region === "New") btn.classList.add("region-pill-new");
+      btn.dataset.region = region;
+      btn.textContent = region;
+      btn.addEventListener("click", () => setRegion(region));
+      regionFilter.append(btn);
+    });
+
+    const areaWrap = document.createElement("details");
+    areaWrap.className = "region-mobile-dropdown";
+    if (!["All", "New"].includes(activeRegion)) areaWrap.open = false;
+
+    areaWrap.addEventListener("toggle", () => {
+      if (!areaWrap.open) return;
+      if (mobileResourcesToggle && mobileResourcesBody) {
+        mobileResourcesToggle.setAttribute("aria-expanded", "false");
+        mobileResourcesBody.hidden = true;
+      }
+      document.querySelectorAll(".region-mobile-dropdown").forEach((dropdown) => {
+        if (dropdown !== areaWrap && dropdown instanceof HTMLDetailsElement) {
+          dropdown.open = false;
+        }
+      });
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "region-mobile-summary";
+    summary.textContent = "By Area";
+    areaWrap.append(summary);
+
+    const menu = document.createElement("div");
+    menu.className = "region-mobile-menu";
+
+    REGION_ORDER.forEach((region) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "region-mobile-option" + (region === activeRegion ? " is-active" : "");
+      btn.dataset.region = region;
+      btn.textContent = region;
+      btn.addEventListener("click", () => {
+        setRegion(region);
+        areaWrap.open = false;
+      });
+      menu.append(btn);
+    });
+
+    areaWrap.append(menu);
+    regionFilter.append(areaWrap);
+    return;
+  }
+
   ["All", "New", ...REGION_ORDER].forEach((region) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -729,31 +1336,26 @@ function renderRegionFilter() {
 
 async function loadClubs() {
   try {
-    const sheetRes = await fetch(SHEET_CSV_URL);
-    if (!sheetRes.ok) throw new Error(`Sheet request failed with ${sheetRes.status}`);
-    const csv = await sheetRes.text();
-
-    const rows = parseCSV(csv);
-
-    // Build a header → index map so column moves never break lookups.
-    const headers = (rows[0] || []).map((h) => h.toLowerCase().replace(/[\s_]+/g, "_").trim());
-    const colIdx = {};
-    headers.forEach((h, i) => { colIdx[h] = i; });
-    const col = (name, cells) => (cells[colIdx[name]] || "").trim();
-    // Aliases for columns whose names have spaces in the sheet
-    colIdx["start_time"] = colIdx["start_time"] ?? colIdx["start time"];
-    colIdx["whatsapp"] = colIdx["whatsapp"] ?? colIdx["whatsapp_link"] ?? colIdx["community_link"];
-    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] ?? colIdx["host_linkedin 2"];
+    const { rows, usedLocalSnapshot } = await fetchSheetRows();
+    const { col } = createSheetAccess(rows);
 
     clubs = rows
       .slice(1)
       .map((cells) => {
         const city = col("city", cells);
-        const override = CLUB_OVERRIDES[normalize(city).replace(/[\u2014\u2013]/g, "-")] || {};
+        const override = getOverrideForCity(city);
         const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
         const cadence = override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "";
         const time = formatTimeLabel(override.time || "");
+        const extraSocials = override.extraSocials || [];
         const igHandles = override.hideInstagram ? [] : extractInstagramHandles(col("host_instagram", cells));
+        const instagramItems = override.hideInstagram ? [] : buildInstagramSocialItems(igHandles, extraSocials);
+        const linkedInItems = buildLinkedInSocialItems(
+          [col("host_linkedin", cells), col("host_linkedin_2", cells)],
+          extraSocials,
+          override.linkedinURL || "",
+          col("host_name", cells) || override.hostDisplay || "",
+        );
 
         return {
           city,
@@ -769,18 +1371,19 @@ async function loadClubs() {
           isNight: isNightClub(time, override.isNight),
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
-          instagramURL: override.hideInstagram ? "" : extractInstagramURL(col("host_instagram", cells)),
-          linkedinURL:
-            override.linkedinURL ||
-            extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)),
+          instagramURL: instagramItems[0]?.url || "",
+          instagramItems,
+          linkedinURL: linkedInItems[0]?.url || "",
+          linkedInItems,
           flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
-          extraSocials: override.extraSocials || [],
+          extraSocials: extraSocials.filter((item) => item && !["instagram", "linkedin"].includes(item.type)),
           hostDisplay: formatHostDisplay(
             col("host_name", cells),
             igHandles,
             override.hostDisplay || "",
           ),
           eventTime: override.eventTime || col("start_time", cells),
+          eventTimeLabel: override.eventTimeLabel || "",
           communityLink: override.communityLink || col("whatsapp", cells) || "",
           isIncomplete:
             !getVenue(override.venue || col("venue_name", cells), "") ||
@@ -792,15 +1395,51 @@ async function loadClubs() {
               !(override.extraSocials || []).length),
         };
       })
-      .filter((club) => club.city);
+      .filter((club) => club.city && !shouldHideClub(club.city));
 
-    statusText.textContent = "";
+    statusText.textContent = usedLocalSnapshot ? "(local sheet snapshot)" : "";
+    flyerGalleryItems = getFlyerGalleryItems();
     animateGrowthTitle(clubs.length);
     renderRegionFilter();
     render(clubs);
   } catch (error) {
-    statusText.textContent = "Could not load clubs from the sheet right now.";
-    clubsList.innerHTML = "";
+    // Sheet unavailable — try static JSON fallback (useful for local dev)
+    try {
+      const fallbackRes = await fetch("./data/clubs-map.json");
+      if (!fallbackRes.ok) throw new Error("fallback unavailable");
+      const data = await fallbackRes.json();
+      clubs = data
+        .map((entry) => ({
+          city:          entry.city || "",
+          region:        entry.region || CITY_REGION[(entry.city || "").toLowerCase().trim()] || "",
+          displayCity:   entry.displayCity || entry.city || "",
+          cadence:       "",
+          time:          "",
+          scheduleLabel: "",
+          venue:         entry.venue || "",
+          day:           (["Monday","Tuesday","Wednesday","Thursday","Friday"][((entry.schedule || {}).weekday || 1) - 1]) || "Every now and again",
+          isNight:       false,
+          specificDates: [],
+          locationNote:  "",
+          host:          entry.host || "",
+          whatsapp:      "",
+          mapURL:        entry.mapsURL || "",
+          igHandles:     [],
+          upcoming_date: entry.upcoming_date || "",
+          eventTime:     "",
+          eventTimeLabel:"",
+          flyer:         null,
+        }))
+        .filter((c) => c.city && !shouldHideClub(c.city));
+      statusText.textContent = "(offline – showing cached data)";
+      flyerGalleryItems = [];
+      animateGrowthTitle(clubs.length);
+      renderRegionFilter();
+      render(clubs);
+    } catch (_) {
+      statusText.textContent = "Could not load clubs right now.";
+      clubsList.innerHTML = "";
+    }
   }
 }
 
@@ -829,7 +1468,7 @@ function renderFeaturedEvent(items) {
   if (!strip) return;
 
   const featured = items.find((club) => {
-    const override = CLUB_OVERRIDES[normalize(club.city)] || {};
+    const override = getOverrideForCity(club.city);
     return override.featured;
   });
   if (!featured) return;
@@ -894,49 +1533,195 @@ function renderFeaturedEvent(items) {
   strip.hidden = false;
 }
 
-// ── Flyer lightbox ────────────────────────────────────────────────────────────
+// ── Flyer overlay ─────────────────────────────────────────────────────────────
 
 let lightbox = null;
+let activeFlyerIndex = 0;
+let flyerKeyHandler = null;
+let flyerTouchStartX = 0;
+let flyerTouchDeltaX = 0;
+
+function getWrappedFlyerIndex(index) {
+  const count = flyerGalleryItems.length;
+  if (!count) return 0;
+  return (index + count) % count;
+}
+
+function jumpToFlyer(index) {
+  if (!flyerGalleryItems.length) return;
+  activeFlyerIndex = getWrappedFlyerIndex(index);
+  renderActiveFlyer();
+}
+
+function randomizeFlyer() {
+  if (flyerGalleryItems.length <= 1) return;
+  let nextIndex = activeFlyerIndex;
+  while (nextIndex === activeFlyerIndex) {
+    nextIndex = Math.floor(Math.random() * flyerGalleryItems.length);
+  }
+  jumpToFlyer(nextIndex);
+}
+
+function buildFlyerOverlay() {
+  lightbox = document.createElement("div");
+  lightbox.className = "flyer-lightbox";
+  lightbox.setAttribute("role", "dialog");
+  lightbox.setAttribute("aria-modal", "true");
+  lightbox.hidden = true;
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "flyer-lightbox-backdrop";
+
+  const panel = document.createElement("div");
+  panel.className = "flyer-lightbox-panel";
+
+  const topbar = document.createElement("div");
+  topbar.className = "flyer-lightbox-topbar";
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "flyer-lightbox-close";
+  closeBtn.setAttribute("aria-label", "Close flyer gallery");
+  closeBtn.textContent = "Close";
+  closeBtn.addEventListener("click", closeFlyerLightbox);
+
+  const rouletteBtn = document.createElement("button");
+  rouletteBtn.className = "flyer-lightbox-roulette";
+  rouletteBtn.setAttribute("aria-label", "Jump to a random flyer");
+  rouletteBtn.textContent = "Flyer Roulette";
+  rouletteBtn.addEventListener("click", randomizeFlyer);
+
+  topbar.append(rouletteBtn, closeBtn);
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--prev";
+  prevBtn.setAttribute("aria-label", "Previous flyer");
+  prevBtn.textContent = "←";
+  prevBtn.addEventListener("click", () => stepFlyer(-1));
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--next";
+  nextBtn.setAttribute("aria-label", "Next flyer");
+  nextBtn.textContent = "→";
+  nextBtn.addEventListener("click", () => stepFlyer(1));
+
+  const stage = document.createElement("div");
+  stage.className = "flyer-lightbox-stage";
+
+  const img = document.createElement("img");
+  img.className = "flyer-lightbox-img";
+  img.alt = "";
+  stage.append(prevBtn, img, nextBtn);
+
+  const hint = document.createElement("div");
+  hint.className = "flyer-lightbox-hint";
+  hint.textContent = "Swipe or tap arrows";
+
+  const gallery = document.createElement("div");
+  gallery.className = "flyer-lightbox-gallery";
+
+  panel.append(topbar, stage, hint, gallery);
+  lightbox.append(backdrop, panel);
+
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox || e.target === backdrop) closeFlyerLightbox();
+  });
+
+  stage.addEventListener("touchstart", (e) => {
+    flyerTouchStartX = e.touches[0]?.clientX || 0;
+    flyerTouchDeltaX = 0;
+  }, { passive: true });
+
+  stage.addEventListener("touchmove", (e) => {
+    const currentX = e.touches[0]?.clientX || 0;
+    flyerTouchDeltaX = currentX - flyerTouchStartX;
+  }, { passive: true });
+
+  stage.addEventListener("touchend", () => {
+    if (Math.abs(flyerTouchDeltaX) < 45) return;
+    stepFlyer(flyerTouchDeltaX < 0 ? 1 : -1);
+  });
+
+  document.body.append(lightbox);
+}
+
+function renderActiveFlyer() {
+  if (!lightbox || !flyerGalleryItems.length) return;
+  const item = flyerGalleryItems[activeFlyerIndex];
+  const img = lightbox.querySelector(".flyer-lightbox-img");
+  const prevBtn = lightbox.querySelector(".flyer-lightbox-nav--prev");
+  const nextBtn = lightbox.querySelector(".flyer-lightbox-nav--next");
+  const hint = lightbox.querySelector(".flyer-lightbox-hint");
+  const gallery = lightbox.querySelector(".flyer-lightbox-gallery");
+
+  img.src = item.url;
+  img.alt = `${item.city} flyer`;
+
+  const multi = flyerGalleryItems.length > 1;
+  prevBtn.hidden = !multi;
+  nextBtn.hidden = !multi;
+  hint.hidden = !multi;
+
+  gallery.innerHTML = "";
+  flyerGalleryItems.forEach((galleryItem, index) => {
+    const thumbBtn = document.createElement("button");
+    thumbBtn.className = "flyer-gallery-thumb" + (index === activeFlyerIndex ? " active" : "");
+    thumbBtn.setAttribute("aria-label", `View flyer for ${galleryItem.city}`);
+    thumbBtn.addEventListener("click", () => jumpToFlyer(index));
+
+    const thumbImg = document.createElement("img");
+    thumbImg.className = "flyer-gallery-thumb-img";
+    thumbImg.src = galleryItem.url;
+    thumbImg.alt = `${galleryItem.city} flyer thumbnail`;
+
+    const thumbLabel = document.createElement("span");
+    thumbLabel.className = "flyer-gallery-thumb-label";
+    thumbLabel.textContent = galleryItem.city;
+
+    thumbBtn.append(thumbImg, thumbLabel);
+    gallery.append(thumbBtn);
+  });
+}
+
+function stepFlyer(direction) {
+  if (!flyerGalleryItems.length) return;
+  jumpToFlyer(activeFlyerIndex + direction);
+}
 
 function openFlyerLightbox(url, cityName) {
-  if (!lightbox) {
-    lightbox = document.createElement("div");
-    lightbox.className = "flyer-lightbox";
-    lightbox.setAttribute("role", "dialog");
-    lightbox.setAttribute("aria-modal", "true");
+  if (!lightbox) buildFlyerOverlay();
 
-    const img = document.createElement("img");
-    img.className = "flyer-lightbox-img";
-    img.alt = "";
-
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "flyer-lightbox-close";
-    closeBtn.setAttribute("aria-label", "Close flyer");
-    closeBtn.textContent = "✕";
-    closeBtn.addEventListener("click", closeFlyerLightbox);
-
-    lightbox.append(closeBtn, img);
-    lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) closeFlyerLightbox();
-    });
-
-    document.body.append(lightbox);
+  if (!flyerGalleryItems.length) {
+    flyerGalleryItems = [{ city: cityName, url, venue: "", scheduleLabel: "", eventTime: "" }];
   }
 
-  lightbox.querySelector(".flyer-lightbox-img").src = url;
-  lightbox.querySelector(".flyer-lightbox-img").alt = `${cityName} flyer`;
+  const matchIndex = flyerGalleryItems.findIndex((item) => item.url === url || item.city === cityName);
+  activeFlyerIndex = matchIndex >= 0 ? matchIndex : 0;
+  renderActiveFlyer();
+
   lightbox.hidden = false;
   document.body.style.overflow = "hidden";
+  document.body.classList.add("flyer-overlay-open");
 
-  const onKey = (e) => {
-    if (e.key === "Escape") { closeFlyerLightbox(); document.removeEventListener("keydown", onKey); }
+  if (flyerKeyHandler) {
+    document.removeEventListener("keydown", flyerKeyHandler);
+  }
+
+  flyerKeyHandler = (e) => {
+    if (e.key === "Escape") closeFlyerLightbox();
+    if (e.key === "ArrowLeft") stepFlyer(-1);
+    if (e.key === "ArrowRight") stepFlyer(1);
   };
-  document.addEventListener("keydown", onKey);
+  document.addEventListener("keydown", flyerKeyHandler);
 }
 
 function closeFlyerLightbox() {
   if (lightbox) lightbox.hidden = true;
   document.body.style.overflow = "";
+  document.body.classList.remove("flyer-overlay-open");
+  if (flyerKeyHandler) {
+    document.removeEventListener("keydown", flyerKeyHandler);
+    flyerKeyHandler = null;
+  }
 }
 
 window.openFlyerLightbox = openFlyerLightbox;
@@ -945,6 +1730,8 @@ window.openFlyerLightbox = openFlyerLightbox;
 
 loadSiteCopy();
 setupMobileResourcesToggle();
+setupDayJumpLinks();
+setupBackToTop();
 loadClubs();
 
 if (calendarViewLink) {

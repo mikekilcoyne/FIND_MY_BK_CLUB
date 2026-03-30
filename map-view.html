@@ -129,11 +129,36 @@
       <a href="https://www.instagram.com/themichaelkilcoyne/" target="_blank" rel="noreferrer">Made with 🤘 by Michael Kilcoyne</a>
     </footer>
 
+    <dialog id="club-update-modal" class="club-update-modal">
+      <form id="club-update-form" class="club-update-form" method="dialog">
+        <div class="club-update-form-head">
+          <p class="club-update-form-title">Spotted something off?</p>
+          <button id="club-update-close" type="button" class="club-update-close" aria-label="Close">×</button>
+        </div>
+        <p class="club-update-form-subhead">Submit an update below.</p>
+        <label class="club-update-label">
+          Club / City
+          <input id="club-update-city" name="club" type="text" required />
+        </label>
+        <label class="club-update-label">
+          What should change?
+          <textarea id="club-update-notes" name="notes" rows="4" required placeholder="Time, location, host details, cadence, or anything else."></textarea>
+        </label>
+        <label class="club-update-label">
+          Your email
+          <input id="club-update-email" name="email" type="email" required placeholder="you@example.com" />
+        </label>
+        <button type="submit" class="club-update-submit">Send update</button>
+        <p id="club-update-status" class="club-update-status" aria-live="polite"></p>
+      </form>
+    </dialog>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="./js/analytics-config.js"></script>
     <script src="./js/analytics.js"></script>
     <script src="./js/club-overrides.js"></script>
+    <script src="./js/club-data.js"></script>
     <script src="./js/map-view.js"></script>
   </body>
 </html>

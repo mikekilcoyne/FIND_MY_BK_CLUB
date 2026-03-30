@@ -340,3 +340,123 @@ h1 {
     font-size: 11px;
   }
 }
+
+.club-update-modal {
+  width: min(520px, calc(100vw - 32px));
+  margin: auto;
+  border: 1px solid #d9c48f;
+  border-radius: 18px;
+  padding: 0;
+  background: linear-gradient(180deg, rgba(255, 248, 230, 0.985) 0%, rgba(249, 237, 204, 0.985) 100%);
+  box-shadow: 0 28px 80px rgba(45, 35, 14, 0.22);
+  color: var(--ink);
+}
+
+.club-update-modal::backdrop {
+  background: rgba(20, 16, 10, 0.32);
+  backdrop-filter: blur(10px) saturate(0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9);
+}
+
+.club-update-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px 22px 20px;
+}
+
+.club-update-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.club-update-form-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #5f4b1f;
+}
+
+.club-update-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(95, 75, 31, 0.08);
+  color: #5f4b1f;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.club-update-form-subhead {
+  margin: -2px 0 2px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #5d533f;
+}
+
+.club-update-label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #5d533f;
+}
+
+.club-update-label input,
+.club-update-label textarea {
+  width: 100%;
+  border: 1px solid rgba(95, 75, 31, 0.2);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: rgba(255, 253, 247, 0.98);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.club-update-label textarea {
+  min-height: 116px;
+  resize: vertical;
+}
+
+.club-update-submit {
+  justify-self: start;
+  border: 1px solid #876525;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #d4ab4d;
+  color: #231909;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.club-update-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #245c3f;
+}
+
+.club-update-status:empty {
+  display: none;
+}
+
+.club-update-status.is-error {
+  color: #a12d2d;
+}
+
+body.club-update-modal-open .site-shell {
+  filter: blur(5px) saturate(0.92);
+  transition: filter 160ms ease;
+}

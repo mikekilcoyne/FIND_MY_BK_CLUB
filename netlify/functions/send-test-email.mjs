@@ -12,18 +12,37 @@ const FROM_EMAIL = "ben@breakfastclubbing.com";
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
 const ARTICLE_URL = process.env.TEST_ARTICLE_URL || "https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html";
-const LATEST_HAPPENINGS_GIF_URL = process.env.TEST_GIF_URL || "https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif";
+const LATEST_HAPPENINGS_GIF_URL = process.env.TEST_GIF_URL || "https://69c91f509b35a6b3b3e908f2--luxury-toffee-ec4a34.netlify.app/LATEST_HAPPENINS.gif";
 const TEST_CITY_LABEL = process.env.TEST_CITY_LABEL || "New York — Williamsburg";
 const TEST_FLYER_EXAMPLE = process.env.TEST_FLYER_EXAMPLE || "NewYorkWilliamsburg_2026-03-23.jpg";
+const TEST_MODE = process.env.TEST_MODE === "correction" ? "correction" : "scheduled";
 
 const apiKey = process.env.SENDGRID_API_KEY;
 if (!apiKey) { console.error("Set SENDGRID_API_KEY env var"); process.exit(1); }
 
-const plain = `Hey hosts,
+function buildTopNotice(mode) {
+  if (mode !== "correction") return { text: "", html: "" };
 
-Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+  return {
+    text: `Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
 
 What I meant to send below:
+`,
+    html: `
+  <p style="font-size: 15px; line-height: 1.6;">
+    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+  </p>
+  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
+    What I meant to send below:
+  </p>`,
+  };
+}
+
+const { text: topNoticeText, html: topNoticeHtml } = buildTopNotice(TEST_MODE);
+
+const plain = `Hey hosts,
+
+${topNoticeText}
 
 Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
 
@@ -64,12 +83,7 @@ To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
 const html = `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
-    What I meant to send below:
-  </p>
+  ${topNoticeHtml}
   <p style="font-size: 15px; line-height: 1.6;">
     Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
   </p>
@@ -130,7 +144,9 @@ const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
       "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
-    subject: `Breakfast Club reminder — update your club listing`,
+    subject: TEST_MODE === "correction"
+      ? "Sorry!"
+      : `[TEST] Breakfast Club — ${TEST_CITY_LABEL} weekly update link`,
     content: [
       { type: "text/plain", value: plain },
       { type: "text/html",  value: html },

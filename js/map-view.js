@@ -1,13 +1,24 @@
 (function () {
   "use strict";
 
-  var SHEET_CSV_URL =
-    "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+  var BKClubData = window.BKClubData || {};
+  var fetchSheetRows = BKClubData.fetchSheetRows;
+  var createSheetAccess = BKClubData.createSheetAccess;
+  var getOverrideForCity = BKClubData.getOverrideForCity;
+  var sharedShouldHideClub = BKClubData.shouldHideClub;
+  var sharedParseSheetUpcomingDate = BKClubData.parseSheetUpcomingDate;
 
   // ── CSV parsing (same pipeline as home + calendar) ────
 
   function normCity(str) {
+    if (BKClubData.normalize) return BKClubData.normalize(str || "");
     return (str || "").toLowerCase().trim();
+  }
+
+  function shouldHideClub(city) {
+    if (sharedShouldHideClub) return sharedShouldHideClub(city);
+    var key = normCity(city);
+    return key === "austin" || key === "austin, tx";
   }
 
   function parseCSVLine(line) {
@@ -29,6 +40,7 @@
   }
 
   function parseCSV(text) {
+    if (BKClubData.parseCSV) return BKClubData.parseCSV(text);
     var lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
     var rows = [];
     var current = "";
@@ -47,6 +59,7 @@
   }
 
   function cleanCell(value) {
+    if (BKClubData.cleanLocationValue) return BKClubData.cleanLocationValue(value);
     var raw = (value || "").replace(/\s+/g, " ").trim();
     if (!raw) return "";
     var low = raw.toLowerCase();
@@ -56,10 +69,12 @@
   }
 
   function getVenueFromCells(loc, addr) {
+    if (BKClubData.getVenue) return BKClubData.getVenue(loc, addr);
     return cleanCell(loc) || cleanCell(addr) || "";
   }
 
   function normalizeFlyer(url) {
+    if (BKClubData.normalizeFlyer) return BKClubData.normalizeFlyer(url);
     if (!url) return "";
     var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) return "https://drive.google.com/uc?export=view&id=" + match[1];
@@ -69,6 +84,7 @@
   }
 
   function extractInstagramURL(value) {
+    if (BKClubData.extractInstagramURL) return BKClubData.extractInstagramURL(value);
     var raw = (value || "").trim();
     var matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
     if (!matches.length) return "";
@@ -77,6 +93,7 @@
   }
 
   function extractLinkedInURL(contactCell, linkedinCell) {
+    if (BKClubData.extractLinkedInURL) return BKClubData.extractLinkedInURL(contactCell, linkedinCell);
     var vals = [contactCell, linkedinCell];
     for (var i = 0; i < vals.length; i++) {
       var raw = (vals[i] || "").trim();
@@ -92,17 +109,8 @@
   // ── Merge CSV onto geo club objects ───────────────────
 
   function mergeCSV(geoClubs, csvRows) {
-    var OVERRIDES = window.CLUB_OVERRIDES || {};
-
-    // Build header → index map so column moves never break lookups.
-    var headers = (csvRows[0] || []).map(function (h) {
-      return h.toLowerCase().replace(/[\s_]+/g, "_").trim();
-    });
-    var colIdx = {};
-    headers.forEach(function (h, i) { colIdx[h] = i; });
-    colIdx["host_linkedin_2"] = colIdx["host_linkedin_2"] != null ? colIdx["host_linkedin_2"] : colIdx["host_linkedin 2"];
-    colIdx["whatsapp"] = colIdx["whatsapp"] != null ? colIdx["whatsapp"] : (colIdx["whatsapp_link"] != null ? colIdx["whatsapp_link"] : colIdx["community_link"]);
-    function col(name, cells) { return (cells[colIdx[name]] || "").trim(); }
+    var sheet = createSheetAccess ? createSheetAccess(csvRows) : null;
+    function col(name, cells) { return sheet ? sheet.col(name, cells) : ""; }
 
     var byCity = {};
     csvRows.slice(1).forEach(function (cells) {
@@ -112,8 +120,11 @@
 
     return geoClubs.map(function (club) {
       var key = normCity(club.city);
-      var override = OVERRIDES[key] || {};
+      var override = getOverrideForCity ? getOverrideForCity(club.city) : {};
       var cells = byCity[key] || [];
+      var sheetUpcomingDate = sharedParseSheetUpcomingDate
+        ? sharedParseSheetUpcomingDate(col("upcoming_date", cells))
+        : col("upcoming_date", cells);
       return Object.assign({}, club, {
         displayCity: override.displayCity || club.displayCity || club.city,
         host: override.hostDisplay || cleanCell(col("host_name", cells)) || club.host || "",
@@ -121,7 +132,8 @@
         linkedinURL: override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)) || club.linkedinURL || "",
         instagramURL: override.instagramURL || extractInstagramURL(col("host_instagram", cells)) || "",
         flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)) || "",
-        communityLink: override.communityLink || col("whatsapp", cells) || "",
+        communityLink: override.communityLink || col("whatsapp", cells) || club.whatsapp || "",
+        upcoming_date: sheetUpcomingDate || club.upcoming_date || "",
       });
     });
   }
@@ -155,6 +167,71 @@
   var activeRegion = "All";
   var tripActive = false;
   var suppressMapClose = false;
+  var clubUpdateModal = document.getElementById("club-update-modal");
+  var clubUpdateForm = document.getElementById("club-update-form");
+  var clubUpdateCloseBtn = document.getElementById("club-update-close");
+  var clubUpdateCityInput = document.getElementById("club-update-city");
+  var clubUpdateNotesInput = document.getElementById("club-update-notes");
+  var clubUpdateEmailInput = document.getElementById("club-update-email");
+  var clubUpdateStatus = document.getElementById("club-update-status");
+  var cardUpdateBtn = null;
+  var activeClubUpdateContext = null;
+  var CLUB_UPDATE_ENDPOINT = "/.netlify/functions/submit-club-update";
+
+  function submitClubUpdate(payload) {
+    return fetch(CLUB_UPDATE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok) throw new Error(data.error || "Could not submit right now.");
+        return data;
+      });
+    });
+  }
+
+  function buildClubUpdateContext(club) {
+    return {
+      city: club.city || "",
+      displayCity: club.displayCity || club.city || "",
+      host: club.host || "",
+      venue: club.venue || "",
+      day: club.schedule && typeof club.schedule.weekday === "number" ? ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][club.schedule.weekday] : "",
+      scheduleLabel: club.scheduleLabel || "",
+      eventTime: club.eventTime || "",
+    };
+  }
+
+  function resetClubUpdateModal() {
+    if (!clubUpdateForm || !clubUpdateStatus) return;
+    clubUpdateForm.reset();
+    clubUpdateStatus.textContent = "";
+    clubUpdateStatus.classList.remove("is-error");
+    clubUpdateStatus.hidden = true;
+    var submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send update";
+    }
+  }
+
+  function openClubUpdateModal(club, triggerEl) {
+    if (!clubUpdateModal || !clubUpdateCityInput || !clubUpdateNotesInput) return;
+    activeClubUpdateContext = { club: club, triggerEl: triggerEl || null };
+    resetClubUpdateModal();
+    clubUpdateCityInput.value = club.displayCity || club.city || "";
+    document.body.classList.add("club-update-modal-open");
+    clubUpdateModal.showModal();
+    if (triggerEl) triggerEl.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(function () { clubUpdateNotesInput.focus(); });
+  }
+
+  function closeClubUpdateModal() {
+    if (!clubUpdateModal || !clubUpdateModal.open) return;
+    document.body.classList.remove("club-update-modal-open");
+    clubUpdateModal.close();
+  }
 
   // ── Map init ──────────────────────────────────────────
 
@@ -296,6 +373,7 @@
     var linkedinBtn = document.getElementById("card-linkedin-btn");
     var instagramBtn = document.getElementById("card-instagram-btn");
     var siteLink = document.getElementById("card-site-link");
+    var actions = card.querySelector(".card-actions");
 
     cityEl.textContent = club.displayCity || club.city;
     hostEl.textContent = club.host || "";
@@ -350,6 +428,24 @@
     } else {
       instagramBtn.href = "#";
       instagramBtn.hidden = true;
+    }
+
+    if (!cardUpdateBtn && actions) {
+      cardUpdateBtn = document.createElement("button");
+      cardUpdateBtn.type = "button";
+      cardUpdateBtn.className = "card-site-link map-card-update-link";
+      cardUpdateBtn.textContent = "Spot something off?";
+      cardUpdateBtn.setAttribute("aria-expanded", "false");
+      actions.appendChild(cardUpdateBtn);
+    }
+
+    if (cardUpdateBtn) {
+      var replacement = cardUpdateBtn.cloneNode(true);
+      replacement.addEventListener("click", function () {
+        openClubUpdateModal(club, replacement);
+      });
+      cardUpdateBtn.parentNode.replaceChild(replacement, cardUpdateBtn);
+      cardUpdateBtn = replacement;
     }
 
     suppressMapClose = true;
@@ -726,13 +822,12 @@
         if (!res.ok) throw new Error("Failed to load map data");
         return res.json();
       }),
-      fetch(SHEET_CSV_URL)
-        .then(function (res) { return res.ok ? res.text() : ""; })
-        .then(function (text) { return text ? parseCSV(text) : [[]]; })
-        .catch(function () { return [[]]; }),
+      fetchSheetRows().then(function (result) { return result.rows; }),
     ])
       .then(function (results) {
-        var clubs = mergeCSV(results[0], results[1]);
+        var clubs = mergeCSV(results[0], results[1]).filter(function (club) {
+          return !shouldHideClub(club.city);
+        });
         allClubs = clubs;
         renderMarkers(clubs);
 
@@ -821,6 +916,70 @@
       tripState = { date: null, region: null, days: null };
       openTripPlanner();
     });
+
+    if (clubUpdateCloseBtn) {
+      clubUpdateCloseBtn.addEventListener("click", closeClubUpdateModal);
+    }
+
+    if (clubUpdateModal) {
+      clubUpdateModal.addEventListener("click", function (event) {
+        var rect = clubUpdateModal.getBoundingClientRect();
+        var inDialog =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+        if (!inDialog) closeClubUpdateModal();
+      });
+
+      clubUpdateModal.addEventListener("close", function () {
+        document.body.classList.remove("club-update-modal-open");
+        if (activeClubUpdateContext && activeClubUpdateContext.triggerEl) {
+          activeClubUpdateContext.triggerEl.setAttribute("aria-expanded", "false");
+          activeClubUpdateContext.triggerEl.focus();
+        }
+        activeClubUpdateContext = null;
+      });
+    }
+
+    if (clubUpdateForm) {
+      clubUpdateForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var submitBtn = clubUpdateForm.querySelector(".club-update-submit");
+        if (!clubUpdateStatus || !submitBtn) return;
+
+        clubUpdateStatus.hidden = true;
+        clubUpdateStatus.textContent = "";
+        clubUpdateStatus.classList.remove("is-error");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending...";
+
+        var club = activeClubUpdateContext && activeClubUpdateContext.club;
+
+        submitClubUpdate({
+          club: clubUpdateCityInput.value.trim(),
+          notes: clubUpdateNotesInput.value.trim(),
+          email: clubUpdateEmailInput.value.trim(),
+          submittedAt: new Date().toISOString(),
+          context: club ? buildClubUpdateContext(club) : {},
+        }).then(function () {
+          clubUpdateStatus.textContent = "Got it. We'll review + update shortly.";
+          clubUpdateStatus.hidden = false;
+          submitBtn.textContent = "Sent";
+          if (window.BKAnalytics) {
+            window.BKAnalytics.track("map_club_update_submit", {
+              city: clubUpdateCityInput.value.trim(),
+            });
+          }
+        }).catch(function (error) {
+          clubUpdateStatus.textContent = error.message || "Could not submit right now.";
+          clubUpdateStatus.hidden = false;
+          clubUpdateStatus.classList.add("is-error");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Send update";
+        });
+      });
+    }
 
   }
 

@@ -127,6 +127,15 @@ function dedupeRecipients(recipients) {
   }));
 }
 
+function parseEmailList(value = "") {
+  return new Set(
+    String(value)
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
 function buildTopNotice(mode) {
   if (mode !== "correction") {
     return { text: "", html: "" };
@@ -243,11 +252,9 @@ function buildEmailBody(cities, targetSunday, mode = "scheduled") {
 
   return `Hey hosts,
 
-Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
+${topNotice}
 
-What I meant to send below:
-
-Every week, I read something that reminds me what we're building together as a BC community around the world is not only meaningful, but necessary.
+Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
 
 This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
 
@@ -293,13 +300,7 @@ function buildEmailHTML(cities, targetSunday, mode = "scheduled") {
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
   ${topNotice}
   <p style="font-size: 15px; line-height: 1.6;">
-    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
-    What I meant to send below:
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    Every week, I read something that reminds me what we're building together as a BC community around the world is not only meaningful, but necessary.
+    Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
     This week, it was this piece in T Magazine:
@@ -363,8 +364,10 @@ export async function handler(event) {
     return { statusCode: 500, body: "Missing SENDGRID_API_KEY" };
   }
 
-  const force = event?.queryStringParameters?.force === "1";
-  const audienceTest = event?.queryStringParameters?.audience === "test";
+  const params = event?.queryStringParameters || {};
+  const force = params.force === "1";
+  const mode = params.mode === "correction" ? "correction" : "scheduled";
+  const excludedEmails = parseEmailList(params.exclude);
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
@@ -404,21 +407,19 @@ export async function handler(event) {
     return { statusCode: 200, body: "No recipients" };
   }
 
-  let dedupedRecipients = dedupeRecipients(recipients);
-
-  if (audienceTest) {
-    const TEST_EMAIL = "mk@yellowsatinjacket.com";
-    dedupedRecipients = dedupedRecipients.filter(r => r.email === TEST_EMAIL);
-    if (!dedupedRecipients.length) {
-      // Test email not in sheet — synthesize a single test recipient
-      dedupedRecipients = [{ email: TEST_EMAIL, cities: ["New York — Hamptons"], hostName: "Michael Kilcoyne" }];
-    }
-    console.log(`audience=test — sending only to ${TEST_EMAIL}`);
-  }
-
+  const dedupedRecipients = dedupeRecipients(recipients);
   const mergedCount = recipients.length - dedupedRecipients.length;
   if (mergedCount > 0) {
     console.log(`Merged ${mergedCount} duplicate recipient record(s)`);
+  }
+  const filteredRecipients = dedupedRecipients.filter(({ email }) => !excludedEmails.has(String(email).toLowerCase()));
+
+  if (!filteredRecipients.length) {
+    console.log("No recipients left after exclusions");
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ skipped: true, reason: "no-recipients-after-exclusions", excludedEmails: [...excludedEmails] }),
+    };
   }
 
   let reminderLock;
@@ -444,13 +445,13 @@ export async function handler(event) {
     console.warn(`Force send requested for ${lockValue} — bypassing reminder lock`);
   }
 
-  console.log(`Sending to ${dedupedRecipients.length} unique host inboxes`);
+  console.log(`Sending to ${filteredRecipients.length} unique host inboxes`);
 
   // 3. Send via SendGrid
   let sent = 0;
   let failed = 0;
 
-  for (const { email, cities } of dedupedRecipients) {
+  for (const { email, cities } of filteredRecipients) {
     const payload = {
       personalizations: [{ to: [{ email }] }],
       from: { email: FROM_EMAIL, name: FROM_NAME },
@@ -496,11 +497,12 @@ export async function handler(event) {
     lockValue,
     sent,
     failed,
-    recipients: dedupedRecipients.length,
+    recipients: filteredRecipients.length,
+    excludedEmails: [...excludedEmails],
   });
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ sent, failed, recipients: dedupedRecipients.length, cycleDate, mode, lockValue }),
+    body: JSON.stringify({ sent, failed, recipients: filteredRecipients.length, cycleDate, mode, lockValue, excludedEmails: [...excludedEmails] }),
   };
 }
