@@ -184,7 +184,7 @@
     "host": "Denize Maaloe, Diego Marini & team (@yummycolours)",
     "email": "denize@yummycolours.com",
     "venue": "Granola, Værnedamsvej 5",
-    "upcoming_date": "",
+    "upcoming_date": "2026-04-09",
     "mapsURL": "https://maps.google.com/?q=Granola+V%C3%A6rnedamsvej+5+Copenhagen",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "biweekly", "weekday": 4 }
@@ -362,7 +362,7 @@
     "email": "mk@yellowsatinjacket.com",
     "linkedinURL": "https://www.linkedin.com/in/mikekilcoyne/",
     "venue": "Tutto Cafe, The Hamptons",
-    "upcoming_date": "",
+    "upcoming_date": "2026-03-25",
     "mapsURL": "https://maps.google.com/?q=Tutto+Cafe+Hampton+Bays+NY",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "weekly", "weekday": 3 }
@@ -370,14 +370,14 @@
   {
     "city": "new york - upper west",
     "displayCity": "New York — UWS, NY",
-    "latitude": 40.7856099,
-    "longitude": -73.9725709,
+    "latitude": 40.7807958,
+    "longitude": -73.9810743,
     "region": "Northeast US",
     "host": "Joshua Rosenthal & Andrew Reuben",
     "email": "josh0111@gmail.com",
-    "venue": "Le Viand, 517 Columbus Ave",
+    "venue": "Viand Cafe, 2130 Broadway",
     "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=40.7856099,-73.9725709",
+    "mapsURL": "https://maps.google.com/?q=Viand+Cafe,+2130+Broadway,+New+York,+NY+10023",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "weekly", "weekday": 3 }
   },
@@ -545,6 +545,7 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Terrene+1+Hotel+San+Francisco+8+Mission+St",
     "link": "https://breakfastclubbing.com",
+    "whatsapp": "https://chat.whatsapp.com/GWkWebokkQO6bMcynjSb4v?mode=gi_t",
     "schedule": { "type": "weekly", "weekday": 3 }
   },
   {

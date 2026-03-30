@@ -27,6 +27,20 @@
 
 /* City name — primary headline */
 
+.card-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 10px;
+}
+
+.title-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
 .city-name {
   display: block;
   font-size: clamp(20px, 2.1vw, 28px);
@@ -65,10 +79,36 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
+  gap: 3px 6px;
+  min-width: 0;
   font-size: 13px;
   color: #4a4a4a;
   line-height: 1.4;
+}
+
+.card-subline-main {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px 6px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.card-subline-main > span {
+  min-width: 0;
+}
+
+.card-venue-inline {
+  overflow-wrap: anywhere;
+}
+
+.subline-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
 }
 
 .card-subline .subline-sep {
@@ -88,14 +128,14 @@
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 2px 7px;
+  padding: 1px 7px;
   border-radius: 999px;
   border: 1px solid;
-  line-height: 1.4;
+  line-height: 1.25;
 }
 
 .badge-tbd {
@@ -189,6 +229,7 @@
   color: #555;
   letter-spacing: 0.01em;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .club-card.night-edition .card-host {
@@ -228,6 +269,108 @@
   line-height: 1.4;
 }
 
+.social-icon-link,
+.social-menu-trigger {
+  justify-content: center;
+}
+
+.social-icon-link {
+  min-width: 40px;
+  padding: 4px 9px;
+}
+
+.social-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.social-glyph--linkedin {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.social-glyph--instagram svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.card-utility details {
+  position: relative;
+}
+
+.social-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 4px 9px;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+  list-style: none;
+}
+
+.social-count {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.social-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.social-menu[open] .social-menu-trigger,
+.social-menu-trigger:hover {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.social-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid #d5d5d5;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.social-menu-link {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.social-menu-link:hover {
+  background: #f2f2f2;
+}
+
 .card-utility a:hover,
 .card-utility button:hover {
   background: var(--ink);
@@ -240,6 +383,25 @@
   background: rgba(7, 16, 31, 0.7);
   border-color: var(--night-line);
   color: var(--night-ink);
+}
+
+.club-card.night-edition .social-menu-trigger {
+  background: rgba(7, 16, 31, 0.7);
+  border-color: var(--night-line);
+  color: var(--night-ink);
+}
+
+.club-card.night-edition .social-menu-panel {
+  background: rgba(7, 16, 31, 0.96);
+  border-color: var(--night-line);
+}
+
+.club-card.night-edition .social-menu-link {
+  color: var(--night-ink);
+}
+
+.club-card.night-edition .social-menu-link:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .club-card.night-edition .card-utility a:hover,
@@ -268,6 +430,22 @@
 @media (max-width: 960px) {
   .club-card {
     padding: 14px 16px;
+  }
+
+  .card-title-row {
+    gap: 6px 8px;
+  }
+
+  .card-subline-main {
+    width: 100%;
+  }
+
+  .subline-sep--venue {
+    display: none;
+  }
+
+  .card-venue-inline {
+    flex-basis: 100%;
   }
 
   .city-name {

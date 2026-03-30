@@ -1,5 +1,6 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+const LOCAL_SHEET_CSV_URL = "./data/clubs-sheet-local.csv";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
 const statusText = document.querySelector("#status");
@@ -28,6 +29,11 @@ let selectedDateISO = toISODate(
 
 function normalize(value) {
   return (value || "").toLowerCase().trim();
+}
+
+function shouldHideClub(city) {
+  const key = normalize(city);
+  return key === "austin" || key === "austin, tx";
 }
 
 function formatTimeLabel(value) {
@@ -284,7 +290,7 @@ function extractOrdinal(value) {
   return 0;
 }
 
-function getScheduleRule(cadence, timeValue) {
+function getScheduleRule(cadence, timeValue, anchorDate = "") {
   const cadenceText = normalize(cadence);
   const timeText = normalize(timeValue);
   const combined = `${cadenceText} ${timeText}`;
@@ -293,7 +299,7 @@ function getScheduleRule(cadence, timeValue) {
 
   if (weekday < 0) return { type: "unscheduled" };
   if (/(bi-weekly|biweekly|every other)/.test(combined)) {
-    return { type: "biweekly", weekday };
+    return { type: "biweekly", weekday, anchorDate };
   }
   if (/(monthly|month)/.test(cadenceText) || ordinal > 0) {
     return { type: "monthly", weekday, ordinal: ordinal || 1 };
@@ -338,7 +344,20 @@ function datesForRule(rule, year, monthIndex) {
 
   if (rule.type === "biweekly") {
     const weekdays = allWeekdayDatesInMonth(year, monthIndex, rule.weekday);
-    return weekdays.filter((_, idx) => idx % 2 === 0);
+    if (!rule.anchorDate) {
+      return weekdays.filter((_, idx) => idx % 2 === 0);
+    }
+
+    const [anchorYear, anchorMonth, anchorDay] = rule.anchorDate.split("-").map(Number);
+    const anchor = new Date(anchorYear, (anchorMonth || 1) - 1, anchorDay || 1);
+    anchor.setHours(0, 0, 0, 0);
+
+    return weekdays.filter((day) => {
+      const candidate = new Date(year, monthIndex, day);
+      candidate.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((candidate - anchor) / 86400000);
+      return diffDays >= 0 && diffDays % 14 === 0;
+    });
   }
 
   if (rule.type === "monthly") {
@@ -611,11 +630,21 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
-    const sheetRes = await fetch(SHEET_CSV_URL);
-    if (!sheetRes.ok) {
-      throw new Error(`Sheet request failed with ${sheetRes.status}`);
+    let csv = "";
+    let usedLocalSnapshot = false;
+
+    try {
+      const sheetRes = await fetch(SHEET_CSV_URL);
+      if (!sheetRes.ok) {
+        throw new Error(`Sheet request failed with ${sheetRes.status}`);
+      }
+      csv = await sheetRes.text();
+    } catch (_error) {
+      const localRes = await fetch(LOCAL_SHEET_CSV_URL);
+      if (!localRes.ok) throw new Error("local sheet snapshot unavailable");
+      csv = await localRes.text();
+      usedLocalSnapshot = true;
     }
-    const csv = await sheetRes.text();
 
     const rows = parseCSV(csv);
     // Build a header → index map so column moves never break lookups.
@@ -654,20 +683,22 @@ async function loadClubs() {
           specificDates: override.specificDates || [],
           locationNote: override.locationNote || "",
           eventTime: override.eventTime || col("start_time", cells),
-          communityLink: override.communityLink || col("whatsapp", cells),
-          rule: getScheduleRule(cadence, time),
+          communityLink: override.communityLink || col("whatsapp", cells) || "",
+          rule: getScheduleRule(cadence, time, override.anchorDate || ""),
         };
       })
-      .filter((club) => club.city);
+      .filter((club) => club.city && !shouldHideClub(club.city));
 
     // Merge pop-up / one-off clubs not in the sheet
     const staticEntries = (window.STATIC_CLUBS || []).map((s) => ({
       ...s,
       rule: { type: "unscheduled" },
-    }));
+    })).filter((club) => !shouldHideClub(club.city));
     clubs = clubs.concat(staticEntries);
 
-    statusText.textContent = `${clubs.length} clubs loaded.`;
+    statusText.textContent = usedLocalSnapshot
+      ? `${clubs.length} clubs loaded from local snapshot.`
+      : `${clubs.length} clubs loaded.`;
     statusText.classList.remove("error");
     renderCalendar();
   } catch (_error) {

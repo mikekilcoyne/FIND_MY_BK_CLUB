@@ -127,6 +127,15 @@ function dedupeRecipients(recipients) {
   }));
 }
 
+function parseEmailList(value = "") {
+  return new Set(
+    String(value)
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
 function buildTopNotice(mode) {
   if (mode !== "correction") {
     return { text: "", html: "" };
@@ -358,6 +367,7 @@ export async function handler(event) {
   const params = event?.queryStringParameters || {};
   const force = params.force === "1";
   const mode = params.mode === "correction" ? "correction" : "scheduled";
+  const excludedEmails = parseEmailList(params.exclude);
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
@@ -402,6 +412,15 @@ export async function handler(event) {
   if (mergedCount > 0) {
     console.log(`Merged ${mergedCount} duplicate recipient record(s)`);
   }
+  const filteredRecipients = dedupedRecipients.filter(({ email }) => !excludedEmails.has(String(email).toLowerCase()));
+
+  if (!filteredRecipients.length) {
+    console.log("No recipients left after exclusions");
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ skipped: true, reason: "no-recipients-after-exclusions", excludedEmails: [...excludedEmails] }),
+    };
+  }
 
   let reminderLock;
   try {
@@ -426,13 +445,13 @@ export async function handler(event) {
     console.warn(`Force send requested for ${lockValue} — bypassing reminder lock`);
   }
 
-  console.log(`Sending to ${dedupedRecipients.length} unique host inboxes`);
+  console.log(`Sending to ${filteredRecipients.length} unique host inboxes`);
 
   // 3. Send via SendGrid
   let sent = 0;
   let failed = 0;
 
-  for (const { email, cities } of dedupedRecipients) {
+  for (const { email, cities } of filteredRecipients) {
     const payload = {
       personalizations: [{ to: [{ email }] }],
       from: { email: FROM_EMAIL, name: FROM_NAME },
@@ -478,11 +497,12 @@ export async function handler(event) {
     lockValue,
     sent,
     failed,
-    recipients: dedupedRecipients.length,
+    recipients: filteredRecipients.length,
+    excludedEmails: [...excludedEmails],
   });
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ sent, failed, recipients: dedupedRecipients.length, cycleDate, mode, lockValue }),
+    body: JSON.stringify({ sent, failed, recipients: filteredRecipients.length, cycleDate, mode, lockValue, excludedEmails: [...excludedEmails] }),
   };
 }
