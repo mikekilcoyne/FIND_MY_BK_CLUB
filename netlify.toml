@@ -5,9 +5,6 @@
 [functions]
   node_bundler = "esbuild"
 
-[functions."weekly-host-reminder"]
-  schedule = "30 16 * * 0"
-
 [[redirects]]
   from = "https://findmybreakfast.club/*"
   to = "https://breakfastclubbing.com/:splat"
