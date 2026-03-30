@@ -130,7 +130,7 @@ const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
       "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
-    subject: `Sorry!`,
+    subject: `Breakfast Club reminder — update your club listing`,
     content: [
       { type: "text/plain", value: plain },
       { type: "text/html",  value: html },
