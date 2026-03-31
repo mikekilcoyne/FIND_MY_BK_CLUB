@@ -180,29 +180,32 @@
   color: #f2de9a;
 }
 
-/* Host note toggle (home page) */
-
-.note-icon-btn {
-  font-size: 13px;
-  line-height: 1;
-  padding: 3px 7px;
-}
-
-.note-icon-btn.open {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
-
 .host-note-body {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-left: 4px solid #ff5c00;
+  background: rgba(255, 247, 239, 0.92);
+  color: #5f4635;
   font-size: 12px;
-  color: #666;
-  line-height: 1.45;
+  font-style: italic;
+  line-height: 1.5;
+  border-radius: 10px;
+}
+
+.host-note-body strong {
+  font-style: normal;
+  font-weight: 700;
+  color: #9b3e04;
 }
 
 .club-card.night-edition .host-note-body {
-  color: #b0bfd8;
+  background: rgba(33, 24, 14, 0.82);
+  border-left-color: #f2de9a;
+  color: #e8edf8;
+}
+
+.club-card.night-edition .host-note-body strong {
+  color: #f2de9a;
 }
 
 /* Event time — inline in subline */

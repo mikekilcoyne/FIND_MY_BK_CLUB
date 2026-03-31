@@ -278,7 +278,7 @@
     "host": "Celeste Blewitt & Josh Gardiner",
     "email": "celeste@celesteblewitt.com",
     "venue": "StandardX, Fitzroy",
-    "upcoming_date": "",
+    "upcoming_date": "2026-04-24",
     "mapsURL": "https://maps.google.com/?q=StandardX+Melbourne+Fitzroy",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "unknown" }
@@ -340,7 +340,7 @@
   },
   {
     "city": "new york - downtown brooklyn",
-    "displayCity": "New York — Downtown Brooklyn, NY",
+    "displayCity": "NY - Downtown Brooklyn",
     "latitude": 40.6925,
     "longitude": -73.9876,
     "region": "Northeast US",
@@ -354,7 +354,7 @@
   },
   {
     "city": "new york - hamptons",
-    "displayCity": "New York — Hamptons, NY",
+    "displayCity": "NY - Hamptons",
     "latitude": 40.9215,
     "longitude": -72.3082,
     "region": "Northeast US",
@@ -369,21 +369,21 @@
   },
   {
     "city": "new york - upper west",
-    "displayCity": "New York — UWS, NY",
+    "displayCity": "NY - UWS",
     "latitude": 40.7856099,
     "longitude": -73.9725709,
     "region": "Northeast US",
     "host": "Joshua Rosenthal & Andrew Reuben",
     "email": "josh0111@gmail.com",
-    "venue": "Le Viand, 517 Columbus Ave",
+    "venue": "Viand Cafe, 2130 Broadway, New York, NY 10023",
     "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=40.7856099,-73.9725709",
+    "mapsURL": "https://maps.google.com/?q=Viand+Cafe+2130+Broadway+New+York+NY+10023",
     "link": "https://breakfastclubbing.com",
     "schedule": { "type": "weekly", "weekday": 3 }
   },
   {
     "city": "new york - hudson",
-    "displayCity": "New York — Hudson, NY",
+    "displayCity": "NY - Hudson",
     "latitude": 42.2531,
     "longitude": -73.7957,
     "region": "Northeast US",
@@ -396,7 +396,7 @@
   },
   {
     "city": "new york - kingston",
-    "displayCity": "New York — Kingston, NY",
+    "displayCity": "NY - Kingston",
     "latitude": 41.9276,
     "longitude": -74.0099,
     "region": "Northeast US",
@@ -409,7 +409,7 @@
   },
   {
     "city": "new york - les",
-    "displayCity": "New York — LES, NY",
+    "displayCity": "NY - LES",
     "latitude": 40.7150,
     "longitude": -73.9843,
     "region": "Northeast US",
@@ -423,7 +423,7 @@
   },
   {
     "city": "new york - williamsburg",
-    "displayCity": "New York — Williamsburg, NY",
+    "displayCity": "NY - Williamsburg",
     "latitude": 40.7081,
     "longitude": -73.9571,
     "region": "Northeast US",
@@ -649,10 +649,10 @@
     "region": "Europe",
     "host": "Carla Moss & Laura Pana (@carlatoria)",
     "venue": "Cafe Francais",
-    "upcoming_date": "2026-03-12",
+    "upcoming_date": "2026-04-09",
     "mapsURL": "https://maps.google.com/?q=Cafe+Francais+Vienna",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 2, "weekday": 4 }
+    "schedule": { "type": "unknown" }
   },
   {
     "city": "washington dc",

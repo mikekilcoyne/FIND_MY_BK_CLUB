@@ -106,6 +106,16 @@ function getDisplayCity(club) {
   return club.displayCity || club.city;
 }
 
+function createLocationNoteBody(noteLabel, noteDetail) {
+  const noteBody = document.createElement("p");
+  noteBody.className = "host-note-body";
+  const strong = document.createElement("strong");
+  strong.textContent = `${noteLabel || "Update"}: `;
+  noteBody.append(strong);
+  noteBody.append(document.createTextNode(noteDetail || ""));
+  return noteBody;
+}
+
 function buildClubUpdateContext(club) {
   return {
     city: club.city || "",
@@ -548,6 +558,7 @@ function renderDayDetails(isoDate, monthEvents) {
       // 2. Subline: schedule text + badges
       const subline = document.createElement("div");
       subline.className = "card-subline";
+      let noteBody = null;
 
       if (club.time || club.cadence) {
         subline.append(document.createTextNode(club.time || club.cadence));
@@ -567,7 +578,7 @@ function renderDayDetails(isoDate, monthEvents) {
         subline.append(popupBadge);
       }
 
-      if (club.locationNote) {
+      if (club.locationNote && !club.locationNoteDetail) {
         const locBadge = document.createElement("span");
         locBadge.className = "badge badge-location";
         locBadge.textContent = club.locationNote;
@@ -582,6 +593,11 @@ function renderDayDetails(isoDate, monthEvents) {
         venueRow.className = "card-host";
         venueRow.textContent = `Venue: ${club.venue}`;
         card.append(venueRow);
+      }
+
+      if (club.locationNoteDetail) {
+        noteBody = createLocationNoteBody(club.locationNote, club.locationNoteDetail);
+        card.append(noteBody);
       }
 
       // 4. Host + contact
@@ -773,6 +789,7 @@ async function loadClubs() {
           flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
           specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : []),
           locationNote: override.locationNote || "",
+          locationNoteDetail: override.locationNoteDetail || "",
           eventTime: override.eventTime || col("start_time", cells),
           communityLink: override.communityLink || col("whatsapp", cells) || "",
           rule: getScheduleRule(cadence, time),

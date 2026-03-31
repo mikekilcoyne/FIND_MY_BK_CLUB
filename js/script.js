@@ -219,6 +219,16 @@ function buildClubUpdateContext(club) {
   };
 }
 
+function createLocationNoteBody(noteLabel, noteDetail) {
+  const noteBody = document.createElement("p");
+  noteBody.className = "host-note-body";
+  const strong = document.createElement("strong");
+  strong.textContent = `${noteLabel || "Update"}: `;
+  noteBody.append(strong);
+  noteBody.append(document.createTextNode(noteDetail || ""));
+  return noteBody;
+}
+
 async function submitClubUpdate(payload) {
   const response = await fetch(CLUB_UPDATE_ENDPOINT, {
     method: "POST",
@@ -881,6 +891,7 @@ function render(items) {
       subline.className = "card-subline";
       const sublineMain = document.createElement("span");
       sublineMain.className = "card-subline-main";
+      let noteBody = null;
 
       if (club.scheduleLabel) {
         const freq = document.createElement("span");
@@ -899,9 +910,7 @@ function render(items) {
         sublineMain.append(timeEl);
       }
 
-      const isLongVenue = club.venue && club.venue.length > 55;
-
-      if (club.venue && !isLongVenue) {
+      if (club.venue) {
         const sep = document.createElement("span");
         sep.className = "subline-sep";
         sep.textContent = "|";
@@ -920,7 +929,7 @@ function render(items) {
         subline.append(sublineMain);
       }
 
-      if (club.locationNote && !/\bpop[\s-]?up\b/i.test(club.locationNote)) {
+      if (club.locationNote && !/\bpop[\s-]?up\b/i.test(club.locationNote) && !club.locationNoteDetail) {
         const locBadge = document.createElement("span");
         locBadge.className = "badge badge-location";
         locBadge.textContent = club.locationNote;
@@ -928,15 +937,6 @@ function render(items) {
       }
 
       if (subline.children.length) card.append(subline);
-
-      // note body element (referenced by utility row button below)
-      let noteBody = null;
-      if (isLongVenue) {
-        noteBody = document.createElement("p");
-        noteBody.className = "host-note-body";
-        noteBody.textContent = club.venue;
-        noteBody.hidden = true;
-      }
 
       // 3. Host line
       if (club.hostDisplay) {
@@ -952,6 +952,11 @@ function render(items) {
         note.className = "card-host";
         note.textContent = "Contact host for more info";
         card.append(note);
+      }
+
+      if (club.locationNoteDetail) {
+        noteBody = createLocationNoteBody(club.locationNote, club.locationNoteDetail);
+        card.append(noteBody);
       }
 
       // 4. Utility row: maps, socials
@@ -1003,19 +1008,6 @@ function render(items) {
           if (!item || !item.url) return;
           util.append(renderSocialIcon(item.type, item.url, item.title || ""));
         });
-      }
-
-      if (noteBody) {
-        const noteBtn = document.createElement("button");
-        noteBtn.className = "note-icon-btn";
-        noteBtn.title = "Note from host";
-        noteBtn.textContent = "✎";
-        noteBtn.addEventListener("click", () => {
-          const expanded = !noteBody.hidden;
-          noteBody.hidden = expanded;
-          noteBtn.classList.toggle("open", !expanded);
-        });
-        util.append(noteBtn);
       }
 
       util.append(createClubUpdateModule(club));
@@ -1222,9 +1214,29 @@ function setupBackToTop() {
 }
 
 function getFilteredClubs() {
-  if (activeRegion === "All") return clubs;
-  if (activeRegion === "New") return clubs.filter((c) => c.isNew);
-  return clubs.filter((c) => c.region === activeRegion);
+  const scoped =
+    activeRegion === "All"
+      ? clubs
+      : activeRegion === "New"
+        ? clubs.filter((c) => c.isNew)
+        : clubs.filter((c) => c.region === activeRegion);
+
+  return scoped.filter((club) => isClubInCurrentWeek(club));
+}
+
+function isClubInCurrentWeek(club) {
+  if (!club || !club.specificDates || !club.specificDates.length) return true;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  return club.specificDates.some((dateStr) => {
+    const date = new Date(`${dateStr}T12:00:00`);
+    return !Number.isNaN(date.getTime()) && date >= today && date <= weekEnd;
+  });
 }
 
 const REGION_HEADLINES = {
@@ -1385,6 +1397,7 @@ async function loadClubs() {
           eventTime: override.eventTime || col("start_time", cells),
           eventTimeLabel: override.eventTimeLabel || "",
           communityLink: override.communityLink || col("whatsapp", cells) || "",
+          locationNoteDetail: override.locationNoteDetail || "",
           isIncomplete:
             !getVenue(override.venue || col("venue_name", cells), "") ||
             (!extractInstagramURL(col("host_instagram", cells)) &&
@@ -1399,9 +1412,10 @@ async function loadClubs() {
 
     statusText.textContent = usedLocalSnapshot ? "(local sheet snapshot)" : "";
     flyerGalleryItems = getFlyerGalleryItems();
-    animateGrowthTitle(clubs.length);
+    const filtered = getFilteredClubs();
+    animateGrowthTitle(filtered.length);
     renderRegionFilter();
-    render(clubs);
+    render(filtered);
   } catch (error) {
     // Sheet unavailable — try static JSON fallback (useful for local dev)
     try {
@@ -1428,6 +1442,7 @@ async function loadClubs() {
           upcoming_date: entry.upcoming_date || "",
           eventTime:     "",
           eventTimeLabel:"",
+          locationNoteDetail: "",
           flyer:         null,
         }))
         .filter((c) => c.city && !shouldHideClub(c.city));
