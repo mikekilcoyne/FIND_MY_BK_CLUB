@@ -550,6 +550,15 @@ function renderDayDetails(isoDate, monthEvents) {
       if (club.isNight) card.classList.add("night-edition");
 
       // 1. City name
+      if (club.isVerified) {
+        const verifiedBadge = document.createElement("span");
+        verifiedBadge.className = "badge badge-verified";
+        verifiedBadge.textContent = "✓";
+        verifiedBadge.title = "Verified";
+        verifiedBadge.setAttribute("aria-label", "Verified");
+        card.append(verifiedBadge);
+      }
+
       const cityEl = document.createElement("div");
       cityEl.className = "city-name";
       cityEl.textContent = getDisplayCity(club);
@@ -788,6 +797,7 @@ async function loadClubs() {
           linkedinURL,
           flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)),
           specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : []),
+          isVerified: override.verified ?? Boolean((override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : [])).length),
           locationNote: override.locationNote || "",
           locationNoteDetail: override.locationNoteDetail || "",
           eventTime: override.eventTime || col("start_time", cells),

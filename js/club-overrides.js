@@ -77,6 +77,7 @@ window.CLUB_OVERRIDES = {
   "cambridge, ma":   { displayCity: "Cambridge, MA" },
   "new york - downtown brooklyn": {
     displayCity: "NY - Downtown Brooklyn",
+    verified: true,
     cadence: "Weekly",
     time: "Thursdays, 8:30am",
     eventTime: "8:30 AM",
@@ -84,6 +85,7 @@ window.CLUB_OVERRIDES = {
   },
   "new york - hamptons": {
     displayCity: "NY - Hamptons",
+    verified: true,
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     eventTime: "8:30 AM",
@@ -109,6 +111,7 @@ window.CLUB_OVERRIDES = {
   },
   "new york - upper west": {
     displayCity: "NY - UWS",
+    verified: true,
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     eventTime: "8:30 AM",
@@ -119,10 +122,11 @@ window.CLUB_OVERRIDES = {
     featured: true,
     isNew: true,
   },
-  "new york - hudson":   { displayCity: "NY - Hudson" },
+  "new york - hudson":   { displayCity: "NY - Hudson", verified: true },
   "new york - kingston": { displayCity: "NY - Kingston" },
   "new york - les": {
     displayCity: "NY - LES",
+    verified: true,
     cadence: "Weekly",
     time: "Thursdays, 9:00am",
     eventTime: "9:00 AM",
@@ -130,6 +134,7 @@ window.CLUB_OVERRIDES = {
   },
   "new york - williamsburg": {
     displayCity: "NY - Williamsburg",
+    verified: true,
     cadence: "Weekly",
     time: "Wednesdays, 8:30am",
     eventTime: "8:30 AM",

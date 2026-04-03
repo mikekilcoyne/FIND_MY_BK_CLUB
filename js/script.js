@@ -10,6 +10,7 @@ const {
   extractInstagramHandles: sharedExtractInstagramHandles,
   extractInstagramURL: sharedExtractInstagramURL,
   extractLinkedInURL: sharedExtractLinkedInURL,
+  parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
 } = BKClubData;
 const GROWTH_TITLE_SUFFIX = "clubs worldwide and counting";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
@@ -494,6 +495,83 @@ function formatTimeLabel(value) {
   return normalized;
 }
 
+function compactText(value) {
+  return (value || "").replace(/\s+/g, " ").trim();
+}
+
+function parseSheetUpcomingDate(value) {
+  if (sharedParseSheetUpcomingDate) return sharedParseSheetUpcomingDate(value);
+  const raw = compactText(value);
+  if (!raw) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  return "";
+}
+
+function parseISODateAtNoon(value) {
+  if (!value) return null;
+  const parsed = new Date(`${value}T12:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getCurrentWeekBounds() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
+function getCurrentWeekSpecificDates(club) {
+  if (!club || !club.specificDates || !club.specificDates.length) return [];
+  const { start, end } = getCurrentWeekBounds();
+  return club.specificDates
+    .map((value) => compactText(value))
+    .filter(Boolean)
+    .filter((dateStr) => {
+      const date = parseISODateAtNoon(dateStr);
+      return date && date >= start && date <= end;
+    })
+    .sort();
+}
+
+function isClubConfirmedThisWeek(club) {
+  return getCurrentWeekSpecificDates(club).length > 0;
+}
+
+function getDisplayDayForClub(club) {
+  const currentWeekDates = getCurrentWeekSpecificDates(club);
+  if (!currentWeekDates.length) return "Every now and again";
+  const date = parseISODateAtNoon(currentWeekDates[0]);
+  return date
+    ? date.toLocaleDateString("en-US", { weekday: "long" })
+    : "Every now and again";
+}
+
+function getClubTimeLabel(club) {
+  return compactText(club && (club.eventTimeLabel || club.eventTime));
+}
+
+function getTimeSortValue(value) {
+  const text = compactText(value).toLowerCase();
+  if (!text) return Number.POSITIVE_INFINITY;
+
+  const match = text.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)/i);
+  if (!match) return Number.POSITIVE_INFINITY;
+
+  let hours = Number(match[1]) || 0;
+  const minutes = Number(match[2] || "0");
+  const meridiem = match[3].replace(/\./g, "").toLowerCase();
+  if (meridiem === "pm" && hours !== 12) hours += 12;
+  if (meridiem === "am" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
+function getClubConfirmationNote(club) {
+  if (isClubConfirmedThisWeek(club)) return "";
+  return "Time: typically once a month, but confirm with host.";
+}
+
 function getDay(cadence, timeValue) {
   const weekday = parseWeekday(timeValue) || parseWeekday(cadence);
   if (weekday && hasRegularCadence(cadence, timeValue)) {
@@ -541,6 +619,15 @@ function createSocialGlyph(type) {
   const glyph = document.createElement("span");
   glyph.className = `social-glyph social-glyph--${type}`;
 
+  if (type === "maps") {
+    glyph.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+        '<path d="M12 21s-5.8-5.4-5.8-10.4a5.8 5.8 0 1 1 11.6 0C17.8 15.6 12 21 12 21Z"></path>' +
+        '<circle cx="12" cy="10.6" r="2.3"></circle>' +
+      "</svg>";
+    return glyph;
+  }
+
   if (type === "linkedin") {
     glyph.textContent = "in";
     return glyph;
@@ -564,6 +651,10 @@ function renderSocialIcon(type, url, title) {
   link.className = `social-icon-link social-icon-link--${type} ${type === "linkedin" ? "li-icon-link" : "ig-icon-link"}`;
   link.append(createSocialGlyph(type));
   return link;
+}
+
+function renderMapIcon(url, title) {
+  return renderSocialIcon("maps", url, title || "Open in Google Maps");
 }
 
 function dedupeSocialItems(items) {
@@ -701,7 +792,8 @@ function renderHostText(text) {
 function renderDayNav(items) {
   const countByDay = new Map(DAYS.map((day) => [day, 0]));
   items.forEach((club) => {
-    countByDay.set(club.day, (countByDay.get(club.day) || 0) + 1);
+    const displayDay = getDisplayDayForClub(club);
+    countByDay.set(displayDay, (countByDay.get(displayDay) || 0) + 1);
   });
 
   if (daysNav) daysNav.innerHTML = "";
@@ -787,6 +879,99 @@ function syncActiveDayLink() {
     });
 }
 
+function createClubCard(club) {
+  const card = document.createElement("article");
+  card.className = "club-card";
+  if (club.isNight) card.classList.add("night-edition");
+
+  const displayCity = getDisplayCity(club);
+  card.dataset.city = (club.city || "").toLowerCase().trim();
+  card.dataset.displayCity = displayCity;
+
+  const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
+  if (isOriginal) card.classList.add("flagship-card");
+
+  card.append(createClubUpdateModule(club));
+
+  const titleRow = document.createElement("div");
+  titleRow.className = "card-title-row";
+
+  if (club.isVerified) {
+    const verifiedBadge = document.createElement("span");
+    verifiedBadge.className = "badge badge-verified";
+    verifiedBadge.textContent = "✓";
+    verifiedBadge.title = "Verified";
+    verifiedBadge.setAttribute("aria-label", "Verified");
+    titleRow.append(verifiedBadge);
+  }
+
+  const cityEl = document.createElement("span");
+  cityEl.className = "city-name";
+  if (isOriginal) cityEl.classList.add("original-bc");
+  cityEl.textContent = displayCity;
+  titleRow.append(cityEl);
+  card.append(titleRow);
+
+  const location = document.createElement("div");
+  location.className = "card-location";
+  location.textContent = club.venue || "Location TBD";
+  card.append(location);
+
+  if (club.hostDisplay) {
+    const host = document.createElement("div");
+    host.className = "card-host";
+    host.append(document.createTextNode("Host: "));
+    host.append(renderHostText(club.hostDisplay));
+    card.append(host);
+  }
+
+  const confirmationNote = getClubConfirmationNote(club);
+  if (confirmationNote) {
+    const note = document.createElement("p");
+    note.className = "card-confirmation-note";
+    note.textContent = confirmationNote;
+    card.append(note);
+  }
+
+  if (club.locationNoteDetail) {
+    card.append(createLocationNoteBody(club.locationNote, club.locationNoteDetail));
+  }
+
+  const util = document.createElement("div");
+  util.className = "card-utility";
+
+  if (club.venue) {
+    util.append(renderMapIcon(
+      getMapURL(`${club.venue}, ${club.city}`),
+      `Open ${club.venue} in Google Maps`,
+    ));
+  }
+
+  if (club.instagramItems && club.instagramItems.length > 1) {
+    util.append(renderSocialMenu("instagram", club.instagramItems));
+  } else if (club.instagramURL) {
+    util.append(renderSocialIcon(
+      "instagram",
+      club.instagramURL,
+      `Open ${club.city} on Instagram`,
+    ));
+  }
+
+  if (club.linkedInItems && club.linkedInItems.length > 1) {
+    util.append(renderSocialMenu("linkedin", club.linkedInItems));
+  } else if (club.linkedinURL) {
+    util.append(renderSocialIcon(
+      "linkedin",
+      club.linkedinURL,
+      `Open ${club.city} host on LinkedIn`,
+    ));
+  }
+
+  if (util.children.length) card.append(util);
+
+  return card;
+}
+
 function render(items) {
   clubsList.innerHTML = "";
 
@@ -800,10 +985,14 @@ function render(items) {
 
   DAYS.forEach((day) => {
     const dayItems = items
-      .filter((club) => club.day === day)
+      .filter((club) => getDisplayDayForClub(club) === day)
       .sort((a, b) => {
-        if (a.featured !== b.featured) return Number(b.featured) - Number(a.featured);
-        if (a.isNew !== b.isNew) return Number(b.isNew) - Number(a.isNew);
+        if (isClubConfirmedThisWeek(a) !== isClubConfirmedThisWeek(b)) {
+          return Number(isClubConfirmedThisWeek(b)) - Number(isClubConfirmedThisWeek(a));
+        }
+        const timeDelta = getTimeSortValue(getClubTimeLabel(a)) - getTimeSortValue(getClubTimeLabel(b));
+        if (Number.isFinite(timeDelta) && timeDelta !== 0) return timeDelta;
+        if (a.isVerified !== b.isVerified) return Number(b.isVerified) - Number(a.isVerified);
         return getDisplayCity(a).localeCompare(getDisplayCity(b));
       });
     if (!dayItems.length) return;
@@ -817,208 +1006,40 @@ function render(items) {
     heading.textContent = day;
     section.append(heading);
 
-    const dayGrid = document.createElement("div");
-    dayGrid.className = "day-section-grid";
-
-    for (const club of dayItems) {
-      const card = document.createElement("article");
-      card.className = "club-card";
-      if (club.isNight) card.classList.add("night-edition");
-
-      const displayCity = getDisplayCity(club);
-      // Word cloud overlay: store city keys so JS can look up topics
-      card.dataset.city = (club.city || "").toLowerCase().trim();
-      card.dataset.displayCity = displayCity;
-      const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
-      if (isOriginal) card.classList.add("flagship-card");
-
-      // 1. City name (primary headline)
-      const titleRow = document.createElement("div");
-      titleRow.className = "card-title-row";
-
-      const cityEl = club.venue
-        ? document.createElement("a")
-        : document.createElement("span");
-      if (club.venue) {
-        cityEl.href = getMapURL(`${club.venue}, ${club.city}`);
-        cityEl.target = "_blank";
-        cityEl.rel = "noreferrer";
-      }
-      cityEl.className = "city-name";
-      if (isOriginal) cityEl.classList.add("original-bc");
-      cityEl.textContent = displayCity;
-      titleRow.append(cityEl);
-
-      const titleBadges = document.createElement("span");
-      titleBadges.className = "title-badges";
-
-      if (club.featured) {
-        const featuredBadge = document.createElement("span");
-        featuredBadge.className = "badge badge-featured";
-        featuredBadge.textContent = "Featured";
-        titleBadges.append(featuredBadge);
-      }
-
-      if (club.isNew) {
-        const newBadge = document.createElement("span");
-        newBadge.className = "badge badge-new";
-        newBadge.textContent = "New";
-        titleBadges.append(newBadge);
-      }
-
-      if (club.isNight) {
-        const nightBadge = document.createElement("span");
-        nightBadge.className = "badge badge-night";
-        nightBadge.textContent = "Night";
-        titleBadges.append(nightBadge);
-      }
-
-      if (club.locationNote && /\bpop[\s-]?up\b/i.test(club.locationNote)) {
-        const popupBadge = document.createElement("span");
-        popupBadge.className = "badge badge-popup";
-        popupBadge.textContent = club.locationNote;
-        titleBadges.append(popupBadge);
-      }
-
-      if (titleBadges.children.length) {
-        titleRow.append(titleBadges);
-      }
-
-      card.append(titleRow);
-
-      // 2. Subline: frequency, venue, status badges
-      const subline = document.createElement("div");
-      subline.className = "card-subline";
-      const sublineMain = document.createElement("span");
-      sublineMain.className = "card-subline-main";
-      let noteBody = null;
-
-      if (club.scheduleLabel) {
-        const freq = document.createElement("span");
-        freq.textContent = club.scheduleLabel;
-        sublineMain.append(freq);
-      }
-
-      if (club.eventTime) {
-        const sep = document.createElement("span");
-        sep.className = "subline-sep";
-        sep.textContent = "|";
-        if (sublineMain.children.length) sublineMain.append(sep);
-        const timeEl = document.createElement("span");
-        timeEl.className = "card-time";
-        timeEl.textContent = `Starts ${club.eventTimeLabel || club.eventTime}`;
-        sublineMain.append(timeEl);
-      }
-
-      if (club.venue) {
-        const sep = document.createElement("span");
-        sep.className = "subline-sep";
-        sep.textContent = "|";
-        if (sublineMain.children.length) sublineMain.append(sep);
-        const venueEl = document.createElement("span");
-        venueEl.textContent = club.venue;
-        sublineMain.append(venueEl);
-      } else if (!club.venue) {
-        const tbd = document.createElement("span");
-        tbd.className = "badge badge-tbd";
-        tbd.textContent = "TBD";
-        sublineMain.append(tbd);
-      }
-
-      if (sublineMain.children.length) {
-        subline.append(sublineMain);
-      }
-
-      if (club.locationNote && !/\bpop[\s-]?up\b/i.test(club.locationNote) && !club.locationNoteDetail) {
-        const locBadge = document.createElement("span");
-        locBadge.className = "badge badge-location";
-        locBadge.textContent = club.locationNote;
-        subline.append(locBadge);
-      }
-
-      if (subline.children.length) card.append(subline);
-
-      // 3. Host line
-      if (club.hostDisplay) {
-        const host = document.createElement("div");
-        host.className = "card-host";
-        host.append(document.createTextNode("Host: "));
-        host.append(renderHostText(club.hostDisplay));
-        card.append(host);
-      }
-
-      if (club.isIncomplete) {
-        const note = document.createElement("div");
-        note.className = "card-host";
-        note.textContent = "Contact host for more info";
-        card.append(note);
-      }
-
-      if (club.locationNoteDetail) {
-        noteBody = createLocationNoteBody(club.locationNote, club.locationNoteDetail);
-        card.append(noteBody);
-      }
-
-      // 4. Utility row: maps, socials
-      const util = document.createElement("div");
-      util.className = "card-utility";
-
-      if (club.venue) {
-        const mapsBtn = document.createElement("a");
-        mapsBtn.href = getMapURL(`${club.venue}, ${club.city}`);
-        mapsBtn.target = "_blank";
-        mapsBtn.rel = "noreferrer";
-        mapsBtn.title = `Open ${club.venue} in Google Maps`;
-        mapsBtn.textContent = "Google Maps";
-        util.append(mapsBtn);
-      }
-
-      if (club.communityLink && club.communityLink.startsWith("http")) {
-        const chatBtn = document.createElement("a");
-        chatBtn.href = club.communityLink;
-        chatBtn.target = "_blank";
-        chatBtn.rel = "noreferrer";
-        chatBtn.className = "community-link-btn";
-        chatBtn.textContent = "Join the Chat";
-        util.append(chatBtn);
-      }
-
-      if (club.instagramItems && club.instagramItems.length > 1) {
-        util.append(renderSocialMenu("instagram", club.instagramItems));
-      } else if (club.instagramURL) {
-        util.append(renderSocialIcon(
-          "instagram",
-          club.instagramURL,
-          `Open ${club.city} on Instagram`,
-        ));
-      }
-
-      if (club.linkedInItems && club.linkedInItems.length > 1) {
-        util.append(renderSocialMenu("linkedin", club.linkedInItems));
-      } else if (club.linkedinURL) {
-        util.append(renderSocialIcon(
-          "linkedin",
-          club.linkedinURL,
-          `Open ${club.city} host on LinkedIn`,
-        ));
-      }
-
-      if (club.extraSocials && club.extraSocials.length) {
-        club.extraSocials.forEach((item) => {
-          if (!item || !item.url) return;
-          util.append(renderSocialIcon(item.type, item.url, item.title || ""));
-        });
-      }
-
-      util.append(createClubUpdateModule(club));
-      if (util.children.length) card.append(util);
-
-      if (noteBody) card.append(noteBody);
-
-      dayGrid.append(card);
+    if (day === "Every now and again") {
+      const dayGrid = document.createElement("div");
+      dayGrid.className = "day-section-grid";
+      dayItems.forEach((club) => dayGrid.append(createClubCard(club)));
+      section.append(dayGrid);
+      clubsList.append(section);
+      return;
     }
 
-    section.append(dayGrid);
+    const slotMap = new Map();
+    dayItems.forEach((club) => {
+      const timeLabel = getClubTimeLabel(club) || "Time TBD";
+      if (!slotMap.has(timeLabel)) slotMap.set(timeLabel, []);
+      slotMap.get(timeLabel).push(club);
+    });
+
+    Array.from(slotMap.entries())
+      .sort((a, b) => getTimeSortValue(a[0]) - getTimeSortValue(b[0]))
+      .forEach(([timeLabel, slotItems]) => {
+        const slotGroup = document.createElement("div");
+        slotGroup.className = "time-slot-group";
+
+        const slotHeading = document.createElement("h4");
+        slotHeading.className = "time-slot-heading";
+        slotHeading.textContent = timeLabel;
+        slotGroup.append(slotHeading);
+
+        const slotGrid = document.createElement("div");
+        slotGrid.className = "day-section-grid";
+        slotItems.forEach((club) => slotGrid.append(createClubCard(club)));
+        slotGroup.append(slotGrid);
+        section.append(slotGroup);
+      });
+
     clubsList.append(section);
   });
 
@@ -1221,22 +1242,7 @@ function getFilteredClubs() {
         ? clubs.filter((c) => c.isNew)
         : clubs.filter((c) => c.region === activeRegion);
 
-  return scoped.filter((club) => isClubInCurrentWeek(club));
-}
-
-function isClubInCurrentWeek(club) {
-  if (!club || !club.specificDates || !club.specificDates.length) return true;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const weekEnd = new Date(today);
-  weekEnd.setDate(today.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
-
-  return club.specificDates.some((dateStr) => {
-    const date = new Date(`${dateStr}T12:00:00`);
-    return !Number.isNaN(date.getTime()) && date >= today && date <= weekEnd;
-  });
+  return scoped;
 }
 
 const REGION_HEADLINES = {
@@ -1358,6 +1364,7 @@ async function loadClubs() {
         const override = getOverrideForCity(city);
         const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
         const cadence = override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "";
+        const sheetUpcomingDate = parseSheetUpcomingDate(col("upcoming_date", cells));
         const time = formatTimeLabel(override.time || "");
         const extraSocials = override.extraSocials || [];
         const igHandles = override.hideInstagram ? [] : extractInstagramHandles(col("host_instagram", cells));
@@ -1381,7 +1388,8 @@ async function loadClubs() {
           venue: override.venue || getVenue(col("venue_name", cells), ""),
           day: getDay(cadence, time),
           isNight: isNightClub(time, override.isNight),
-          specificDates: override.specificDates || [],
+          specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : []),
+          isVerified: override.verified ?? Boolean((override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : [])).length),
           locationNote: override.locationNote || "",
           instagramURL: instagramItems[0]?.url || "",
           instagramItems,
@@ -1394,6 +1402,7 @@ async function loadClubs() {
             igHandles,
             override.hostDisplay || "",
           ),
+          upcoming_date: sheetUpcomingDate || "",
           eventTime: override.eventTime || col("start_time", cells),
           eventTimeLabel: override.eventTimeLabel || "",
           communityLink: override.communityLink || col("whatsapp", cells) || "",
@@ -1434,6 +1443,7 @@ async function loadClubs() {
           day:           (["Monday","Tuesday","Wednesday","Thursday","Friday"][((entry.schedule || {}).weekday || 1) - 1]) || "Every now and again",
           isNight:       false,
           specificDates: [],
+          isVerified: false,
           locationNote:  "",
           host:          entry.host || "",
           whatsapp:      "",

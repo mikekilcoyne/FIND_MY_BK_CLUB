@@ -343,6 +343,25 @@ h2 {
   gap: 12px 16px;
 }
 
+.time-slot-group {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.time-slot-group:last-child {
+  margin-bottom: 0;
+}
+
+.time-slot-heading {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #2d241b;
+}
+
 /* === Featured Event Strip === */
 
 .featured-strip {

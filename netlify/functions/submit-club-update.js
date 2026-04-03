@@ -1,6 +1,6 @@
-const FROM_EMAIL = "ben@breakfastclubbing.com";
+const FROM_EMAIL = "set@breakfastclubbing.com";
 const FROM_NAME = "Breakfast Club HQ";
-const REPLY_TO = "ben@breakfastclubbing.com";
+const REPLY_TO = "set@breakfastclubbing.com";
 
 function json(statusCode, body) {
   return {

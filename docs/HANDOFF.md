@@ -127,6 +127,12 @@ Map data is a separate static file: `data/clubs-map.json`.
 
 **Concept:** Hosts email `set@breakfastclubbing.com` with freeform updates (new venue, new date, flyer, etc.) and it automatically creates a pending row in the Google Sheet for review before going live.
 
+**Current first-pass approval rule (2026-03-31):**
+- New intake function: `netlify/functions/receive-club-update-email.js`
+- Trusted approvers: `mike@mikekilcoyne.com`, `mk@yellowsatinjacket.com`
+- Auto-approve when the message comes from a trusted approver directly, or when a trusted approver forwards an email whose subject starts with `APPROVE:`
+- Store status currently lands in Netlify Blobs (`approved/` or `pending/`) for safe testing before wiring into Google Sheets
+
 **Approved approach:**
 - Review queue (not auto-publish) — updates land in a "Pending" tab, approved manually
 - AI-parsed freeform — Claude API extracts structured data from natural language emails

@@ -15,6 +15,16 @@ open http://127.0.0.1:8080
 ```
 
 ## 3. Contribution Workflow
+Current production workflow for this repo is lightweight:
+1. Make a focused, scoped change.
+2. QA locally.
+3. Run the release guardrails.
+4. Push to `main`.
+5. Confirm the Netlify deploy and spot-check production.
+
+If/when the project returns to a multi-contributor workflow, use the branch + PR flow below instead of pushing directly to `main`.
+
+### Optional Team Workflow
 1. Open an issue for the update.
 2. Create a branch.
 3. Make a focused, scoped change.
@@ -26,12 +36,14 @@ open http://127.0.0.1:8080
 2. Recent Breakfast Clubbing newsletters
 3. Direct host-confirmed details
 
-### PR Checklist
+### Change Checklist
 - [ ] Change is scoped to specific clubs or functionality
-- [ ] Sources included in PR description
+- [ ] Sources included in PR description or deploy note
 - [ ] No stale/outdated notes introduced
 - [ ] `HOST:` labels included when IG handles are present
 - [ ] Links open correctly (Instagram/LinkedIn/Google Maps)
+- [ ] `npm run check:release` passed
+- [ ] Production spot-check completed after deploy
 
 ### Contribution Ground Rules
 - Keep edits minimal and specific.
@@ -49,6 +61,16 @@ open http://127.0.0.1:8080
 - Maintainers may remove contributions that violate this and may limit access for repeated abuse.
 
 ## 5. Deployment (Netlify + Namecheap)
+### Current Production Flow
+1. QA locally: `python3 -m http.server 8080`
+2. Run `npm run check:release`
+3. Push to `main`
+4. Netlify auto-deploys production
+5. Spot-check `https://breakfastclubbing.com`
+6. If needed, use the Netlify dashboard rollback
+
+### Hosting Setup Reference
+For a fresh Netlify/Namecheap setup:
 1. Push repository to GitHub.
 2. In Netlify → Add new site → Import existing project.
 3. Build settings:
@@ -62,9 +84,11 @@ open http://127.0.0.1:8080
 6. SSL provisions automatically after DNS resolves.
 
 ### Recommended Netlify Settings
-- Enable Deploy Previews for pull requests.
-- Enable branch deploys for testing.
-- Protect `main` branch (require PR + 1 review).
+- Current state: production auto-deploys from `main`; branch protection is not enabled.
+- Optional hardening for a future team workflow:
+  - Enable Deploy Previews for pull requests.
+  - Enable branch deploys for testing.
+  - Protect `main` branch (require PR + 1 review).
 
 ## 6. Analytics (GA4)
 - Runtime: `js/analytics.js`

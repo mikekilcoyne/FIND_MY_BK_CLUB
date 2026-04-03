@@ -4,11 +4,16 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: #f9f9f9;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 16px 18px;
+  gap: 10px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.88), transparent 28%),
+    linear-gradient(180deg, #fffdf8 0%, #faf4ea 100%);
+  border: 1px solid rgba(143, 115, 75, 0.18);
+  border-radius: 18px;
+  box-shadow:
+    0 18px 32px rgba(61, 42, 17, 0.08),
+    0 3px 10px rgba(61, 42, 17, 0.05);
+  padding: 18px 18px 16px;
   margin-bottom: 4px;
 }
 
@@ -24,6 +29,26 @@
   background: linear-gradient(135deg, #fffbef 0%, #fdf3cc 100%);
   border-color: #e2c96a;
   box-shadow: 0 0 0 2px rgba(226, 193, 71, 0.2);
+}
+
+.club-card::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 26px;
+  width: 68px;
+  height: 18px;
+  border-radius: 5px;
+  background: rgba(248, 221, 171, 0.72);
+  border: 1px solid rgba(181, 133, 60, 0.16);
+  box-shadow: 0 2px 5px rgba(107, 75, 25, 0.08);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+
+.club-card.night-edition::before {
+  background: rgba(242, 222, 154, 0.14);
+  border-color: rgba(242, 222, 154, 0.22);
 }
 
 /* City name — primary headline */
@@ -72,6 +97,79 @@
   vertical-align: middle;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+}
+
+.card-timetable {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  align-self: flex-start;
+  min-width: min(100%, 220px);
+  padding: 10px 14px 9px;
+  border-radius: 14px;
+  border: 1px solid rgba(121, 91, 47, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(249, 241, 231, 0.96) 100%);
+  box-shadow: 0 10px 22px rgba(74, 54, 24, 0.08);
+}
+
+.card-timetable::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 18px;
+  width: 46px;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(248, 221, 171, 0.8);
+  border: 1px solid rgba(181, 133, 60, 0.16);
+  transform: rotate(5deg);
+}
+
+.card-timetable-day {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(96, 71, 34, 0.72);
+}
+
+.card-timetable-time {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #20160d;
+}
+
+.card-timetable-detail {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(77, 56, 31, 0.8);
+}
+
+.club-card.night-edition .card-timetable {
+  border-color: rgba(176, 199, 240, 0.2);
+  background:
+    linear-gradient(180deg, rgba(12, 24, 44, 0.9) 0%, rgba(10, 19, 34, 0.96) 100%);
+  box-shadow: 0 14px 28px rgba(2, 7, 15, 0.24);
+}
+
+.club-card.night-edition .card-timetable::before {
+  background: rgba(242, 222, 154, 0.2);
+  border-color: rgba(242, 222, 154, 0.16);
+}
+
+.club-card.night-edition .card-timetable-day {
+  color: rgba(242, 222, 154, 0.82);
+}
+
+.club-card.night-edition .card-timetable-time {
+  color: var(--night-ink);
+}
+
+.club-card.night-edition .card-timetable-detail {
+  color: rgba(220, 228, 243, 0.82);
 }
 
 /* Subline — frequency, venue, badges */
@@ -155,6 +253,21 @@
   color: #fff;
 }
 
+.badge-verified {
+  justify-content: center;
+  min-width: 20px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 999px;
+  background: #eaf7f0;
+  border-color: #2d8f5a;
+  color: #17663d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
 .badge-popup {
   background: #f2de9a;
   border-color: #d3b24d;
@@ -218,6 +331,124 @@
   color: #f2de9a;
 }
 
+.card-location {
+  font-size: 16px;
+  line-height: 1.4;
+  color: #38322b;
+}
+
+.club-card.night-edition .card-location {
+  color: #e8edf8;
+}
+
+.card-flyer-callout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: min(100%, 360px);
+  border: 0;
+  border-radius: 16px;
+  padding: 10px 12px 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98) 0%, rgba(248, 239, 226, 0.98) 100%);
+  box-shadow: 0 12px 26px rgba(74, 54, 24, 0.08);
+  text-align: left;
+  cursor: pointer;
+}
+
+.card-flyer-callout::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 20px;
+  width: 52px;
+  height: 15px;
+  border-radius: 4px;
+  background: rgba(248, 221, 171, 0.82);
+  border: 1px solid rgba(181, 133, 60, 0.16);
+  transform: rotate(-5deg);
+}
+
+.card-flyer-callout:hover,
+.card-flyer-callout:focus-visible {
+  transform: translateY(-1px) rotate(-0.35deg);
+}
+
+.card-flyer-thumb-wrap {
+  width: 58px;
+  padding: 4px 4px 10px;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(74, 54, 24, 0.12);
+  transform: rotate(-3deg);
+}
+
+.card-flyer-thumb {
+  width: 100%;
+  aspect-ratio: 0.74;
+  display: block;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.card-flyer-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.card-flyer-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(96, 71, 34, 0.62);
+}
+
+.card-flyer-title {
+  font-family: "Marker Felt", "Bradley Hand", "Comic Sans MS", cursive;
+  font-size: 22px;
+  line-height: 1;
+  color: #d53a1f;
+}
+
+.card-flyer-subtitle {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(77, 56, 31, 0.78);
+}
+
+.card-flyer-arrow {
+  font-family: "Marker Felt", "Bradley Hand", "Comic Sans MS", cursive;
+  font-size: 28px;
+  line-height: 1;
+  color: #d53a1f;
+}
+
+.club-card.night-edition .card-flyer-callout {
+  background:
+    linear-gradient(180deg, rgba(18, 30, 52, 0.9) 0%, rgba(10, 19, 34, 0.95) 100%);
+  box-shadow: 0 16px 32px rgba(2, 7, 15, 0.24);
+}
+
+.club-card.night-edition .card-flyer-callout::before {
+  background: rgba(242, 222, 154, 0.2);
+  border-color: rgba(242, 222, 154, 0.16);
+}
+
+.club-card.night-edition .card-flyer-thumb-wrap {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.club-card.night-edition .card-flyer-eyebrow {
+  color: rgba(242, 222, 154, 0.82);
+}
+
+.club-card.night-edition .card-flyer-subtitle {
+  color: rgba(220, 228, 243, 0.82);
+}
+
 /* Host line */
 
 .card-host {
@@ -229,6 +460,18 @@
 
 .club-card.night-edition .card-host {
   color: #dce4f3;
+}
+
+.card-confirmation-note {
+  margin: -2px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6b5737;
+  font-style: italic;
+}
+
+.club-card.night-edition .card-confirmation-note {
+  color: rgba(242, 222, 154, 0.88);
 }
 
 .host-instagram-link {
@@ -332,6 +575,15 @@
   display: block;
   stroke: currentColor;
   stroke-width: 1.8;
+  fill: none;
+}
+
+.social-glyph--maps svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.7;
   fill: none;
 }
 
@@ -477,7 +729,7 @@
 
 @media (max-width: 960px) {
   .club-card {
-    padding: 14px 16px;
+    padding: 16px 16px 14px;
   }
 
   .card-title-row {
@@ -491,5 +743,11 @@
 
   .city-name {
     font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .card-timetable,
+  .card-flyer-callout {
+    width: 100%;
+    min-width: 0;
   }
 }
