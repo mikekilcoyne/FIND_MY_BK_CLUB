@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="./css/responsive-framework.css" />
     <link rel="stylesheet" href="./css/styles.css" />
     <link rel="stylesheet" href="./css/club-card.css" />
+    <link rel="stylesheet" href="./css/flyer-lightbox.css" />
     <link rel="stylesheet" href="./css/map-view.css" />
   </head>
   <body class="map-page">
@@ -105,20 +106,11 @@
           </div>
 
           <div id="city-card" class="city-card" role="dialog" aria-modal="true" aria-label="Club details">
-            <div class="card-header">
-              <h2 id="card-city"></h2>
-              <button id="card-close" class="card-close" type="button" aria-label="Close card">×</button>
-            </div>
-            <div class="card-meta">
-              <p id="card-host" class="card-host"></p>
-              <p id="card-venue"></p>
-              <p id="card-date" class="card-date"></p>
-            </div>
-            <div class="card-actions">
-              <a id="card-maps-btn" class="card-maps-btn" href="#" target="_blank" rel="noreferrer">Open in Maps</a>
-              <a id="card-linkedin-btn" class="card-maps-btn" href="#" target="_blank" rel="noreferrer" hidden>LinkedIn</a>
-              <a id="card-instagram-btn" class="card-maps-btn" href="#" target="_blank" rel="noreferrer" hidden>Instagram</a>
-              <button id="card-site-link" type="button" class="card-site-link">See all clubs →</button>
+            <div class="map-card-shell">
+              <div class="card-header">
+                <button id="card-close" class="card-close" type="button" aria-label="Close card">×</button>
+              </div>
+              <article id="map-card-content" class="club-card map-club-card"></article>
             </div>
           </div>
         </div>
@@ -157,6 +149,7 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="./js/analytics-config.js"></script>
     <script src="./js/analytics.js"></script>
+    <script src="./js/flyer-lightbox.js"></script>
     <script src="./js/club-overrides.js"></script>
     <script src="./js/club-data.js"></script>
     <script src="./js/map-view.js"></script>

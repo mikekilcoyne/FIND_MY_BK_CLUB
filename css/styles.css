@@ -337,16 +337,40 @@ h2 {
   scroll-margin-top: 18px;
 }
 
+.day-section--stacked-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  align-items: start;
+}
+
+.day-section--stacked-times > h3 {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
 .day-section-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 16px;
 }
 
+.day-section-grid--single {
+  grid-template-columns: 1fr;
+}
+
 .time-slot-group {
   display: grid;
   gap: 10px;
   margin-bottom: 18px;
+}
+
+.day-section--stacked-times .time-slot-group {
+  margin-bottom: 0;
+}
+
+.time-slot-group--wide {
+  grid-column: 1 / -1;
 }
 
 .time-slot-group:last-child {
@@ -360,6 +384,19 @@ h2 {
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #2d241b;
+}
+
+.inactive-section {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(109, 104, 95, 0.35);
+}
+
+.inactive-section-copy {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #676158;
 }
 
 /* === Featured Event Strip === */
@@ -914,6 +951,11 @@ body.club-update-modal-open #back-to-top {
 
   .day-section-grid {
     grid-template-columns: 1fr;
+  }
+
+  .day-section--stacked-times {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .cta {

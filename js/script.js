@@ -423,7 +423,6 @@ function extractInstagramHandles(value) {
 }
 
 function formatHostDisplay(hostName, handles, overrideHostDisplay) {
-  if (overrideHostDisplay) return overrideHostDisplay;
   const cleanName = (hostName || "").trim();
   if (cleanName) {
     return cleanName
@@ -431,6 +430,22 @@ function formatHostDisplay(hostName, handles, overrideHostDisplay) {
       .map((s) => s.trim())
       .filter(Boolean)
       .join(" & ");
+  }
+
+  if (overrideHostDisplay) {
+    const cleanedOverride = overrideHostDisplay
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/@[A-Za-z0-9._]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (cleanedOverride) {
+      return cleanedOverride
+        .split(/\s*[,+|]\s*|\s+and\s+/i)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join(" & ");
+    }
   }
   return handles.join(" | ");
 }
@@ -536,16 +551,21 @@ function getCurrentWeekSpecificDates(club) {
 }
 
 function isClubConfirmedThisWeek(club) {
+  if (club && club.day && club.day !== "Every now and again" && getClubTimeLabel(club)) {
+    return true;
+  }
   return getCurrentWeekSpecificDates(club).length > 0;
 }
 
 function getDisplayDayForClub(club) {
   const currentWeekDates = getCurrentWeekSpecificDates(club);
-  if (!currentWeekDates.length) return "Every now and again";
+  if (!currentWeekDates.length) {
+    return club && club.day ? club.day : "Every now and again";
+  }
   const date = parseISODateAtNoon(currentWeekDates[0]);
   return date
     ? date.toLocaleDateString("en-US", { weekday: "long" })
-    : "Every now and again";
+    : club && club.day ? club.day : "Every now and again";
 }
 
 function getClubTimeLabel(club) {
@@ -568,6 +588,9 @@ function getTimeSortValue(value) {
 }
 
 function getClubConfirmationNote(club) {
+  if (club && club.day && club.day !== "Every now and again" && getClubTimeLabel(club)) {
+    return "";
+  }
   if (isClubConfirmedThisWeek(club)) return "";
   return "Time: typically once a month, but confirm with host.";
 }
@@ -594,9 +617,15 @@ function extractScheduleLabel(cadence, timeValue) {
   const lowerC = normalize(c);
   if (lower.includes("first thursday") || lowerC.includes("first thursday")) return "First Thursday";
   if (lower.includes("first wednesday") || lowerC.includes("first wednesday")) return "First Wednesday";
+  if (lower.includes("first monday") || lowerC.includes("first monday")) return "First Monday";
+  if (lower.includes("second friday") || lowerC.includes("second friday")) return "Second Friday";
   if (lower.includes("second monday") || lowerC.includes("second monday")) return "Second Monday";
   if (lower.includes("second thursday") || lowerC.includes("second thursday")) return "Second Thursday";
+  if (lower.includes("third thursday") || lowerC.includes("third thursday")) return "Third Thursday";
   if (lower.includes("third friday") || lowerC.includes("third friday")) return "Third Friday";
+  if (lower.includes("fourth friday") || lowerC.includes("fourth friday")) return "Fourth Friday";
+  if (lower.includes("fourth thursday") || lowerC.includes("fourth thursday")) return "Fourth Thursday";
+  if (lower.includes("fourth tuesday") || lowerC.includes("fourth tuesday")) return "Fourth Tuesday";
   if (lower.includes("wednesday") || lowerC.includes("wednesday")) return "Wednesday";
   if (lower.includes("thursday") || lowerC.includes("thursday")) return "Thursday";
   if (lower.includes("friday") || lowerC.includes("friday")) return "Friday";
@@ -789,6 +818,140 @@ function renderHostText(text) {
   return document.createTextNode(text || "");
 }
 
+function createTitleBadges(club) {
+  const wrap = document.createElement("div");
+  wrap.className = "title-badges";
+
+  if (club.isNight) {
+    const nightBadge = document.createElement("span");
+    nightBadge.className = "badge badge-night";
+    nightBadge.textContent = "Night";
+    wrap.append(nightBadge);
+  }
+
+  if (club.featured) {
+    const featuredBadge = document.createElement("span");
+    featuredBadge.className = "badge badge-featured";
+    featuredBadge.textContent = "Featured";
+    wrap.append(featuredBadge);
+  }
+
+  if (club.isNew) {
+    const newBadge = document.createElement("span");
+    newBadge.className = "badge badge-new";
+    newBadge.textContent = "New";
+    wrap.append(newBadge);
+  }
+
+  return wrap.childNodes.length ? wrap : null;
+}
+
+function createVerifiedBadge(club) {
+  if (!club || !club.isVerified) return null;
+  const verifiedBadge = document.createElement("span");
+  verifiedBadge.className = `badge badge-verified ${getVerifiedBadgeVariantClass(club)}`;
+  verifiedBadge.title = "Verified, yo!";
+  verifiedBadge.setAttribute("aria-label", "Verified, yo!");
+  verifiedBadge.setAttribute("data-tooltip", "Verified, yo!");
+  verifiedBadge.tabIndex = 0;
+  verifiedBadge.innerHTML =
+    '<img class="badge-verified-mark" src="./assets/hand-drawn-check-mark.png" alt="" aria-hidden="true">';
+  verifiedBadge.addEventListener("click", handleVerifiedBadgeTap);
+  return verifiedBadge;
+}
+
+function handleVerifiedBadgeTap(event) {
+  const badge = event.currentTarget;
+  if (!(badge instanceof HTMLElement)) return;
+  const nextCount = Number(badge.dataset.tapCount || "0") + 1;
+  badge.dataset.tapCount = String(nextCount);
+  if (nextCount < 3) return;
+  badge.dataset.tapCount = "0";
+  badge.classList.remove("badge-verified--settled");
+  badge.classList.remove("badge-verified--blam");
+  window.requestAnimationFrame(() => {
+    badge.classList.add("badge-verified--blam");
+  });
+  window.setTimeout(() => {
+    badge.classList.remove("badge-verified--blam");
+    badge.classList.add("badge-verified--settled");
+  }, 520);
+  window.setTimeout(() => {
+    badge.classList.remove("badge-verified--settled");
+  }, 1600);
+}
+
+function getVerifiedBadgeVariantClass(club) {
+  const seed = (club && (club.displayCity || club.city || "")) || "";
+  const total = seed.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const variants = [
+    "badge-verified--seal",
+    "badge-verified--stamp",
+    "badge-verified--spark",
+  ];
+  return variants[total % variants.length];
+}
+
+function createTimetableModule(club) {
+  const noteLabel = compactText(club && club.locationNote);
+  const noteDetail = compactText(club && club.locationNoteDetail);
+  const nextOccurrence = getNextOccurrenceLabel(club);
+  const startLabel = getStartsAtLabel(club);
+  const scheduleLabel = noteLabel || (nextOccurrence ? "Next occurrence >" : compactText(club && club.scheduleLabel));
+  const detailText = noteDetail || nextOccurrence || startLabel;
+
+  if (!scheduleLabel) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "card-timetable";
+
+  if (scheduleLabel) {
+    const day = document.createElement("div");
+    day.className = "card-timetable-day";
+    day.textContent = scheduleLabel;
+    wrap.append(day);
+  }
+
+  if (detailText) {
+    const detail = document.createElement("div");
+    detail.className = "card-timetable-detail";
+    detail.textContent = detailText;
+    wrap.append(detail);
+  }
+
+  return wrap;
+}
+
+function getNextOccurrenceLabel(club) {
+  const dates = (club && club.specificDates) || [];
+  if (!dates.length) return "";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const next = dates
+    .map((value) => parseISODateAtNoon(compactText(value)))
+    .filter(Boolean)
+    .find((date) => date >= today);
+
+  if (!next) return "";
+
+  return next.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getStartsAtLabel(club) {
+  if (!club || !club.isNight) return "";
+  const timeLabel = getClubTimeLabel(club);
+  return timeLabel ? `Starts @ ${timeLabel}` : "";
+}
+
+function createFlyerCallout(club) {
+  return null;
+}
+
 function renderDayNav(items) {
   const countByDay = new Map(DAYS.map((day) => [day, 0]));
   items.forEach((club) => {
@@ -883,6 +1046,7 @@ function createClubCard(club) {
   const card = document.createElement("article");
   card.className = "club-card";
   if (club.isNight) card.classList.add("night-edition");
+  if (club.isActive === false) card.classList.add("inactive-card");
 
   const displayCity = getDisplayCity(club);
   card.dataset.city = (club.city || "").toLowerCase().trim();
@@ -896,21 +1060,30 @@ function createClubCard(club) {
   const titleRow = document.createElement("div");
   titleRow.className = "card-title-row";
 
-  if (club.isVerified) {
-    const verifiedBadge = document.createElement("span");
-    verifiedBadge.className = "badge badge-verified";
-    verifiedBadge.textContent = "✓";
-    verifiedBadge.title = "Verified";
-    verifiedBadge.setAttribute("aria-label", "Verified");
-    titleRow.append(verifiedBadge);
+  if (club.isActive === false) {
+    const inactiveBadge = document.createElement("span");
+    inactiveBadge.className = "badge badge-inactive-sticker";
+    inactiveBadge.textContent = "Inactive";
+    inactiveBadge.setAttribute("aria-label", "Inactive");
+    titleRow.append(inactiveBadge);
   }
+
+  const verifiedBadge = createVerifiedBadge(club);
+  if (verifiedBadge) titleRow.append(verifiedBadge);
 
   const cityEl = document.createElement("span");
   cityEl.className = "city-name";
   if (isOriginal) cityEl.classList.add("original-bc");
   cityEl.textContent = displayCity;
   titleRow.append(cityEl);
+
+  const titleBadges = createTitleBadges(club);
+  if (titleBadges) titleRow.append(titleBadges);
+
   card.append(titleRow);
+
+  const timetable = createTimetableModule(club);
+  if (timetable) card.append(timetable);
 
   const location = document.createElement("div");
   location.className = "card-location";
@@ -925,6 +1098,18 @@ function createClubCard(club) {
     card.append(host);
   }
 
+  const subline = document.createElement("div");
+  subline.className = "card-subline";
+
+  if (club.locationNote && !club.locationNoteDetail) {
+    const locBadge = document.createElement("span");
+    locBadge.className = "badge badge-location";
+    locBadge.textContent = club.locationNote;
+    subline.append(locBadge);
+  }
+
+  if (subline.childNodes.length) card.append(subline);
+
   const confirmationNote = getClubConfirmationNote(club);
   if (confirmationNote) {
     const note = document.createElement("p");
@@ -933,9 +1118,12 @@ function createClubCard(club) {
     card.append(note);
   }
 
-  if (club.locationNoteDetail) {
+  if (club.locationNoteDetail && !club.locationNote) {
     card.append(createLocationNoteBody(club.locationNote, club.locationNoteDetail));
   }
+
+  const flyerCallout = createFlyerCallout(club);
+  if (flyerCallout) card.append(flyerCallout);
 
   const util = document.createElement("div");
   util.className = "card-utility";
@@ -975,16 +1163,19 @@ function createClubCard(club) {
 function render(items) {
   clubsList.innerHTML = "";
 
-  if (!items.length) {
+  const activeItems = items.filter((club) => club.isActive !== false);
+  const inactiveItems = items.filter((club) => club.isActive === false);
+
+  if (!activeItems.length && !inactiveItems.length) {
     clubsList.innerHTML = "<p class='status'>No clubs match this search.</p>";
     daysNav.innerHTML = "";
     return;
   }
 
-  renderDayNav(items);
+  renderDayNav(activeItems);
 
   DAYS.forEach((day) => {
-    const dayItems = items
+    const dayItems = activeItems
       .filter((club) => getDisplayDayForClub(club) === day)
       .sort((a, b) => {
         if (isClubConfirmedThisWeek(a) !== isClubConfirmedThisWeek(b)) {
@@ -1000,6 +1191,7 @@ function render(items) {
     const section = document.createElement("section");
     section.className = "day-section";
     if (day === "Every now and again") section.classList.add("day-section--wide");
+    else section.classList.add("day-section--stacked-times");
     section.id = `day-${slugify(day)}`;
 
     const heading = document.createElement("h3");
@@ -1027,6 +1219,7 @@ function render(items) {
       .forEach(([timeLabel, slotItems]) => {
         const slotGroup = document.createElement("div");
         slotGroup.className = "time-slot-group";
+        if (slotItems.length >= 3) slotGroup.classList.add("time-slot-group--wide");
 
         const slotHeading = document.createElement("h4");
         slotHeading.className = "time-slot-heading";
@@ -1035,6 +1228,7 @@ function render(items) {
 
         const slotGrid = document.createElement("div");
         slotGrid.className = "day-section-grid";
+        if (slotItems.length === 1) slotGrid.classList.add("day-section-grid--single");
         slotItems.forEach((club) => slotGrid.append(createClubCard(club)));
         slotGroup.append(slotGrid);
         section.append(slotGroup);
@@ -1042,6 +1236,30 @@ function render(items) {
 
     clubsList.append(section);
   });
+
+  if (inactiveItems.length) {
+    const inactiveSection = document.createElement("section");
+    inactiveSection.className = "day-section inactive-section";
+    inactiveSection.id = "inactive-clubs";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Inactive Clubs";
+    inactiveSection.append(heading);
+
+    const intro = document.createElement("p");
+    intro.className = "inactive-section-copy";
+    intro.textContent = "These clubs are marked inactive in the main sheet right now.";
+    inactiveSection.append(intro);
+
+    const grid = document.createElement("div");
+    grid.className = "day-section-grid";
+    inactiveItems
+      .slice()
+      .sort((a, b) => getDisplayCity(a).localeCompare(getDisplayCity(b)))
+      .forEach((club) => grid.append(createClubCard(club)));
+    inactiveSection.append(grid);
+    clubsList.append(inactiveSection);
+  }
 
   requestAnimationFrame(syncActiveDayLink);
 }
@@ -1365,7 +1583,8 @@ async function loadClubs() {
         const isActive = (col("active", cells) || "yes").toLowerCase() !== "no";
         const cadence = override.cadence || (isActive ? col("frequency", cells) : "Every now and again") || "";
         const sheetUpcomingDate = parseSheetUpcomingDate(col("upcoming_date", cells));
-        const time = formatTimeLabel(override.time || "");
+        const rawTime = override.time || col("start_time", cells) || "";
+        const time = formatTimeLabel(rawTime);
         const extraSocials = override.extraSocials || [];
         const igHandles = override.hideInstagram ? [] : extractInstagramHandles(col("host_instagram", cells));
         const instagramItems = override.hideInstagram ? [] : buildInstagramSocialItems(igHandles, extraSocials);
@@ -1380,14 +1599,15 @@ async function loadClubs() {
           city,
           region: CITY_REGION[city.toLowerCase().trim()] || "",
           displayCity: override.displayCity || city,
+          isActive,
           featured: override.featured ?? isAffirmative(col("featured", cells)),
           isNew: override.isNew ?? isAffirmative(col("is_new", cells)),
           cadence,
           time,
-          scheduleLabel: extractScheduleLabel(cadence, time),
+          scheduleLabel: extractScheduleLabel(cadence, rawTime),
           venue: override.venue || getVenue(col("venue_name", cells), ""),
-          day: getDay(cadence, time),
-          isNight: isNightClub(time, override.isNight),
+          day: getDay(cadence, rawTime),
+          isNight: isNightClub(rawTime || time, override.isNight),
           specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : []),
           isVerified: override.verified ?? Boolean((override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : [])).length),
           locationNote: override.locationNote || "",
@@ -1403,7 +1623,7 @@ async function loadClubs() {
             override.hostDisplay || "",
           ),
           upcoming_date: sheetUpcomingDate || "",
-          eventTime: override.eventTime || col("start_time", cells),
+          eventTime: override.eventTime || rawTime,
           eventTimeLabel: override.eventTimeLabel || "",
           communityLink: override.communityLink || col("whatsapp", cells) || "",
           locationNoteDetail: override.locationNoteDetail || "",

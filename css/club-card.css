@@ -31,6 +31,22 @@
   box-shadow: 0 0 0 2px rgba(226, 193, 71, 0.2);
 }
 
+.inactive-card {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.6), transparent 28%),
+    linear-gradient(180deg, #f1f1ef 0%, #e4e1db 100%);
+  border-color: rgba(109, 104, 95, 0.22);
+  box-shadow:
+    0 10px 18px rgba(67, 61, 53, 0.06),
+    0 2px 6px rgba(67, 61, 53, 0.05);
+  color: #5a5650;
+}
+
+.inactive-card::before {
+  background: rgba(208, 205, 198, 0.78);
+  border-color: rgba(120, 113, 103, 0.16);
+}
+
 .club-card::before {
   content: "";
   position: absolute;
@@ -57,14 +73,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px 10px;
+  gap: 6px 8px;
 }
 
 .title-badges {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .city-name {
@@ -102,24 +118,25 @@
 .card-timetable {
   position: relative;
   display: grid;
-  gap: 3px;
+  gap: 2px;
   align-self: flex-start;
-  min-width: min(100%, 220px);
-  padding: 10px 14px 9px;
-  border-radius: 14px;
+  min-width: min(100%, 146px);
+  max-width: min(100%, 210px);
+  padding: 7px 11px 6px;
+  border-radius: 12px;
   border: 1px solid rgba(121, 91, 47, 0.16);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(249, 241, 231, 0.96) 100%);
-  box-shadow: 0 10px 22px rgba(74, 54, 24, 0.08);
+  box-shadow: 0 8px 18px rgba(74, 54, 24, 0.07);
 }
 
 .card-timetable::before {
   content: "";
   position: absolute;
-  top: -7px;
-  right: 18px;
-  width: 46px;
-  height: 14px;
+  top: -6px;
+  right: 16px;
+  width: 34px;
+  height: 11px;
   border-radius: 4px;
   background: rgba(248, 221, 171, 0.8);
   border: 1px solid rgba(181, 133, 60, 0.16);
@@ -127,24 +144,24 @@
 }
 
 .card-timetable-day {
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: rgba(96, 71, 34, 0.72);
 }
 
 .card-timetable-time {
-  font-size: clamp(20px, 2vw, 26px);
+  font-size: clamp(13px, 1.1vw, 15px);
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
   color: #20160d;
 }
 
 .card-timetable-detail {
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.3;
   color: rgba(77, 56, 31, 0.8);
 }
 
@@ -219,11 +236,11 @@
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 1px 7px;
+  padding: 1px 6px;
   border-radius: 999px;
   border: 1px solid;
   line-height: 1.25;
@@ -236,9 +253,9 @@
 }
 
 .badge-night {
-  background: #f2de9a;
-  border-color: #d3b24d;
-  color: #111;
+  background: #ffb347;
+  border-color: #d97a13;
+  color: #2c1400;
 }
 
 .badge-featured {
@@ -254,18 +271,170 @@
 }
 
 .badge-verified {
+  position: relative;
   justify-content: center;
-  min-width: 20px;
-  width: 20px;
-  height: 20px;
+  flex: 0 0 auto;
+  min-width: 22px;
+  width: 22px;
+  height: 22px;
   padding: 0;
+  margin-right: 1px;
+  border-width: 2px;
   border-radius: 999px;
-  background: #eaf7f0;
-  border-color: #2d8f5a;
-  color: #17663d;
-  font-size: 11px;
-  font-weight: 800;
+  background: linear-gradient(180deg, #fff3d8 0%, #f8d89d 100%);
+  border-color: #d08a2f;
+  color: #8a4711;
+  line-height: 1;
   letter-spacing: 0;
+  box-shadow:
+    0 6px 14px rgba(165, 104, 25, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  cursor: help;
+}
+
+.badge-verified-mark {
+  width: 18px;
+  height: 18px;
+  display: block;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  transform: none;
+  filter: sepia(1) saturate(4.2) hue-rotate(-12deg) brightness(0.82) contrast(1.15);
+}
+
+.badge-verified::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(34, 23, 12, 0.94);
+  color: #fff8ef;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 20px rgba(40, 26, 11, 0.18);
+  transition: opacity 120ms ease, transform 120ms ease;
+  z-index: 8;
+}
+
+.badge-verified:hover::after,
+.badge-verified:focus-visible::after,
+.badge-verified:active::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.badge-verified:focus-visible {
+  outline: 2px solid rgba(208, 138, 47, 0.45);
+  outline-offset: 2px;
+}
+
+.club-card.night-edition .badge-verified::after {
+  background: rgba(255, 244, 220, 0.96);
+  color: #3b2208;
+}
+
+.badge-verified--seal {
+  background: radial-gradient(circle at 30% 28%, #fffaf0 0%, #fff1d3 20%, #f4ce8a 100%);
+  border-color: #d08a2f;
+  color: #8a4711;
+  border-radius: 999px;
+  transform: rotate(-6deg);
+}
+
+.badge-verified--stamp {
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff8ec 0%, #f7ddb0 100%);
+  border-color: #d99a44;
+  color: #955214;
+  transform: rotate(5deg);
+}
+
+.badge-verified--spark {
+  background: linear-gradient(180deg, #fff9ee 0%, #f6e2b6 100%);
+  border-color: #daa04d;
+  color: #955214;
+  border-radius: 999px;
+  transform: rotate(-3deg);
+  box-shadow:
+    0 6px 14px rgba(165, 104, 25, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 0 0 1px rgba(255, 245, 224, 0.38);
+}
+
+.club-card.night-edition .badge-verified--seal {
+  background: linear-gradient(180deg, #ffd792 0%, #efab43 100%);
+  border-color: #ffcf7d;
+  color: #5e2d05;
+  box-shadow:
+    0 8px 18px rgba(255, 186, 82, 0.28),
+    inset 0 1px 0 rgba(255, 248, 229, 0.72);
+}
+
+.club-card.night-edition .badge-verified--stamp {
+  background: linear-gradient(180deg, #ffdca0 0%, #f2b24f 100%);
+  border-color: #ffd18c;
+  color: #5e2d05;
+  box-shadow:
+    0 8px 18px rgba(255, 186, 82, 0.28),
+    inset 0 1px 0 rgba(255, 248, 229, 0.72);
+}
+
+.club-card.night-edition .badge-verified--spark {
+  background: linear-gradient(180deg, #ffe2aa 0%, #f4bb5d 100%);
+  border-color: #ffd693;
+  color: #5e2d05;
+  box-shadow:
+    0 8px 18px rgba(255, 186, 82, 0.28),
+    inset 0 1px 0 rgba(255, 248, 229, 0.72);
+}
+
+.club-card.night-edition .badge-verified-mark {
+  filter: sepia(1) saturate(4.5) hue-rotate(-12deg) brightness(0.42) contrast(1.28);
+}
+
+.badge-verified--blam {
+  animation: verified-badge-blam 760ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.badge-verified--settled {
+  transform: rotate(-18deg);
+}
+
+@keyframes verified-badge-blam {
+  0% {
+    transform: scale(1) rotate(0deg);
+    box-shadow:
+      0 6px 14px rgba(165, 104, 25, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  22% {
+    transform: scale(1.3) rotate(18deg);
+    box-shadow:
+      0 12px 28px rgba(255, 140, 26, 0.38),
+      0 0 0 8px rgba(255, 206, 132, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  }
+  48% {
+    transform: scale(1.08) rotate(208deg);
+    box-shadow:
+      0 14px 30px rgba(255, 140, 26, 0.34),
+      0 0 0 10px rgba(255, 206, 132, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  }
+  70% {
+    transform: scale(0.96) rotate(166deg);
+  }
+  100% {
+    transform: scale(1) rotate(-18deg);
+  }
 }
 
 .badge-popup {
@@ -281,10 +450,39 @@
   font-weight: 700;
 }
 
+.badge-inactive-sticker {
+  margin-right: 2px;
+  background: #6c6a65;
+  border-color: #5b5853;
+  color: #ffffff;
+  transform: rotate(-5deg);
+  box-shadow: 0 4px 10px rgba(61, 57, 52, 0.16);
+}
+
 .club-card.night-edition .badge-night {
-  background: rgba(242, 222, 154, 0.15);
-  border-color: rgba(211, 178, 77, 0.6);
-  color: #f2de9a;
+  background: rgba(255, 179, 71, 0.18);
+  border-color: rgba(255, 179, 71, 0.58);
+  color: #ffc86e;
+}
+
+.inactive-card .city-name,
+.inactive-card .card-location,
+.inactive-card .card-host,
+.inactive-card .card-confirmation-note,
+.inactive-card .card-timetable-day,
+.inactive-card .card-timetable-detail {
+  color: inherit;
+}
+
+.inactive-card .card-timetable {
+  background: linear-gradient(180deg, rgba(247, 247, 245, 0.98) 0%, rgba(232, 229, 223, 0.98) 100%);
+  border-color: rgba(109, 104, 95, 0.18);
+  box-shadow: 0 8px 16px rgba(67, 61, 53, 0.06);
+}
+
+.inactive-card .card-timetable::before {
+  background: rgba(208, 205, 198, 0.88);
+  border-color: rgba(120, 113, 103, 0.14);
 }
 
 /* Links inside night cards */
@@ -342,111 +540,45 @@
 }
 
 .card-flyer-callout {
-  position: relative;
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
-  gap: 10px;
+  display: inline-flex;
   align-items: center;
-  width: min(100%, 360px);
+  align-self: flex-start;
+  width: auto;
   border: 0;
-  border-radius: 16px;
-  padding: 10px 12px 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.98) 0%, rgba(248, 239, 226, 0.98) 100%);
-  box-shadow: 0 12px 26px rgba(74, 54, 24, 0.08);
+  padding: 0;
+  margin: 2px 0 4px;
+  background: transparent;
   text-align: left;
   cursor: pointer;
-}
-
-.card-flyer-callout::before {
-  content: "";
-  position: absolute;
-  top: -7px;
-  left: 20px;
-  width: 52px;
-  height: 15px;
-  border-radius: 4px;
-  background: rgba(248, 221, 171, 0.82);
-  border: 1px solid rgba(181, 133, 60, 0.16);
-  transform: rotate(-5deg);
+  transform: rotate(-2.5deg);
 }
 
 .card-flyer-callout:hover,
 .card-flyer-callout:focus-visible {
-  transform: translateY(-1px) rotate(-0.35deg);
-}
-
-.card-flyer-thumb-wrap {
-  width: 58px;
-  padding: 4px 4px 10px;
-  background: #fff;
-  box-shadow: 0 8px 18px rgba(74, 54, 24, 0.12);
-  transform: rotate(-3deg);
-}
-
-.card-flyer-thumb {
-  width: 100%;
-  aspect-ratio: 0.74;
-  display: block;
-  object-fit: cover;
-  object-position: center top;
+  transform: translateY(-1px) rotate(-3.5deg);
 }
 
 .card-flyer-copy {
   min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-
-.card-flyer-eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: rgba(96, 71, 34, 0.62);
+  display: inline-flex;
 }
 
 .card-flyer-title {
   font-family: "Marker Felt", "Bradley Hand", "Comic Sans MS", cursive;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
   color: #d53a1f;
-}
-
-.card-flyer-subtitle {
-  font-size: 12px;
-  line-height: 1.35;
-  color: rgba(77, 56, 31, 0.78);
-}
-
-.card-flyer-arrow {
-  font-family: "Marker Felt", "Bradley Hand", "Comic Sans MS", cursive;
-  font-size: 28px;
-  line-height: 1;
-  color: #d53a1f;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .club-card.night-edition .card-flyer-callout {
-  background:
-    linear-gradient(180deg, rgba(18, 30, 52, 0.9) 0%, rgba(10, 19, 34, 0.95) 100%);
-  box-shadow: 0 16px 32px rgba(2, 7, 15, 0.24);
+  background: transparent;
 }
 
-.club-card.night-edition .card-flyer-callout::before {
-  background: rgba(242, 222, 154, 0.2);
-  border-color: rgba(242, 222, 154, 0.16);
-}
-
-.club-card.night-edition .card-flyer-thumb-wrap {
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.club-card.night-edition .card-flyer-eyebrow {
-  color: rgba(242, 222, 154, 0.82);
-}
-
-.club-card.night-edition .card-flyer-subtitle {
-  color: rgba(220, 228, 243, 0.82);
+.club-card.night-edition .card-flyer-title {
+  color: #f2de9a;
 }
 
 /* Host line */
@@ -734,6 +866,21 @@
 
   .card-title-row {
     gap: 6px 8px;
+  }
+
+  .badge {
+    font-size: 10px;
+  }
+
+  .badge-verified {
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .badge-verified-mark {
+    width: 19px;
+    height: 19px;
   }
 
   .card-subline-main {

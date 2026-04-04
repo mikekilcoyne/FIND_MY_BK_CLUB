@@ -181,21 +181,42 @@
   function parseSheetUpcomingDate(value) {
     const raw = (value || "").trim();
     if (!raw) return "";
+    const currentYear = new Date().getFullYear();
 
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
       return raw;
     }
 
-    const monthDay = raw.match(/^(\d{1,2})\s+([A-Za-z]+)$/);
-    if (monthDay) {
-      const currentYear = new Date().getFullYear();
-      const parsed = new Date(`${monthDay[2]} ${monthDay[1]}, ${currentYear} 12:00:00`);
+    const cleaned = raw.replace(/(\d)(st|nd|rd|th)\b/gi, "$1").replace(/\s+/g, " ").trim();
+
+    const dayMonth = cleaned.match(/^(\d{1,2})\s+([A-Za-z]+)$/);
+    if (dayMonth) {
+      const parsed = new Date(`${dayMonth[2]} ${dayMonth[1]}, ${currentYear} 12:00:00`);
       if (!Number.isNaN(parsed.getTime())) {
         return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
       }
     }
 
-    const parsed = new Date(raw);
+    const monthDay = cleaned.match(/^([A-Za-z]+)\s+(\d{1,2})(?:,\s*(\d{4}))?$/);
+    if (monthDay) {
+      const year = Number(monthDay[3]) || currentYear;
+      const parsed = new Date(`${monthDay[1]} ${monthDay[2]}, ${year} 12:00:00`);
+      if (!Number.isNaN(parsed.getTime())) {
+        return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      }
+    }
+
+    const slashMonthDay = cleaned.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+    if (slashMonthDay) {
+      let year = Number(slashMonthDay[3]) || currentYear;
+      if (year < 100) year += 2000;
+      const parsed = new Date(year, Number(slashMonthDay[1]) - 1, Number(slashMonthDay[2]), 12);
+      if (!Number.isNaN(parsed.getTime())) {
+        return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      }
+    }
+
+    const parsed = new Date(cleaned);
     if (!Number.isNaN(parsed.getTime())) {
       return toISODate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
     }

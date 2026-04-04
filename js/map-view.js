@@ -7,6 +7,7 @@
   var getOverrideForCity = BKClubData.getOverrideForCity;
   var sharedShouldHideClub = BKClubData.shouldHideClub;
   var sharedParseSheetUpcomingDate = BKClubData.parseSheetUpcomingDate;
+  var sharedExtractInstagramHandles = BKClubData.extractInstagramHandles;
 
   // ── CSV parsing (same pipeline as home + calendar) ────
 
@@ -106,6 +107,400 @@
     return "";
   }
 
+  function extractInstagramHandles(value) {
+    if (sharedExtractInstagramHandles) return sharedExtractInstagramHandles(value);
+    var raw = (value || "").trim();
+    if (!raw) return [];
+    var matches = raw.match(/@[A-Za-z0-9._]+/g) || [];
+    return Array.from(new Set(matches));
+  }
+
+  function compactText(value) {
+    return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function dedupeSocialItems(items) {
+    var seen = new Set();
+    return items.filter(function (item) {
+      if (!item || !item.url) return false;
+      var key = item.url.replace(/\/$/, "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function splitHostNames(value) {
+    var cleaned = (value || "")
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/@[A-Za-z0-9._]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!cleaned) return [];
+
+    return cleaned
+      .split(/\s*(?:,|&|\band\b|\+)\s*/i)
+      .map(function (part) { return part.trim(); })
+      .filter(Boolean);
+  }
+
+  function sanitizeHostDisplay(value) {
+    return splitHostNames(value).join(" & ");
+  }
+
+  function formatTimeLabel(value) {
+    var text = compactText(value);
+    if (!text) return "";
+    return text
+      .replace(/\bTIME\b/gi, "")
+      .replace(/\s*,\s*$/, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\b830am\b/i, "8:30am")
+      .trim();
+  }
+
+  function parseWeekdayName(value) {
+    var text = normCity(value);
+    if (text.includes("monday")) return "Monday";
+    if (text.includes("tuesday")) return "Tuesday";
+    if (text.includes("wednesday")) return "Wednesday";
+    if (text.includes("thursday")) return "Thursday";
+    if (text.includes("friday")) return "Friday";
+    if (text.includes("saturday")) return "Saturday";
+    if (text.includes("sunday")) return "Sunday";
+    return "";
+  }
+
+  function extractScheduleLabel(cadence, timeValue) {
+    var t = compactText(timeValue);
+    var c = compactText(cadence);
+    var lower = normCity(t);
+    var lowerC = normCity(c);
+    if (lower.includes("first thursday") || lowerC.includes("first thursday")) return "First Thursday";
+    if (lower.includes("first wednesday") || lowerC.includes("first wednesday")) return "First Wednesday";
+    if (lower.includes("first monday") || lowerC.includes("first monday")) return "First Monday";
+    if (lower.includes("second friday") || lowerC.includes("second friday")) return "Second Friday";
+    if (lower.includes("second monday") || lowerC.includes("second monday")) return "Second Monday";
+    if (lower.includes("second thursday") || lowerC.includes("second thursday")) return "Second Thursday";
+    if (lower.includes("third thursday") || lowerC.includes("third thursday")) return "Third Thursday";
+    if (lower.includes("third friday") || lowerC.includes("third friday")) return "Third Friday";
+    if (lower.includes("fourth friday") || lowerC.includes("fourth friday")) return "Fourth Friday";
+    if (lower.includes("fourth thursday") || lowerC.includes("fourth thursday")) return "Fourth Thursday";
+    if (lower.includes("fourth tuesday") || lowerC.includes("fourth tuesday")) return "Fourth Tuesday";
+    if (lower.includes("every other thursday") || lowerC.includes("every other thursday")) return "Every Other Thursday";
+    if (lower.includes("bi-weekly thursday") || lowerC.includes("bi-weekly thursday")) return "Every Other Thursday";
+    if (lower.includes("wednesday") || lowerC.includes("wednesday")) return "Wednesday";
+    if (lower.includes("thursday") || lowerC.includes("thursday")) return "Thursday";
+    if (lower.includes("friday") || lowerC.includes("friday")) return "Friday";
+    if (lower.includes("tuesday") || lowerC.includes("tuesday")) return "Tuesday";
+    if (lower.includes("monday") || lowerC.includes("monday")) return "Monday";
+    if (c) return c;
+    return "";
+  }
+
+  function isNightClub(timeValue, overrideIsNight) {
+    if (typeof overrideIsNight === "boolean") return overrideIsNight;
+    return /\b(pm|p\.m\.|night|evening)\b/.test(normCity(timeValue));
+  }
+
+  function parseISODateAtNoon(value) {
+    if (!value) return null;
+    var parsed = new Date(value + "T12:00:00");
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function getClubTimeLabel(club) {
+    return compactText(club && (club.eventTimeLabel || club.eventTime || club.time));
+  }
+
+  function getNextOccurrenceLabel(club) {
+    var dates = (club && club.specificDates) || [];
+    if (!dates.length) return "";
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (var i = 0; i < dates.length; i += 1) {
+      var date = parseISODateAtNoon(compactText(dates[i]));
+      if (date && date >= today) {
+        return date.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        });
+      }
+    }
+
+    return "";
+  }
+
+  function getStartsAtLabel(club) {
+    if (!club || !club.isNight) return "";
+    var timeLabel = getClubTimeLabel(club);
+    return timeLabel ? "Starts @ " + timeLabel : "";
+  }
+
+  function createLocationNoteBody(noteLabel, noteDetail) {
+    var noteBody = document.createElement("p");
+    noteBody.className = "host-note-body";
+    var strong = document.createElement("strong");
+    strong.textContent = (noteLabel || "Update") + ": ";
+    noteBody.appendChild(strong);
+    noteBody.appendChild(document.createTextNode(noteDetail || ""));
+    return noteBody;
+  }
+
+  function createSocialGlyph(type) {
+    var glyph = document.createElement("span");
+    glyph.className = "social-glyph social-glyph--" + type;
+
+    if (type === "maps") {
+      glyph.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+          '<path d="M12 21s-5.8-5.4-5.8-10.4a5.8 5.8 0 1 1 11.6 0C17.8 15.6 12 21 12 21Z"></path>' +
+          '<circle cx="12" cy="10.6" r="2.3"></circle>' +
+        "</svg>";
+      return glyph;
+    }
+
+    if (type === "linkedin") {
+      glyph.textContent = "in";
+      return glyph;
+    }
+
+    glyph.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+        '<rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5.25"></rect>' +
+        '<circle cx="12" cy="12" r="4.1"></circle>' +
+        '<circle cx="17.35" cy="6.65" r="1.1" fill="currentColor" stroke="none"></circle>' +
+      "</svg>";
+    return glyph;
+  }
+
+  function renderSocialIcon(type, url, title) {
+    var link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.title = title || "";
+    link.className = "social-icon-link social-icon-link--" + type + " " +
+      (type === "linkedin" ? "li-icon-link" : "ig-icon-link");
+    link.appendChild(createSocialGlyph(type));
+    return link;
+  }
+
+  function renderMapIcon(url, title) {
+    return renderSocialIcon("maps", url, title || "Open in Google Maps");
+  }
+
+  function renderSocialMenu(type, items) {
+    var details = document.createElement("details");
+    details.className = "social-menu";
+
+    var summary = document.createElement("summary");
+    summary.className = "social-menu-trigger";
+    summary.appendChild(createSocialGlyph(type));
+    var count = document.createElement("span");
+    count.className = "social-count";
+    count.textContent = "(" + items.length + ")";
+    summary.appendChild(count);
+    details.appendChild(summary);
+
+    var panel = document.createElement("div");
+    panel.className = "social-menu-panel";
+
+    items.forEach(function (item, index) {
+      var link = document.createElement("a");
+      link.href = item.url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.className = "social-menu-link";
+      link.textContent = item.title || ((type === "instagram" ? "Instagram " : "LinkedIn ") + (index + 1));
+      panel.appendChild(link);
+    });
+
+    details.appendChild(panel);
+    return details;
+  }
+
+  function buildInstagramSocialItems(handles, extraSocials) {
+    var fromHandles = (handles || []).map(function (handle) {
+      return {
+        url: "https://www.instagram.com/" + handle.replace(/^@/, "") + "/",
+        title: handle,
+      };
+    });
+    var fromOverrides = (extraSocials || [])
+      .filter(function (item) { return item && item.type === "instagram" && item.url; })
+      .map(function (item) {
+        return {
+          url: item.url,
+          title: item.title || "Instagram",
+        };
+      });
+    return dedupeSocialItems(fromHandles.concat(fromOverrides));
+  }
+
+  function extractLinkedInURLs(values, hostName) {
+    var items = [];
+    var hostNames = splitHostNames(hostName);
+
+    (values || []).forEach(function (value) {
+      var raw = (value || "").trim();
+      if (!raw) return;
+      var matches = raw.match(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s,]+|(?:www\.)?linkedin\.com\/[^\s,]+/gi) || [];
+      matches.forEach(function (match) {
+        var url = /^https?:\/\//i.test(match) ? match : "https://" + match;
+        items.push({ url: url, title: "" });
+      });
+    });
+
+    return dedupeSocialItems(items).map(function (item, index, deduped) {
+      return {
+        url: item.url,
+        title: hostNames[index] || (deduped.length === 1 ? hostNames[0] || "LinkedIn" : "LinkedIn " + (index + 1)),
+      };
+    });
+  }
+
+  function buildLinkedInSocialItems(sheetValues, extraSocials, overrideURL, hostName) {
+    var hostNames = splitHostNames(hostName);
+    var fromSheet = extractLinkedInURLs(sheetValues || [], hostName);
+    var fromOverride = overrideURL ? [{ url: overrideURL, title: hostNames[0] || "LinkedIn" }] : [];
+    var fromExtras = (extraSocials || [])
+      .filter(function (item) { return item && item.type === "linkedin" && item.url; })
+      .map(function (item) {
+        return {
+          url: item.url,
+          title: item.title || "LinkedIn",
+        };
+      });
+    return dedupeSocialItems(fromSheet.concat(fromOverride, fromExtras));
+  }
+
+  function getVerifiedBadgeVariantClass(club) {
+    var seed = (club && (club.displayCity || club.city || "")) || "";
+    var total = seed.split("").reduce(function (sum, char) {
+      return sum + char.charCodeAt(0);
+    }, 0);
+    var variants = [
+      "badge-verified--seal",
+      "badge-verified--stamp",
+      "badge-verified--spark",
+    ];
+    return variants[total % variants.length];
+  }
+
+  function createVerifiedBadge(club) {
+    if (!club || !club.isVerified) return null;
+    var verifiedBadge = document.createElement("span");
+    verifiedBadge.className = "badge badge-verified " + getVerifiedBadgeVariantClass(club);
+    verifiedBadge.title = "Verified, yo!";
+    verifiedBadge.setAttribute("aria-label", "Verified, yo!");
+    verifiedBadge.setAttribute("data-tooltip", "Verified, yo!");
+    verifiedBadge.tabIndex = 0;
+    verifiedBadge.innerHTML =
+      '<img class="badge-verified-mark" src="./assets/hand-drawn-check-mark.png" alt="" aria-hidden="true">';
+    verifiedBadge.addEventListener("click", handleVerifiedBadgeTap);
+    return verifiedBadge;
+  }
+
+  function handleVerifiedBadgeTap(event) {
+    var badge = event.currentTarget;
+    if (!(badge instanceof HTMLElement)) return;
+    var nextCount = Number(badge.dataset.tapCount || "0") + 1;
+    badge.dataset.tapCount = String(nextCount);
+    if (nextCount < 3) return;
+    badge.dataset.tapCount = "0";
+    badge.classList.remove("badge-verified--settled");
+    badge.classList.remove("badge-verified--blam");
+    window.requestAnimationFrame(function () {
+      badge.classList.add("badge-verified--blam");
+    });
+    window.setTimeout(function () {
+      badge.classList.remove("badge-verified--blam");
+      badge.classList.add("badge-verified--settled");
+    }, 520);
+    window.setTimeout(function () {
+      badge.classList.remove("badge-verified--settled");
+    }, 1600);
+  }
+
+  function createTitleBadges(club) {
+    var wrap = document.createElement("div");
+    wrap.className = "title-badges";
+
+    if (club && club.isNight) {
+      var nightBadge = document.createElement("span");
+      nightBadge.className = "badge badge-night";
+      nightBadge.textContent = "Night";
+      wrap.appendChild(nightBadge);
+    }
+
+    if (club && club.featured) {
+      var featuredBadge = document.createElement("span");
+      featuredBadge.className = "badge badge-featured";
+      featuredBadge.textContent = "Featured";
+      wrap.appendChild(featuredBadge);
+    }
+
+    if (club && club.isNew) {
+      var newBadge = document.createElement("span");
+      newBadge.className = "badge badge-new";
+      newBadge.textContent = "New";
+      wrap.appendChild(newBadge);
+    }
+
+    return wrap.childNodes.length ? wrap : null;
+  }
+
+  function createTimetableModule(club) {
+    var noteLabel = compactText(club && club.locationNote);
+    var noteDetail = compactText(club && club.locationNoteDetail);
+    var nextOccurrence = getNextOccurrenceLabel(club);
+    var startLabel = getStartsAtLabel(club);
+    var scheduleLabel = noteLabel || (nextOccurrence ? "Next occurrence >" : compactText(club && club.scheduleLabel));
+    var detailText = noteDetail || nextOccurrence || startLabel || getClubTimeLabel(club);
+
+    if (!scheduleLabel) return null;
+
+    var wrap = document.createElement("div");
+    wrap.className = "card-timetable";
+
+    var day = document.createElement("div");
+    day.className = "card-timetable-day";
+    day.textContent = scheduleLabel;
+    wrap.appendChild(day);
+
+    if (detailText) {
+      var detail = document.createElement("div");
+      detail.className = "card-timetable-detail";
+      detail.textContent = detailText;
+      wrap.appendChild(detail);
+    }
+
+    return wrap;
+  }
+
+  function createClubUpdateModule(club) {
+    var wrap = document.createElement("div");
+    wrap.className = "card-update";
+
+    var trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "card-update-link";
+    trigger.textContent = "?";
+    trigger.setAttribute("aria-label", "Spotted something off? Submit an update.");
+    trigger.title = "Spotted something off? Submit an update.";
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.addEventListener("click", function () {
+      openClubUpdateModal(club, trigger);
+    });
+
+    wrap.appendChild(trigger);
+    return wrap;
+  }
+
   // ── Merge CSV onto geo club objects ───────────────────
 
   function mergeCSV(geoClubs, csvRows) {
@@ -125,12 +520,40 @@
       var sheetUpcomingDate = sharedParseSheetUpcomingDate
         ? sharedParseSheetUpcomingDate(col("upcoming_date", cells))
         : col("upcoming_date", cells);
+      var extraSocials = override.extraSocials || [];
+      var sheetHostName = cleanCell(col("host_name", cells));
+      var displayHost = sanitizeHostDisplay(sheetHostName || override.hostDisplay || club.host || "");
+      var instagramHandles = override.hideInstagram ? [] : extractInstagramHandles(col("host_instagram", cells));
+      var instagramItems = override.hideInstagram ? [] : buildInstagramSocialItems(instagramHandles, extraSocials);
+      var linkedInItems = buildLinkedInSocialItems(
+        [col("host_linkedin", cells), col("host_linkedin_2", cells)],
+        extraSocials,
+        override.linkedinURL || club.linkedinURL || "",
+        sheetHostName || override.hostDisplay || club.host || "",
+      );
       return Object.assign({}, club, {
         displayCity: override.displayCity || club.displayCity || club.city,
-        host: override.hostDisplay || cleanCell(col("host_name", cells)) || club.host || "",
+        host: displayHost || sanitizeHostDisplay(club.host || ""),
         venue: override.venue || cleanCell(col("venue_name", cells)) || club.venue || "",
-        linkedinURL: override.linkedinURL || extractLinkedInURL(col("host_linkedin", cells), col("host_linkedin_2", cells)) || club.linkedinURL || "",
-        instagramURL: override.instagramURL || extractInstagramURL(col("host_instagram", cells)) || "",
+        hostName: displayHost || sanitizeHostDisplay(club.host || ""),
+        time: override.time || formatTimeLabel(col("start_time", cells)) || club.time || "",
+        eventTime: override.eventTime || formatTimeLabel(col("start_time", cells)) || club.eventTime || "",
+        eventTimeLabel: override.eventTime || formatTimeLabel(col("start_time", cells)) || club.eventTime || "",
+        cadence: override.cadence || cleanCell(col("frequency", cells)) || club.cadence || "",
+        scheduleLabel: override.locationNote ? "" : (override.cadence || extractScheduleLabel(col("frequency", cells), override.time || col("start_time", cells)) || club.scheduleLabel || ""),
+        day: parseWeekdayName((override.time || col("start_time", cells) || "") + " " + (override.cadence || col("frequency", cells) || "")),
+        isNight: isNightClub(override.time || col("start_time", cells) || club.eventTime || "", override.isNight),
+        isVerified: typeof override.verified === "boolean" ? override.verified : Boolean(sheetUpcomingDate),
+        locationNote: override.locationNote || "",
+        locationNoteDetail: override.locationNoteDetail || "",
+        featured: override.featured === true || /^yes$/i.test(col("featured", cells)),
+        isNew: override.isNew === true || /^yes$/i.test(col("is_new", cells)),
+        isActive: override.isActive !== undefined ? override.isActive : !/^no$/i.test(col("active", cells) || "yes"),
+        specificDates: override.specificDates || (sheetUpcomingDate ? [sheetUpcomingDate] : (club.upcoming_date ? [club.upcoming_date] : [])),
+        linkedinURL: linkedInItems[0] ? linkedInItems[0].url : "",
+        linkedInItems: linkedInItems,
+        instagramURL: instagramItems[0] ? instagramItems[0].url : "",
+        instagramItems: instagramItems,
         flyerURL: override.flyerURL || normalizeFlyer(col("flyer_url", cells)) || "",
         communityLink: override.communityLink || col("whatsapp", cells) || club.whatsapp || "",
         upcoming_date: sheetUpcomingDate || club.upcoming_date || "",
@@ -365,88 +788,107 @@
   function openCard(club) {
     closeTripPanel();
     var card = document.getElementById("city-card");
-    var cityEl = document.getElementById("card-city");
-    var hostEl = document.getElementById("card-host");
-    var venueEl = document.getElementById("card-venue");
-    var dateEl = document.getElementById("card-date");
-    var mapsBtn = document.getElementById("card-maps-btn");
-    var linkedinBtn = document.getElementById("card-linkedin-btn");
-    var instagramBtn = document.getElementById("card-instagram-btn");
-    var siteLink = document.getElementById("card-site-link");
-    var actions = card.querySelector(".card-actions");
+    var content = document.getElementById("map-card-content");
+    if (!card || !content) return;
 
+    content.className = "club-card map-club-card" +
+      (club.isNight ? " night-edition" : "") +
+      (club.isActive === false ? " inactive-card" : "");
+    content.innerHTML = "";
+    content.appendChild(createClubUpdateModule(club));
+
+    var titleRow = document.createElement("div");
+    titleRow.className = "card-title-row";
+
+    if (club.isActive === false) {
+      var inactiveBadge = document.createElement("span");
+      inactiveBadge.className = "badge badge-inactive-sticker";
+      inactiveBadge.textContent = "Inactive";
+      titleRow.appendChild(inactiveBadge);
+    }
+
+    var verifiedBadge = createVerifiedBadge(club);
+    if (verifiedBadge) titleRow.appendChild(verifiedBadge);
+
+    var cityEl = document.createElement("div");
+    cityEl.className = "city-name";
     cityEl.textContent = club.displayCity || club.city;
-    hostEl.textContent = club.host || "";
-    hostEl.style.display = club.host ? "" : "none";
-    venueEl.textContent = club.venue || "";
-    venueEl.style.display = club.venue ? "" : "none";
+    titleRow.appendChild(cityEl);
 
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var storedDate = null;
-    if (club.upcoming_date) {
-      var sp = club.upcoming_date.split("-").map(Number);
-      storedDate = new Date(sp[0], sp[1] - 1, sp[2]);
-    }
-    var nextDate = (storedDate && storedDate >= today) ? storedDate : computeNextDate(club.schedule);
-    if (nextDate) {
-      dateEl.textContent = "Next up: " + formatDate(nextDate);
-      dateEl.style.display = "";
-    } else {
-      dateEl.style.display = "none";
+    var titleBadges = createTitleBadges(club);
+    if (titleBadges) titleRow.appendChild(titleBadges);
+
+    content.appendChild(titleRow);
+
+    var timetable = createTimetableModule(club);
+    if (timetable) content.appendChild(timetable);
+
+    if (club.venue) {
+      var venueEl = document.createElement("div");
+      venueEl.className = "card-location";
+      venueEl.textContent = club.venue;
+      content.appendChild(venueEl);
     }
 
-    var mapsURL =
-      club.mapsURL ||
-      "https://maps.google.com/?q=Breakfast+Club+" +
-        encodeURIComponent(club.displayCity || club.city);
+    if (club.host) {
+      var hostEl = document.createElement("div");
+      hostEl.className = "card-host";
+      hostEl.textContent = "Host: " + club.host;
+      content.appendChild(hostEl);
+    }
 
-    var newMapsBtn = mapsBtn.cloneNode(true);
-    newMapsBtn.href = mapsURL;
-    newMapsBtn.addEventListener("click", function () {
+    if (club.locationNoteDetail && !club.locationNote) {
+      content.appendChild(createLocationNoteBody(club.locationNote, club.locationNoteDetail));
+    }
+
+    var subline = document.createElement("div");
+    subline.className = "card-subline";
+    if (club.locationNote && !club.locationNoteDetail) {
+      var locBadge = document.createElement("span");
+      locBadge.className = "badge badge-location";
+      locBadge.textContent = club.locationNote;
+      subline.appendChild(locBadge);
+    }
+    if (subline.childNodes.length) content.appendChild(subline);
+
+    var util = document.createElement("div");
+    util.className = "card-utility";
+
+    var mapsURL = club.mapsURL ||
+      "https://maps.google.com/?q=Breakfast+Club+" + encodeURIComponent(club.displayCity || club.city);
+    var mapsBtn = renderMapIcon(mapsURL, club.venue ? "Open " + club.venue + " in Google Maps" : "Open in Google Maps");
+    mapsBtn.addEventListener("click", function () {
       if (window.BKAnalytics) {
         window.BKAnalytics.track("map_open_in_maps", {
           city: club.displayCity || club.city,
         });
       }
     });
-    mapsBtn.parentNode.replaceChild(newMapsBtn, mapsBtn);
+    util.appendChild(mapsBtn);
 
-    // siteLink handled in init() — zooms out to world view
-
-    if (club.linkedinURL) {
-      linkedinBtn.href = club.linkedinURL;
-      linkedinBtn.hidden = false;
-    } else {
-      linkedinBtn.href = "#";
-      linkedinBtn.hidden = true;
+    if (club.instagramItems && club.instagramItems.length > 1) {
+      util.appendChild(renderSocialMenu("instagram", club.instagramItems));
+    } else if (club.instagramURL) {
+      util.appendChild(renderSocialIcon("instagram", club.instagramURL, "Open Instagram"));
     }
 
-    if (club.instagramURL) {
-      instagramBtn.href = club.instagramURL;
-      instagramBtn.hidden = false;
-    } else {
-      instagramBtn.href = "#";
-      instagramBtn.hidden = true;
+    if (club.linkedInItems && club.linkedInItems.length > 1) {
+      util.appendChild(renderSocialMenu("linkedin", club.linkedInItems));
+    } else if (club.linkedinURL) {
+      util.appendChild(renderSocialIcon("linkedin", club.linkedinURL, "Open LinkedIn"));
     }
 
-    if (!cardUpdateBtn && actions) {
-      cardUpdateBtn = document.createElement("button");
-      cardUpdateBtn.type = "button";
-      cardUpdateBtn.className = "card-site-link map-card-update-link";
-      cardUpdateBtn.textContent = "Spot something off?";
-      cardUpdateBtn.setAttribute("aria-expanded", "false");
-      actions.appendChild(cardUpdateBtn);
+    if (club.communityLink) {
+      var communityLink = document.createElement("a");
+      communityLink.href = club.communityLink;
+      communityLink.target = "_blank";
+      communityLink.rel = "noreferrer";
+      communityLink.className = "community-link-btn";
+      communityLink.textContent = "WhatsApp";
+      util.appendChild(communityLink);
     }
 
-    if (cardUpdateBtn) {
-      var replacement = cardUpdateBtn.cloneNode(true);
-      replacement.addEventListener("click", function () {
-        openClubUpdateModal(club, replacement);
-      });
-      cardUpdateBtn.parentNode.replaceChild(replacement, cardUpdateBtn);
-      cardUpdateBtn = replacement;
-    }
+    content.appendChild(util);
 
     suppressMapClose = true;
     card.classList.add("open");
@@ -849,13 +1291,6 @@
     document.getElementById("card-close").addEventListener("click", function (e) {
       L.DomEvent.stopPropagation(e);
       closeCard();
-    });
-
-    document.getElementById("card-site-link").addEventListener("click", function (e) {
-      e.preventDefault();
-      closeCard();
-      setRegion("All");
-      map.flyTo([30, 10], 2, { duration: 1.2 });
     });
 
     document.getElementById("trip-planner-btn").addEventListener("click", function () {
