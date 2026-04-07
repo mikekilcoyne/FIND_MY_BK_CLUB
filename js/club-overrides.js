@@ -57,11 +57,10 @@ window.CLUB_OVERRIDES = {
   "paris, france":       { displayCity: "Paris, FR" },
   "milano": {
     displayCity: "Milano, IT",
-    cadence: "Monthly",
-    time: "Fourth Tuesday, 6:00pm - 9:00pm",
+    cadence: "Pop-Up",
+    time: "Tuesday, 6:00pm - 9:00pm",
     eventTime: "6:00 – 9:00 PM",
     venue: "The Urban Society, Via Pietrasanta 14",
-    specificDates: ["2026-03-24"],
     isNight: true,
   },
   vienna: {

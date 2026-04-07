@@ -333,10 +333,10 @@
     "host": "Charla Caponi, Moritz Gaudlitz & Giorgio Bartoli (@cncbassano @giorgiogolab @whynotstay)",
     "email": "charlanoelcaponi@gmail.com",
     "venue": "The Urban Society, Via Pietrasanta 14",
-    "upcoming_date": "2026-03-24",
+    "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=The+Urban+Society+Via+Pietrasanta+14+Milan",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 2 }
+    "schedule": { "type": "unscheduled" }
   },
   {
     "city": "new york - downtown brooklyn",
