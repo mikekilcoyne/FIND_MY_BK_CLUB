@@ -61,6 +61,8 @@ window.CLUB_OVERRIDES = {
     time: "Tuesday, 6:00pm - 9:00pm",
     eventTime: "6:00 – 9:00 PM",
     venue: "The Urban Society, Via Pietrasanta 14",
+    locationNote: "Happens every now and again.",
+    locationNoteDetail: "Next date pending.",
     isNight: true,
   },
   vienna: {
