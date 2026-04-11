@@ -1,0 +1,163 @@
+{
+  "generatedAt": "2026-03-26T13:09:51.641Z",
+  "clubs": [
+    {
+      "slug": "soma",
+      "displayName": "SOMa",
+      "region": "Northeast US",
+      "source": "curated",
+      "photo": "./assets/ken_stanek_watercolor_BK_Club_NJ.jpeg",
+      "attribution": "Artwork by Ken Stanek"
+    },
+    {
+      "slug": "hamptons",
+      "displayName": "Hamptons",
+      "region": "Northeast US",
+      "source": "curated",
+      "photos": [
+        "./assets/photos/Polaroid.png",
+        "./assets/photos/Polaroid 2.png",
+        "./assets/photos/Polaroid 3.png",
+        "./assets/photos/Polaroid 4.png",
+        "./assets/photos/Polaroid 5.png",
+        "./assets/photos/Polaroid 6.png",
+        "./assets/photos/Polaroid 7.png",
+        "./assets/photos/Polaroid 8.png"
+      ]
+    },
+    {
+      "slug": "las-vegas",
+      "displayName": "Las Vegas, NV",
+      "region": "Other",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.625Z",
+      "photos": [
+        "./assets/photos/club_updates/las-vegas/00000109-photo-2026-03-23-15-27-10-e9119f81e9.jpg"
+      ]
+    },
+    {
+      "slug": "lugano",
+      "displayName": "Lugano, CH",
+      "region": "Europe",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.611Z",
+      "photos": [
+        "./assets/photos/club_updates/lugano/0000003-photo-2026-03-12-23-06-41-6c686c020a.jpg"
+      ]
+    },
+    {
+      "slug": "maplewood",
+      "displayName": "Maplewood, NJ",
+      "region": "Northeast US",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.613Z",
+      "photos": [
+        "./assets/photos/club_updates/maplewood/00000001-photo-2026-03-13-11-02-58-c21e67f8b7.jpg",
+        "./assets/photos/club_updates/maplewood/00000008-photo-2026-03-13-15-40-27-9f1e524f95.jpg"
+      ]
+    },
+    {
+      "slug": "mexico-city",
+      "displayName": "Mexico City, MX",
+      "region": "Other",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.621Z",
+      "photos": [
+        "./assets/photos/club_updates/mexico-city/00000033-photo-2026-03-16-09-00-32-f32f205a3c.jpg",
+        "./assets/photos/club_updates/mexico-city/00000054-photo-2026-03-18-12-59-28-7ee4eea2dc.jpg",
+        "./assets/photos/club_updates/mexico-city/mexico-city-2026-04-10.jpg"
+      ]
+    },
+    {
+      "slug": "milano",
+      "displayName": "Milano, IT",
+      "region": "Europe",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.627Z",
+      "photos": [
+        "./assets/photos/club_updates/milano/00000135-photo-2026-03-25-16-16-42-2495253451.jpg"
+      ]
+    },
+    {
+      "slug": "new-york-downtown-brooklyn",
+      "displayName": "New York — Downtown Brooklyn, NY",
+      "region": "Northeast US",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.623Z",
+      "photos": [
+        "./assets/photos/club_updates/new-york-downtown-brooklyn/00000092-photo-2026-03-20-08-08-35-eada719590.jpg"
+      ]
+    },
+    {
+      "slug": "new-york-hamptons",
+      "displayName": "New York — Hamptons, NY",
+      "region": "Northeast US",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.622Z",
+      "photos": [
+        "./assets/photos/Polaroid.png",
+        "./assets/photos/Polaroid 2.png",
+        "./assets/photos/Polaroid 3.png",
+        "./assets/photos/Polaroid 4.png",
+        "./assets/photos/Polaroid 5.png",
+        "./assets/photos/Polaroid 6.png",
+        "./assets/photos/Polaroid 7.png",
+        "./assets/photos/Polaroid 8.png"
+      ]
+    },
+    {
+      "slug": "new-york-les",
+      "displayName": "New York — LES, NY",
+      "region": "Northeast US",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.618Z",
+      "photos": [
+        "./assets/photos/club_updates/new-york-les/00000028-photo-2026-03-16-03-17-08-a48e5a826b.jpg",
+        "./assets/photos/club_updates/new-york-les/00000090-photo-2026-03-20-08-08-35-d77705f027.jpg"
+      ]
+    },
+    {
+      "slug": "portland",
+      "displayName": "Portland, ME",
+      "region": "Northeast US",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.626Z",
+      "photos": [
+        "./assets/photos/club_updates/portland/00000129-photo-2026-03-25-12-31-25-f9b445ed99.jpg",
+        "./assets/photos/club_updates/portland/00000136-photo-2026-03-26-00-04-48-82c8401767.jpg"
+      ]
+    },
+    {
+      "slug": "copenhagen",
+      "displayName": "Copenhagen, DK",
+      "region": "Europe",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-04-10T00:00:00.000Z",
+      "photos": [
+        "./assets/photos/club_updates/copenhagen/copenhagen-2026-04-10.jpg"
+      ]
+    },
+    {
+      "slug": "vienna",
+      "displayName": "Vienna, AT",
+      "region": "Europe",
+      "source": "whatsapp",
+      "photoTreatment": "polaroid-frame",
+      "updatedAt": "2026-03-26T13:09:51.617Z",
+      "photos": [
+        "./assets/photos/club_updates/vienna/00000009-photo-2026-03-13-15-40-28-74f43916c5.jpg",
+        "./assets/photos/club_updates/vienna/vienna-2026-04-10.jpg"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "cities": {
+    "new york — hamptons": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "hamptons cafe morning",
+      "photoPositionY": "18%"
+    },
+    "amsterdam, nl": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "amsterdam cafe canal morning",
+      "photoPositionY": "22%"
+    },
+    "copenhagen": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "copenhagen cafe design morning",
+      "photoPositionY": "20%"
+    },
+    "london, uk": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "london breakfast coffee morning",
+      "photoPositionY": "20%"
+    },
+    "denver": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "denver cafe mountain morning",
+      "photoPositionY": "24%"
+    },
+    "milano": {
+      "photoTreatment": "polaroid-frame",
+      "placeholderQuery": "milan cafe morning",
+      "photoPositionY": "20%"
+    }
+  }
+}

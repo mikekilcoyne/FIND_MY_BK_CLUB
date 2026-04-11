@@ -1,0 +1,754 @@
+{
+  "updated": "2026-03-26T13:21:18.391Z",
+  "postCount": 20,
+  "cities": {
+    "hamptons": {
+      "topics": [
+        "moving",
+        "who we'd love to be from breakfast club for a day",
+        "repurposing clothing",
+        "moving to places",
+        "pot-luck-in",
+        "good vibes all around."
+      ],
+      "photos": [
+        "./assets/photos/Polaroid.png",
+        "./assets/photos/Polaroid 2.png",
+        "./assets/photos/Polaroid 3.png",
+        "./assets/photos/Polaroid 4.png",
+        "./assets/photos/Polaroid 5.png",
+        "./assets/photos/Polaroid 6.png",
+        "./assets/photos/Polaroid 7.png",
+        "./assets/photos/Polaroid 8.png"
+      ],
+      "sourceDate": "2026-03-23T22:30:58.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-97",
+      "sourceTitle": "Breakfast Clubbing #97",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "williamsburg": {
+      "topics": [
+        "sourdough starters aka j rgen",
+        "sara",
+        "rebecca",
+        "everything you might make with it",
+        "bread",
+        "crackers",
+        "pancakes",
+        "influencers",
+        "influencer agencies",
+        "being so high you fall off a bean bag",
+        "assessing opportunities",
+        "listening to your gut",
+        "tech stacks",
+        "finding insights",
+        "considering consulting",
+        "teaching entrepreneurship in college"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!Dso6!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F40c2407d-64ed-4834-b788-d9b4a11de646_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!ZZDf!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd5e3553b-36be-456b-8050-2fd7dc0d90a1_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!XZur!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fac35fd28-3e5e-441f-87d6-0443e683b880_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!FhZc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9bba6c78-c121-4fcb-97f5-b09378c5c532_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!LAtk!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F182a61ad-4140-4280-915c-022ee905baf2_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!m5Kn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb6969504-16c8-464a-8d43-6b76e4afc898_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-03-23T22:30:58.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-97",
+      "sourceTitle": "Breakfast Clubbing #97",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "downtown brooklyn": {
+      "topics": [
+        "transition as a holistic endeavor",
+        "google mapping the best wifi cafes for co-working",
+        "complexcon hongkong  brandon solis is heading over",
+        "holler at him",
+        "everyones invited especially you."
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!JjW1!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F37206984-834f-4fa7-bd07-3a4d0637643b_800x1066.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!bO2H!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F336407f7-2a4f-4b4f-9878-e196f362332c_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!yy-u!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F91adc112-bcfe-40b4-bde0-dd628c7cf468_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!XXse!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F60f4061a-699f-42c9-9078-ba907145f5c3_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!muCh!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbb36c420-0ae0-4a54-b712-309bcb0cf42b_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!UI2x!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b60aad5-3a6f-44eb-a96f-ebdb2c1cb8d5_800x600.jpeg"
+      ],
+      "sourceDate": "2026-03-23T22:30:58.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-97",
+      "sourceTitle": "Breakfast Clubbing #97",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "panama city": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!OEM8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14777982-7368-4d8d-b1a2-51e020be826e.png",
+        "https://substackcdn.com/image/fetch/$s_!7X5U!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad31ed35-0db6-473e-9ac6-d33de2c6ab80_1320x1695.jpeg"
+      ],
+      "sourceDate": "2026-03-23T22:30:58.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-97",
+      "sourceTitle": "Breakfast Clubbing #97",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "soma": {
+      "topics": [
+        "chevy chase the actor",
+        "the suburb",
+        "wayne fetterman's comedy",
+        "fasting",
+        "breaking fasts",
+        "seders",
+        "town pools",
+        "tromp l'oeil",
+        "polarity",
+        "geek empire of mark rober",
+        "why don't comedy shows happen in the morning",
+        "breaking in",
+        "putting out records",
+        "wondering where our resident illustrator ken was this week",
+        "drone delivery services fed by pokemon go data",
+        "robots gone beserk"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!f4ZK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8abd7d7-bb85-4bf3-895b-17bad8f0ab9d_5712x4284.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!tXfJ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6a8e4f0f-4c93-4808-b0fc-b616c9d9b42d_800x533.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!RV7O!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4c4b557d-a10e-4a3f-b56a-744740a50b08_768x1024.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!1_b9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9503c8db-5f0c-4862-a683-0da6c8eb2c25_1024x682.png",
+        "https://substackcdn.com/image/fetch/$s_!mFde!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fed58f808-6cb7-42ba-9000-725adf00d40a_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!H73y!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F66b1cf10-2a74-4263-b590-e42388eca3a6_1280x1707.jpeg"
+      ],
+      "sourceDate": "2026-03-23T22:30:58.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-97",
+      "sourceTitle": "Breakfast Clubbing #97",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "williamsburg 3 11 26": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!6pUB!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2722406-a664-44bf-aef5-a8563f624dd3_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "vienna": {
+      "topics": [
+        "lovely spring sun",
+        "books & authors",
+        "viennese coffee culture & favorite spots",
+        "concert venues",
+        "wild swimming spots",
+        "advertising",
+        "being employed vs being freelance",
+        "growing a business",
+        "a deep dive on cheryl strayed from favorite books to dear sugar'",
+        "so many interesting things the beauty of winter",
+        "ugliness of ghosting",
+        "co-working spaces",
+        "spartan races",
+        "how to climb a 2"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!A0Zt!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F366f45b8-e32a-4bec-bcb5-fbd61e4f4848_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!BL2x!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd263f76a-575a-4d65-9ea2-7ad5aaec8471_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!BNOk!,w_1456,c_limit,f_auto,q_auto:good,fl_lossy/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbd07be75-8b32-405d-9d26-2e592ae255ba_800x1067.gif"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "portland": {
+      "topics": [
+        "finding light in what we're doing now",
+        "how that illuminates what comes next",
+        "all kinds of stuff",
+        "world cup",
+        "meditation",
+        "new year's resolutions or alternatives",
+        "portland hearts of pine on gma this morning...",
+        "much more.",
+        "join us in the new year on the morning of january 9th",
+        "everyone is invited.",
+        "especially you."
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!_6wv!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F78caddea-19e0-46af-a0b8-4768b7c182f5_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!Bcwc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9dd3f32f-2a9f-488d-8b36-9c045bfa8e25_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!mioM!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9ade9434-08ac-4306-8b4d-adc7d63f9436_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!tfWx!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7c7685cd-523f-4d8d-a29f-271540fd5d47_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!9HH6!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc914b7a9-a359-4ae0-ba49-d7da2a568b76_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!u1tg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadf3cfaf-c470-4903-9a8a-f5e7f4c2ac09_1536x2048.png"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "washington dc": {
+      "topics": [
+        "oscars",
+        "olympics",
+        "crying at bad movies on planes",
+        "perfect t-shirt",
+        "art installations in the desert",
+        "personal brand",
+        "spinning up your own thing",
+        "claude cowork wins",
+        "walking tours",
+        "living in paris",
+        "next one is march 26th  830am.",
+        "everyone pays their own way there's no agenda or rsvp necessary.",
+        "everyone's invited especially you!",
+        "cc ben dietz charla noel caponi",
+        "guns",
+        "the tooth fairy"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!pcEU!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa3e31521-fd46-4569-be6e-3bb26fe5bbda_800x618.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!eA9M!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95ad6b97-ec03-4a15-babb-0d46c786e734_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!o5hV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9ae0579e-effa-4d01-beb2-b16f3efd042d_800x373.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!wY81!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7c2add42-2bda-4fb0-9ebb-45573a7d0d45_800x339.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!xEwj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc8f37a61-52e7-46ab-a1fd-60a1a0f57fb2_800x411.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!rr9B!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F249b0993-7691-4bd2-aeee-5237be01e17c_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "seattle": {
+      "topics": [
+        "buying a house site unseen",
+        "not liking small planes",
+        "how did the bird get on the plane?",
+        "elevators in big buildings",
+        "claustrophobia",
+        "germophobia",
+        "being a plant addict",
+        "satisfaction of bringing a plant back to life"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!wF54!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F089d4274-16d9-42d8-a5c2-60ddcb0424e1_800x1066.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!C3zh!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F62ed6de0-4820-477a-b890-621b5db47ec8_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!Z6-x!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5c1e533-8bb2-48aa-a789-0b29320bbf3f_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!Y__T!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1c4c67a-4c9d-46ba-9622-aeccfda3c7ce_3024x4032.png"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "melbourne": {
+      "topics": [
+        "- overhearing people on the phone on the tram",
+        "what they must assume",
+        "no' is a full sentence",
+        "simple filter for the work you do e.g. work with good people",
+        "creative mornings",
+        "adelaide fringe festival... same same or different?",
+        "world-renowned' people you've never heard of",
+        "people you only ever see at particular events",
+        "quiet joy of not having to rsvp to things",
+        "butter as an events platform"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!6Blp!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdcf5ba87-94ad-43d6-9643-8c99d0cb781f_800x1420.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!Um3e!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd73231fa-d247-4e0f-8c2a-cb9f91bc9285_800x600.jpeg"
+      ],
+      "sourceDate": "2026-03-16T21:30:32.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-96",
+      "sourceTitle": "Breakfast Clubbing #96",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "kingston": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!Okyd!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4e87074e-f573-4dfe-b70c-3f688a577488_3024x4032.png"
+      ],
+      "sourceDate": "2026-03-09T22:13:52.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-95",
+      "sourceTitle": "Breakfast Clubbing #95",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "portland or": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!hlns!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ace548e-6343-4369-981e-788a6e559dfb_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!KcrG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffb0ce6a5-8a66-44ea-9336-7b2c3372abed_800x867.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!gkmn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4cd9a81e-b3f7-4da2-b813-4311fc973e3f_3840x5120.jpeg"
+      ],
+      "sourceDate": "2026-03-09T22:13:52.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-95",
+      "sourceTitle": "Breakfast Clubbing #95",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "london": {
+      "topics": [
+        "cognitive disssonance",
+        "service design in the public sector",
+        "news filter bubbles",
+        "tricking the algorithm to spread political messaging",
+        "dish podcast",
+        "recipes",
+        "link between personal confessionals",
+        "food content",
+        "semiotic sisterhood",
+        "hot chocolate",
+        "coffee breaks over skiing",
+        "ai productivity tools",
+        "dealing with overloaded inboxes",
+        "linkedin slop",
+        "globalist from monocle",
+        "slow journa"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!Soxs!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F98a74e0a-ff65-4fcc-a84e-f4f94dcd3d16_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!6v7b!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4b809fd9-d195-4eda-a483-a5518ba5bbde_800x557.jpeg"
+      ],
+      "sourceDate": "2026-03-09T22:13:52.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-95",
+      "sourceTitle": "Breakfast Clubbing #95",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "sydney": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!F5vo!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F70cf059c-9a31-47af-b615-3543369bfde4_1200x1600.png"
+      ],
+      "sourceDate": "2026-03-09T22:13:52.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-95",
+      "sourceTitle": "Breakfast Clubbing #95",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "mexico city": {
+      "topics": [
+        "we do this every wednesday - everybody's invited especially you!",
+        "whatsapp invite"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!gDuE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8577c046-1c37-4cd0-87a3-dabec56b91a7_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!OgpZ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F138f0378-4853-4931-93a0-f7a47b2638da_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!ytYx!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8808796f-b051-414a-b387-ec6b1e647b5d_4032x3024.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!5LXB!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe8f7bcb1-37c8-484f-a203-3f08702cc8ed_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!12RI!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0e75a574-cef3-4275-a02f-851949a578d1_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-03-02T23:01:21.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-94",
+      "sourceTitle": "Breakfast Clubbing #94",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "db": {
+      "topics": [
+        "buckminster fuller",
+        "mischief  no fixed address",
+        "next one is march 12th  830am.",
+        "everyone pays their own way there's no agenda or rsvp necessary.",
+        "everyone's invited especially you!"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!GjYV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F35e7df7d-1a5c-4332-9bfd-33c661511f47_800x600.jpeg"
+      ],
+      "sourceDate": "2026-03-02T23:01:21.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-94",
+      "sourceTitle": "Breakfast Clubbing #94",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "paris": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!qU0f!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F615142f3-6133-4550-9090-f71c63040345_2048x1536.png"
+      ],
+      "sourceDate": "2026-03-02T23:01:21.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-94",
+      "sourceTitle": "Breakfast Clubbing #94",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "san francisco": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!jOVN!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7983bac7-8bbc-4a5a-9dec-fff1658508c5_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!bRPa!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fda47a01f-efdc-40c0-a7dc-2c4e9dd1edc5_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!iAvX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fac0d74e6-ffef-44ac-92ec-aa4055756f16_1536x2048.png",
+        "https://substackcdn.com/image/fetch/$s_!sown!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7628c163-e417-4433-8b52-b34a38cc3e58_1536x2048.png",
+        "https://substackcdn.com/image/fetch/$s_!4b35!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdef0faf8-2c0f-4d71-9928-d59a5bd6cd26_1536x2048.png",
+        "https://substackcdn.com/image/fetch/$s_!Oq8w!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb897fd8e-1bae-4ef2-928e-8e53c1e649b5_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-24T01:01:10.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-93",
+      "sourceTitle": "Breakfast Clubbing #93",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "copenhagen": {
+      "topics": [
+        "how hockey teams are equally loved",
+        "equally hated",
+        "which means fans go nuts whether you win or lose",
+        "thank you philip fussing dave laing & jordan young",
+        "breakfast club takes place around the world",
+        "weekly",
+        "portland or tuesday",
+        "mexico city wednesday",
+        "williamsburg brooklyn wednesday",
+        "miami wednesday"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!2r0A!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd144ff17-fa76-47cd-8bd5-144aa34dab01_1280x960.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!-MnZ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcba3c601-2cb1-433c-b592-665f80b3c576_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!oVpP!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0b5eb634-a57a-4500-b77c-68f84cb949b0_4284x5712.heic"
+      ],
+      "sourceDate": "2026-02-24T01:01:10.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-93",
+      "sourceTitle": "Breakfast Clubbing #93",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "berlin": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!-xCc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdfce8c8a-281d-4dc5-b206-257d094aa3fe_800x516.jpeg"
+      ],
+      "sourceDate": "2026-02-24T01:01:10.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-93",
+      "sourceTitle": "Breakfast Clubbing #93",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "los angeles": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!nUXg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7e58465a-105a-444a-91dc-35c1585c1575_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!AKKk!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F84f372c6-c8a8-48f5-907e-010c3d64f738_800x1067.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!YYtZ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F87e2d69d-fee6-4782-92f5-6637413acee6_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-02-24T01:01:10.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-93",
+      "sourceTitle": "Breakfast Clubbing #93",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "hudson": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!fGj1!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2a66cfe4-f9b0-4d6f-94d8-45ecf0efece6_800x377.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!_4QE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F05c68a43-78a3-42f8-8794-c4b2c122bdf0_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-17T03:30:29.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-92",
+      "sourceTitle": "Breakfast Clubbing #92",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "cincy": {
+      "topics": [
+        "finches",
+        "frick",
+        "football",
+        "fartitecture",
+        "rivers",
+        "parks",
+        "unnecessary highways",
+        "artists' right to protest",
+        "dance clubs we miss",
+        "kublai khan",
+        "unfunny golden globes",
+        "ruth asawa",
+        "drones",
+        "battleships",
+        "flags",
+        "fast fashion"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!bpHO!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1f9069cf-6290-4a93-9fef-c6de14c5bba7_800x1062.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!xKfF!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0d66d382-527f-4d28-8a50-7f1af16b4913_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!zNeH!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffdaeeffc-5cd8-4a08-82fe-dfec0b0162e5_800x1062.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!6GAn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faa5e5892-16eb-4d9d-ac67-2bd78c8a3e32_800x598.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!rMCr!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fccf1c1f6-c9e0-4fa0-9dc4-849689882962_800x1061.jpeg"
+      ],
+      "sourceDate": "2026-02-17T03:30:29.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-92",
+      "sourceTitle": "Breakfast Clubbing #92",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "surf coast": {
+      "topics": [
+        "southampton pubs of choice",
+        "not liking being in deep water actual not metaphorical",
+        "ocean as an accessory not the main event of a beach day",
+        "living on a yorkshire farm with its own castle",
+        "when are you fluent in another language?",
+        "related is it when you dream in that language?",
+        "family staying with you for a long time",
+        "having a shared cultural experience with your partner"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!hdGM!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c08b41c-36f3-4478-bdef-417bc86c4a81_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-02-17T03:30:29.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-92",
+      "sourceTitle": "Breakfast Clubbing #92",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "riyadh": {
+      "topics": [
+        "oman",
+        "the royal opera house muscat",
+        "how culture can be intentionally built over time",
+        "even down to coffee flavored with cloves",
+        "beautiful start to riyadh's breakfast club.",
+        "thank you ben dietz"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!ggO4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc28562e6-d998-4237-a964-37263f9c8b6f_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-17T03:30:29.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-92",
+      "sourceTitle": "Breakfast Clubbing #92",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "barcelona": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!Mu7z!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e5047e0-fa82-4607-b5f3-f79cf77af3d6_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-10T03:22:27.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-91",
+      "sourceTitle": "Breakfast Clubbing #91",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "perth": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!5KJG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8c40bc36-bc80-4522-baa4-13d5dc86f292_800x1103.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!_vWB!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F508835bd-5410-44f8-90d4-363f197b18af_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-10T03:22:27.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-91",
+      "sourceTitle": "Breakfast Clubbing #91",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "denver": {
+      "topics": [
+        "art therapy",
+        "hiring outside the box",
+        "gardening",
+        "favorite regional foods",
+        "getting to the truth of a brand's story",
+        "so much more"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!MoV2!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3c3d02c5-30ce-4e46-9dbc-2c6e68f3368d_800x600.jpeg"
+      ],
+      "sourceDate": "2026-02-10T03:22:27.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-91",
+      "sourceTitle": "Breakfast Clubbing #91",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "biarritz": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!E2xT!,w_1456,c_limit,f_auto,q_auto:good,fl_lossy/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff9341bbc-2f52-47e0-a43d-fec4d8ba8654_800x1067.gif",
+        "https://substackcdn.com/image/fetch/$s_!ksFu!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F73c7d3ca-8000-4afa-baff-b25cf4067c4a_800x1067.jpeg"
+      ],
+      "sourceDate": "2026-02-10T03:22:27.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-91",
+      "sourceTitle": "Breakfast Clubbing #91",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "burlington": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!jLF4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13e4ba98-bf70-4ee6-9efc-c1749a7daf74_778x1388.png",
+        "https://substackcdn.com/image/fetch/$s_!U74_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F252cb27a-41a0-4698-ac00-5ff9815dac8b_360x480.jpeg"
+      ],
+      "sourceDate": "2026-02-10T03:22:27.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-91",
+      "sourceTitle": "Breakfast Clubbing #91",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "manhattan": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!jZAO!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F25a11bba-1dd1-4986-bd8c-e91cfa6e782c_3665x2587.png"
+      ],
+      "sourceDate": "2026-01-20T03:18:34.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-88",
+      "sourceTitle": "Breakfast Clubbing #88",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "torquay": {
+      "topics": [
+        "broken coffee machines",
+        "resale value of thermomixes",
+        "using an ev to make toasties whilst out adventuring",
+        "us tariffs impacting the price of cars in australia",
+        "hiking adventures and misadventures",
+        "extreme rescues",
+        "wilderness first aid courses",
+        "our favourite multi day hikes",
+        "dehydrated food recipes and hacks"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!32bV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1473d1d4-7454-4c60-82f9-bad6eec3784f_800x600.jpeg"
+      ],
+      "sourceDate": "2026-01-20T03:18:34.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-88",
+      "sourceTitle": "Breakfast Clubbing #88",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "miami": {
+      "topics": [
+        "pre-packaged dog foods",
+        "art commissions",
+        "how to get word around about your creative work",
+        "are old summer camps the next hospitality frontier?",
+        "joy in getting lost",
+        "discovering beautiful new paths",
+        "friends so to tracy candido",
+        "pcc for co-hosting yesterday's happily sunrise hike",
+        "which brought dori fern",
+        "acc to bc today",
+        "meeting new people in old places",
+        "all of us aging club kids",
+        "speaking of old",
+        "at what age is it just not safe for us to ride rollercoasters?",
+        "also",
+        "whatever happened to the"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!1rws!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F345503bf-8432-4186-8f65-599ed3ba9234_800x1023.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!Rf6e!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa25e7919-19ed-45e6-83ab-efc9c3a02cf6_800x600.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!PgEE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2cba9e8d-1d67-45a9-a83a-5de1ef56a922_1320x1575.jpeg",
+        "https://substackcdn.com/image/fetch/$s_!CsV9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffc5d36df-9d6b-4d7f-92aa-d81a19f49da8_4032x3024.png"
+      ],
+      "sourceDate": "2025-12-08T23:59:26.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-84",
+      "sourceTitle": "Breakfast Clubbing #84",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "lugano": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!ZQZQ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F45cdb065-7e04-43cc-86d7-a7871bf1aa28_800x600.jpeg"
+      ],
+      "sourceDate": "2025-11-24T23:08:05.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-82",
+      "sourceTitle": "Breakfast Clubbing #82",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "dubai": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!ybJl!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F33bdd946-7438-4dad-9277-b32a0a3edb0f_800x834.jpeg"
+      ],
+      "sourceDate": "2025-11-24T23:08:05.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-82",
+      "sourceTitle": "Breakfast Clubbing #82",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "amsterdam": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!L74z!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7d393e09-c2fc-45da-98e6-8b44c79fdfc9_800x1066.jpeg"
+      ],
+      "sourceDate": "2025-11-24T23:08:05.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-82",
+      "sourceTitle": "Breakfast Clubbing #82",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "cph": {
+      "topics": [
+        "task the show",
+        "travelling in greece",
+        "discovering athens pro tip join a guided history tour",
+        "are amusement parks amusing for adults? nope",
+        "recognising you are doing",
+        "thinking things because you are trapped by patriarchy",
+        "biking in the rain",
+        "trusting ai to summarize something",
+        "hashtagtldr",
+        "realizing two-screen entertainment is real."
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!ID6Z!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F870b0975-91f1-48a0-811b-93d551b0653f_800x1066.jpeg"
+      ],
+      "sourceDate": "2025-11-03T23:30:36.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-79",
+      "sourceTitle": "Breakfast Clubbing #79",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "cambridge": {
+      "topics": [
+        "traveling to the isle of skye",
+        "tanzania",
+        "power of napping",
+        "tough tech",
+        "engine",
+        "venture caf cambridge",
+        "ai supply-chain platforms",
+        "the inkind restaurant app.",
+        "installing fences between neighbors an interesting-",
+        "sometimes dangerous-job",
+        "being let go via zoomemail",
+        "taking our kids to concerts on school nights",
+        "aws outage",
+        "competitive rock climbing",
+        "idea that jamaica plain is the cambridge of bo"
+      ],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!o8rX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff2d2baaa-e5b8-47a9-a852-3923bee101e8_800x887.jpeg"
+      ],
+      "sourceDate": "2025-11-03T23:30:36.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-79",
+      "sourceTitle": "Breakfast Clubbing #79",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    },
+    "hampton": {
+      "topics": [],
+      "photos": [
+        "https://substackcdn.com/image/fetch/$s_!bRHx!,w_640,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F__ss-rehost__IG-meta-DQFMEdgDvUg.jpg"
+      ],
+      "sourceDate": "2025-10-27T22:27:11.000Z",
+      "sourceUrl": "https://breakfastindustries.substack.com/p/breakfast-clubbing-78",
+      "sourceTitle": "Breakfast Clubbing #78",
+      "sourceType": "substack",
+      "photoTreatment": "polaroid-frame"
+    }
+  }
+}

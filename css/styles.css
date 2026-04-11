@@ -272,6 +272,174 @@ h2 {
   color: #ffffff;
 }
 
+.feature-callout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(228px, 292px);
+  align-items: center;
+  gap: 24px;
+  margin: 0 0 16px;
+  padding: 20px 22px 18px;
+  border: 1px solid rgba(143, 115, 75, 0.18);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.88), transparent 28%),
+    linear-gradient(180deg, #fffdf8 0%, #faf4ea 100%);
+  color: var(--ink);
+  box-shadow:
+    0 18px 32px rgba(61, 42, 17, 0.08),
+    0 3px 10px rgba(61, 42, 17, 0.05);
+}
+
+.feature-callout::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 26px;
+  width: 68px;
+  height: 18px;
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0) 42%),
+    linear-gradient(135deg, rgba(255, 244, 196, 0.98) 0%, rgba(247, 209, 120, 0.96) 52%, rgba(232, 175, 76, 0.94) 100%);
+  border: 1px solid rgba(181, 133, 60, 0.22);
+  box-shadow:
+    0 2px 5px rgba(107, 75, 25, 0.1),
+    0 0 0 1px rgba(255, 248, 220, 0.16) inset;
+  transform: rotate(-4deg);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.feature-callout::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 41px;
+  width: 34px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.08));
+  transform: rotate(-4deg);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.feature-callout__copy {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+
+.feature-callout__lede {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.feature-callout__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 50%),
+    linear-gradient(180deg, #0f7a4c 0%, #0d6e43 100%);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow:
+    0 12px 22px rgba(13, 110, 67, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.feature-callout__title {
+  margin: 0;
+  font-size: clamp(22px, 2vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #111111;
+}
+
+.feature-callout__text {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #39322a;
+}
+
+.feature-callout__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  min-width: 188px;
+  min-height: 46px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #d5ba6d;
+  background: linear-gradient(180deg, #fff5c9 0%, #f4df8a 100%);
+  color: #3b2b0f;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow:
+    0 8px 18px rgba(181, 133, 60, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.feature-callout__button:hover {
+  background: #111111;
+  color: #fff5d0;
+  border-color: #111111;
+}
+
+@media (min-width: 741px) and (max-width: 1260px) {
+  .feature-callout {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    padding: 18px 20px 17px;
+  }
+
+  .feature-callout__copy {
+    align-content: center;
+  }
+
+  .feature-callout__lede {
+    gap: 8px 12px;
+  }
+
+  .feature-callout__title {
+    font-size: clamp(20px, 2.2vw, 26px);
+  }
+
+  .feature-callout__text {
+    max-width: 38ch;
+  }
+
+  .feature-callout__button {
+    justify-self: end;
+    align-self: center;
+    min-width: 152px;
+    min-height: 42px;
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+}
+
 .status {
   margin: 0 0 14px;
   font-size: 14px;
@@ -1125,7 +1293,7 @@ body.club-update-modal-open #back-to-top {
   }
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 740px) {
   .top-bar {
     display: grid;
     grid-template-columns: 1fr;
@@ -1140,6 +1308,20 @@ body.club-update-modal-open #back-to-top {
   .cta {
     margin-left: 0;
     justify-self: start;
+  }
+
+  .feature-callout {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .feature-callout__button {
+    align-self: center;
+    justify-self: center;
+    min-width: 0;
+    width: 100%;
+    max-width: 260px;
   }
 }
 

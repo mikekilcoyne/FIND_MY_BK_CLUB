@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club — What We Talked About</title>
+    <link rel="stylesheet" href="./css/word-cloud.css?v=20260410-1549" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #0d1824;
+      }
+
+      #clubs-list {
+        display: none;
+      }
+    </style>
+  </head>
+  <body data-word-cloud-preview="true" data-wwta-backdrop-mode="match-photo">
+    <div id="clubs-list" aria-hidden="true"></div>
+
+    <div id="wc-overlay" class="wc-overlay" hidden aria-modal="true" role="dialog" aria-label="What we talked about">
+      <button class="wc-overlay-toggle wc-overlay-toggle--icon" id="wc-overlay-clean-bg" type="button" aria-pressed="false" aria-label="Toggle clean background" title="Clean Background" hidden>
+        <svg class="wc-overlay-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5"></circle>
+          <path d="M12 2.75v3.1M12 18.15v3.1M21.25 12h-3.1M5.85 12h-3.1M18.54 5.46l-2.2 2.2M7.66 16.34l-2.2 2.2M18.54 18.54l-2.2-2.2M7.66 7.66l-2.2-2.2"></path>
+        </svg>
+      </button>
+      <button class="wc-overlay-close" id="wc-overlay-close" aria-label="Close">
+        <svg class="wc-overlay-control-icon wc-overlay-control-icon--close" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 7l10 10M17 7L7 17"></path>
+        </svg>
+      </button>
+      <button class="wc-overlay-nav wc-overlay-nav--prev" id="wc-overlay-prev" aria-label="Previous photo">
+        <svg class="wc-overlay-control-icon wc-overlay-control-icon--nav" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.5 6.5L9 12l5.5 5.5"></path>
+        </svg>
+      </button>
+      <button class="wc-overlay-nav wc-overlay-nav--next" id="wc-overlay-next" aria-label="Next photo">
+        <svg class="wc-overlay-control-icon wc-overlay-control-icon--nav" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.5 6.5L15 12l-5.5 5.5"></path>
+        </svg>
+      </button>
+
+      <!-- Desktop carousel: ghost frames for prev/next photos -->
+      <div class="wc-carousel-ghost wc-carousel-ghost--prev" id="wc-carousel-ghost-prev" aria-hidden="true" hidden>
+        <div class="wc-carousel-ghost-frame">
+          <img class="wc-carousel-ghost-img" id="wc-carousel-prev-img" src="" alt="" />
+        </div>
+      </div>
+      <div class="wc-carousel-ghost wc-carousel-ghost--next" id="wc-carousel-ghost-next" aria-hidden="true" hidden>
+        <div class="wc-carousel-ghost-frame">
+          <img class="wc-carousel-ghost-img" id="wc-carousel-next-img" src="" alt="" />
+        </div>
+      </div>
+
+      <!-- Photo position dots -->
+      <div class="wc-overlay-photo-dots" id="wc-overlay-photo-dots" aria-hidden="true" hidden></div>
+
+      <div class="wc-overlay-header">
+        <div class="wc-overlay-preamble-row">
+          <span class="wc-overlay-preamble" id="wc-overlay-preamble">
+            <span id="wc-overlay-preamble-text">What we talked about...</span>
+            <span class="wc-overlay-preamble-caret" aria-hidden="true"></span>
+          </span>
+        </div>
+        <div class="wc-overlay-city-row">
+          <button class="wc-overlay-club-swap-pointer" id="wc-overlay-swap-club-prev" type="button" aria-label="Swap to another club" hidden>👈</button>
+          <button class="wc-overlay-city wc-overlay-city-button" id="wc-overlay-city" type="button" aria-label="Swap to another club">
+            <span class="wc-overlay-city-button__label" id="wc-overlay-city-label"></span>
+          </button>
+          <button class="wc-overlay-club-swap-pointer" id="wc-overlay-swap-club-next" type="button" aria-label="Swap to another club" hidden>👉</button>
+        </div>
+        <span class="wc-overlay-meta" id="wc-overlay-meta"></span>
+        <span class="wc-overlay-source-date" id="wc-overlay-source-date" hidden></span>
+      </div>
+      <div class="wc-overlay-body">
+        <div id="wc-overlay-stage" class="wc-overlay-stage"></div>
+        <div id="wc-overlay-art" class="wc-overlay-art" aria-hidden="true" hidden>
+          <img id="wc-overlay-photo" class="wc-overlay-photo" src="" alt="" aria-hidden="true" hidden />
+          <span class="wc-overlay-attribution" id="wc-overlay-attribution" hidden></span>
+        </div>
+      </div>
+      <p class="wc-overlay-hint" hidden></p>
+    </div>
+
+    <script src="./js/analytics-config.js?v=20260410-1549"></script>
+    <script src="./js/analytics.js?v=20260410-1549"></script>
+    <script src="./js/club-overrides.js?v=20260410-1549"></script>
+    <script src="./js/wordcloud2.js?v=20260410-1549"></script>
+    <script src="./js/word-cloud-topics.js?v=20260410-1549"></script>
+    <script src="./js/word-cloud.js?v=20260410-1549"></script>
+    <script src="./js/what-we-talked-about.js?v=20260410-1549"></script>
+  </body>
+</html>
