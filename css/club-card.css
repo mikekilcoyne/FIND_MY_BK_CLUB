@@ -678,6 +678,55 @@
   line-height: 1.4;
 }
 
+.card-latest-happenings-btn {
+  gap: 7px;
+  padding: 5px 10px 5px 6px;
+  border-color: rgba(18, 95, 62, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 240, 0.98) 100%) !important;
+  box-shadow:
+    0 10px 18px rgba(42, 32, 18, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.card-latest-happenings-btn__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1a8b58 0%, #0d6a41 100%);
+  color: #f6fffb;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    0 6px 14px rgba(13, 106, 65, 0.24),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
+}
+
+.card-latest-happenings-btn__label {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #24180d;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  clip-path: inset(0 100% 0 0);
+  animation: card-latest-happenings-reveal 1.45s steps(20, end) 0.15s forwards;
+}
+
+@keyframes card-latest-happenings-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 .social-icon-link,
 .social-menu-trigger {
   justify-content: center;
@@ -796,6 +845,17 @@
   border-color: var(--ink);
 }
 
+.card-latest-happenings-btn:hover,
+.card-latest-happenings-btn:focus-visible {
+  background:
+    linear-gradient(180deg, #fff6dd 0%, #ffe6a8 100%) !important;
+  border-color: rgba(198, 130, 18, 0.45) !important;
+  color: #1f160d !important;
+  box-shadow:
+    0 14px 24px rgba(110, 77, 20, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.88) inset;
+}
+
 .club-card.night-edition .card-utility a,
 .club-card.night-edition .card-utility button {
   background: rgba(7, 16, 31, 0.7);
@@ -826,6 +886,34 @@
 .club-card.night-edition .card-utility button:hover {
   background: var(--night-line);
   color: var(--night-ink);
+}
+
+.club-card.night-edition .card-latest-happenings-btn {
+  border-color: rgba(242, 222, 154, 0.26) !important;
+  background:
+    linear-gradient(180deg, rgba(20, 32, 58, 0.92) 0%, rgba(10, 20, 38, 0.94) 100%) !important;
+  color: var(--night-ink) !important;
+  box-shadow:
+    0 16px 28px rgba(3, 9, 19, 0.26),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+.club-card.night-edition .card-latest-happenings-btn__label {
+  color: var(--night-ink);
+}
+
+.club-card.night-edition .card-latest-happenings-btn:hover,
+.club-card.night-edition .card-latest-happenings-btn:focus-visible {
+  background:
+    linear-gradient(180deg, rgba(242, 222, 154, 0.2) 0%, rgba(232, 184, 80, 0.22) 100%) !important;
+  border-color: rgba(242, 222, 154, 0.34) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-latest-happenings-btn__label {
+    clip-path: inset(0 0 0 0);
+    animation: none;
+  }
 }
 
 .club-card.night-edition .card-update-link {

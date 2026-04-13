@@ -11,6 +11,10 @@ const {
   extractInstagramURL: sharedExtractInstagramURL,
   extractLinkedInURL: sharedExtractLinkedInURL,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
+  buildLatestHappeningsKeys: sharedBuildLatestHappeningsKeys,
+  loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
+  clubHasLatestHappenings: sharedClubHasLatestHappenings,
+  renderLatestHappeningsButton: sharedRenderLatestHappeningsButton,
 } = BKClubData;
 const GROWTH_TITLE_SUFFIX = "clubs worldwide and counting";
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
@@ -25,6 +29,7 @@ const mainHeadline = document.querySelector("#main-headline");
 const regionHeadline = document.querySelector("#region-headline");
 const regionFilter = document.querySelector("#region-filter");
 const calendarViewLink = document.querySelector(".calendar-headline-link");
+const featureCalloutTitle = document.querySelector(".feature-callout__title[data-typing-text]");
 const mobileResourcesToggle = document.querySelector(".mobile-resources-toggle");
 const mobileResourcesBody = document.querySelector("#mobile-resources-body");
 const backToTopBtn = document.querySelector("#back-to-top");
@@ -38,6 +43,8 @@ const clubUpdateStatus = document.querySelector("#club-update-status");
 let flyerGalleryItems = [];
 const CLUB_UPDATE_ENDPOINT = "/.netlify/functions/submit-club-update";
 let activeClubUpdateContext = null;
+let latestHappeningsCityKeys = new Set();
+let latestHappeningsLoaded = false;
 
 const REGION_ORDER = [
   "Northeast US",
@@ -132,12 +139,124 @@ function shouldHideClub(city) {
   return normalize(city || "") === "austin" || normalize(city || "") === "austin, tx";
 }
 
+function buildLatestHappeningsKeys(value, options = {}) {
+  if (sharedBuildLatestHappeningsKeys) return sharedBuildLatestHappeningsKeys(value, options);
+  const { loose = true } = options;
+  const raw = normalize(value || "")
+    .replace(/[\u2014\u2013]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\s*-\s*/g, " - ")
+    .trim();
+  if (!raw) return [];
+
+  const keys = new Set();
+  const addKey = (candidate) => {
+    const normalized = normalize(candidate || "")
+      .replace(/[\u2014\u2013]/g, "-")
+      .replace(/\s+/g, " ")
+      .replace(/\s*-\s*/g, " - ")
+      .trim();
+    if (normalized) keys.add(normalized);
+  };
+  const addCommaStripped = (candidate) => {
+    addKey(candidate);
+    if (loose) addKey(String(candidate || "").replace(/,\s*[a-z]{2,3}$/i, ""));
+  };
+
+  addCommaStripped(raw);
+
+  if (/^[a-z0-9-]+$/.test(raw) && raw.includes("-")) {
+    const spaced = raw.replace(/-/g, " ");
+    addCommaStripped(spaced);
+
+    if (raw.startsWith("new-york-")) {
+      const tail = raw.replace(/^new-york-/, "").replace(/-/g, " ").trim();
+      addCommaStripped(`new york - ${tail}`);
+      addCommaStripped(`ny - ${tail}`);
+      addCommaStripped(tail);
+    }
+  }
+
+  if (raw.startsWith("new york - ")) {
+    const tail = raw.replace(/^new york - /, "").trim();
+    addCommaStripped(`ny - ${tail}`);
+    addCommaStripped(tail);
+  }
+
+  if (raw.startsWith("ny - ")) {
+    const tail = raw.replace(/^ny - /, "").trim();
+    addCommaStripped(`new york - ${tail}`);
+    addCommaStripped(tail);
+  }
+
+  return Array.from(keys);
+}
+
+async function loadLatestHappeningsRegistry() {
+  if (sharedLoadLatestHappeningsRegistry) return sharedLoadLatestHappeningsRegistry();
+  if (latestHappeningsLoaded) return latestHappeningsCityKeys;
+  latestHappeningsLoaded = true;
+
+  try {
+    const response = await fetch(LATEST_HAPPENINGS_MEDIA_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const nextKeys = new Set();
+
+    (data.clubs || []).forEach((club) => {
+      if (!club || !Array.isArray(club.photos) || !club.photos.length) return;
+      buildLatestHappeningsKeys(club.slug).forEach((key) => nextKeys.add(key));
+      buildLatestHappeningsKeys(club.displayName).forEach((key) => nextKeys.add(key));
+    });
+
+    latestHappeningsCityKeys = nextKeys;
+  } catch (_error) {
+    latestHappeningsCityKeys = new Set();
+  }
+
+  return latestHappeningsCityKeys;
+}
+
+function clubHasLatestHappenings(club) {
+  if (sharedClubHasLatestHappenings) return sharedClubHasLatestHappenings(club);
+  const displayCity = getDisplayCity(club);
+  const city = club.city || "";
+  const useLooseDisplayMatch = !/,/.test(displayCity);
+  const useLooseCityMatch = !/,/.test(city);
+  return buildLatestHappeningsKeys(displayCity, { loose: useLooseDisplayMatch }).some(
+    (key) => latestHappeningsCityKeys.has(key),
+  ) || buildLatestHappeningsKeys(city, { loose: useLooseCityMatch }).some(
+    (key) => latestHappeningsCityKeys.has(key),
+  );
+}
+
 function loadSiteCopy() {
   const copy = DEFAULT_COPY;
   if (siteTitle) siteTitle.textContent = copy.siteTitle;
   if (mainHeadline) mainHeadline.textContent = copy.mainHeadline;
 
   if (searchInput) searchInput.placeholder = copy.searchPlaceholder;
+}
+
+function typeFeatureCalloutTitle() {
+  if (!featureCalloutTitle) return;
+  const fullText = featureCalloutTitle.dataset.typingText || featureCalloutTitle.textContent || "";
+  if (!fullText) return;
+
+  featureCalloutTitle.textContent = "";
+
+  let index = 0;
+  const step = () => {
+    index += 1;
+    featureCalloutTitle.textContent = fullText.slice(0, index);
+    if (index < fullText.length) {
+      const char = fullText.charAt(index - 1);
+      const delay = char === "." ? 120 : char === " " ? 38 : 58;
+      window.setTimeout(step, delay);
+    }
+  };
+
+  window.setTimeout(step, 260);
 }
 
 function parseCSVLine(line) {
@@ -686,6 +805,19 @@ function renderMapIcon(url, title) {
   return renderSocialIcon("maps", url, title || "Open in Google Maps");
 }
 
+function renderLatestHappeningsButton(club) {
+  if (sharedRenderLatestHappeningsButton) return sharedRenderLatestHappeningsButton(club);
+  const link = document.createElement("a");
+  const cityParam = encodeURIComponent((club.city || getDisplayCity(club) || "").trim());
+  link.href = `./what-we-talked-about.html?city=${cityParam}`;
+  link.className = "card-latest-happenings-btn";
+  link.setAttribute("aria-label", `Open Latest Happenings for ${getDisplayCity(club)}`);
+  link.innerHTML =
+    '<span class="card-latest-happenings-btn__badge" aria-hidden="true">NEW</span>' +
+    '<span class="card-latest-happenings-btn__label">Latest happenings...</span>';
+  return link;
+}
+
 function dedupeSocialItems(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -1127,6 +1259,10 @@ function createClubCard(club) {
 
   const util = document.createElement("div");
   util.className = "card-utility";
+
+  if (clubHasLatestHappenings(club)) {
+    util.append(renderLatestHappeningsButton(club));
+  }
 
   if (club.venue) {
     util.append(renderMapIcon(
@@ -1572,6 +1708,7 @@ function renderRegionFilter() {
 
 async function loadClubs() {
   try {
+    await loadLatestHappeningsRegistry();
     const { rows, usedLocalSnapshot } = await fetchSheetRows();
     const { col } = createSheetAccess(rows);
 
@@ -1974,6 +2111,7 @@ window.openFlyerLightbox = openFlyerLightbox;
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 loadSiteCopy();
+typeFeatureCalloutTitle();
 setupMobileResourcesToggle();
 setupDayJumpLinks();
 setupBackToTop();

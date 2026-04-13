@@ -3,6 +3,7 @@
 
   var CLUBS_MAP_URL = "./data/clubs-map.json?v=20260409-1730";
   var CACHE_URL = "./data/wwta-substack-cache.json?v=20260409-1730";
+  var MEDIA_URL = "./data/club-story-media.json?v=20260409-1730";
   var RETURN_URL = "./";
 
   var CLUB_ALIASES = {
@@ -25,19 +26,14 @@
     "washington dc": ["washington dc", "dc"],
     manhattan: ["manhattan"],
     "panama city": ["panama city"],
+    "portland, maine": ["portland me", "portland"],
+    vegas: ["las vegas", "las vegas nv"],
     "los angeles": ["los angeles", "la west", "la"],
     "melbourne - fitzroy": ["melbourne"],
     "surf coast - torquay": ["torquay", "surf coast"],
   };
 
-  var SUPPRESSED_CLUBS = {
-    "new york - downtown brooklyn": true,
-    "new york - hudson": true,
-    "panama city": true,
-    "portland, maine": true,
-    "soma, nj, usa": true,
-    "washington dc": true,
-  };
+  var SUPPRESSED_CLUBS = {};
 
   var PHOTO_RULES = {
     amsterdam: {
@@ -49,31 +45,55 @@
     burlington: {
       dropClub: true,
     },
-    "downtown bk": {
-      dropClub: true,
-    },
-    "downtown brooklyn": {
-      dropClub: true,
-    },
-    hudson: {
-      dropClub: true,
+    les: {
+      exclude: [
+        "./assets/photos/club_updates/new-york-les/00000028-photo-2026-03-16-03-17-08-a48e5a826b.jpg",
+      ],
     },
     london: {
       exclude: [
         "https://substackcdn.com/image/fetch/$s_!Soxs!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F98a74e0a-ff65-4fcc-a84e-f4f94dcd3d16_800x600.jpeg",
       ],
     },
+    "las vegas": {
+      exclude: [
+        "./assets/photos/club_updates/las-vegas/00000109-photo-2026-03-23-15-27-10-e9119f81e9.jpg",
+      ],
+    },
+    hamptons: {
+      heroPhotoIndex: 1,
+    },
     maplewood: {
       dropClub: true,
     },
+    milan: {
+      exclude: [
+        "./assets/photos/club_updates/milano/00000135-photo-2026-03-25-16-16-42-2495253451.jpg",
+      ],
+    },
+    milano: {
+      exclude: [
+        "./assets/photos/club_updates/milano/00000135-photo-2026-03-25-16-16-42-2495253451.jpg",
+      ],
+    },
     "panama city": {
-      dropClub: true,
+      exclude: [
+        "https://substackcdn.com/image/fetch/$s_!OEM8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14777982-7368-4d8d-b1a2-51e020be826e.png",
+      ],
+    },
+    "panama city panama": {
+      exclude: [
+        "https://substackcdn.com/image/fetch/$s_!OEM8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14777982-7368-4d8d-b1a2-51e020be826e.png",
+      ],
     },
     "san francisco": {
       exclude: [
         "https://substackcdn.com/image/fetch/$s_!jOVN!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7983bac7-8bbc-4a5a-9dec-fff1658508c5_800x1067.jpeg",
         "https://substackcdn.com/image/fetch/$s_!bRPa!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fda47a01f-efdc-40c0-a7dc-2c4e9dd1edc5_800x600.jpeg",
       ],
+    },
+    soma: {
+      dropClub: true,
     },
   };
 
@@ -92,6 +112,8 @@
       .replace(/\bon\b/g, "")
       .replace(/[^a-z0-9\s-]/g, " ")
       .replace(/\s+/g, " ")
+      .replace(/^\s*-\s*/g, "")
+      .replace(/\s*-\s*$/g, "")
       .trim();
   }
 
@@ -145,6 +167,16 @@
     });
   }
 
+  function getMediaPhotos(entry) {
+    var seen = {};
+    var photos = Array.isArray(entry && entry.photos) ? entry.photos : [];
+    return photos.filter(function (photo) {
+      if (!photo || seen[photo]) return false;
+      seen[photo] = true;
+      return true;
+    });
+  }
+
   function getPhotoRule(cityKey) {
     return PHOTO_RULES[normalizeCity(cityKey || "")] || null;
   }
@@ -167,6 +199,27 @@
     }
 
     return filtered;
+  }
+
+  function buildMediaRegistry(mediaData) {
+    var registry = {};
+
+    (mediaData && mediaData.clubs || []).forEach(function (entry) {
+      if (!entry) return;
+      var filteredPhotos = applyPhotoRule(getMediaPhotos(entry), entry.slug || entry.displayName);
+      var hasVisual = Boolean(entry.photo) || filteredPhotos.length > 0;
+      if (!hasVisual) return;
+
+      [entry.slug, entry.displayName].forEach(function (value) {
+        getAliasCandidates(value).forEach(function (key) {
+          if (!registry[key]) {
+            registry[key] = entry;
+          }
+        });
+      });
+    });
+
+    return registry;
   }
 
   function stripVenue(venue) {
@@ -385,21 +438,49 @@
       .trim();
   }
 
-  function getSpotlightForKey(key) {
-    if (!key) return null;
+  function getAliasCandidates(key) {
+    var rawKey = String(key || "")
+      .replace(/[—–]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim();
+    var rawVariants = [rawKey];
+    var normalizedKey = normalizeCity(rawKey);
+    var aliases = CLUB_ALIASES[rawKey] || CLUB_ALIASES[normalizedKey] || [];
+    var candidates = [];
 
-    var candidates = [
-      normalizeCity(key),
-      normalizeSpotlightLookup(key),
-    ];
-    var aliases = CLUB_ALIASES[key] || [];
+    if (/^[a-z0-9-]+$/i.test(rawKey) && rawKey.indexOf("-") !== -1) {
+      rawVariants.push(rawKey.replace(/-/g, " "));
+    }
+
+    if (/^new york\s*-\s*/i.test(rawKey)) {
+      var newYorkTail = rawKey.replace(/^new york\s*-\s*/i, "").trim();
+      rawVariants.push("ny - " + newYorkTail);
+      rawVariants.push(newYorkTail);
+    }
+
+    if (/^ny\s*-\s*/i.test(rawKey)) {
+      var nyTail = rawKey.replace(/^ny\s*-\s*/i, "").trim();
+      rawVariants.push("new york - " + nyTail);
+      rawVariants.push(nyTail);
+    }
+
+    rawVariants.forEach(function (variant) {
+      candidates.push(normalizeCity(variant));
+      candidates.push(normalizeSpotlightLookup(variant));
+    });
 
     aliases.forEach(function (alias) {
       candidates.push(normalizeCity(alias));
       candidates.push(normalizeSpotlightLookup(alias));
     });
 
-    candidates = Array.from(new Set(candidates.filter(Boolean)));
+    return Array.from(new Set(candidates.filter(Boolean)));
+  }
+
+  function getSpotlightForKey(key) {
+    if (!key) return null;
+
+    var candidates = getAliasCandidates(key);
 
     var match = WC_SPOTLIGHTS.find(function (spotlight) {
       var spotlightKeys = [
@@ -414,13 +495,15 @@
     return match || null;
   }
 
-  function mergeSpotlight(club, record, photoUsageCounts) {
+  function mergeSpotlight(club, record, photoUsageCounts, mediaEntry) {
     var spotlight = getSpotlightForKey(club.city) || getSpotlightForKey(cleanDisplayCity(club));
     var spotlightKey = normalizeCity(cleanDisplayCity(club));
     var isHamptonsClub =
       normalizeCity(club.city || "").indexOf("hamptons") !== -1 ||
       spotlightKey.indexOf("hamptons") !== -1;
     var originalPhotos = getOriginalRecordPhotos(record, photoUsageCounts);
+    var mediaPhotos = getMediaPhotos(mediaEntry);
+    var mediaPhoto = mediaEntry && mediaEntry.photo ? mediaEntry.photo : "";
 
     if (!spotlight) {
       spotlight = {
@@ -439,11 +522,40 @@
       spotlight.sourceDate = record.sourceDate;
     }
 
+    if (mediaEntry && mediaEntry.sourceDate && !spotlight.sourceDate) {
+      spotlight.sourceDate = mediaEntry.sourceDate;
+    }
+
+    if (mediaEntry && mediaEntry.updatedAt && !spotlight.sourceDate) {
+      spotlight.sourceDate = mediaEntry.updatedAt;
+    }
+
+    if (mediaEntry && mediaEntry.attribution && !spotlight.attribution) {
+      spotlight.attribution = mediaEntry.attribution;
+    }
+
+    if (mediaEntry && mediaEntry.region && !spotlight.region) {
+      spotlight.region = mediaEntry.region;
+    }
+
+    if (mediaEntry && mediaEntry.topics && mediaEntry.topics.length && !(spotlight.topics && spotlight.topics.length)) {
+      spotlight.topics = Array.from(new Set([].concat(mediaEntry.topics, spotlight.topics || []))).slice(0, 16);
+    }
+
     if (originalPhotos.length && !isHamptonsClub) {
       spotlight.photos = applyPhotoRule(originalPhotos, spotlightKey).slice(0, 6);
       spotlight.photoTreatment = "polaroid-frame";
       spotlight.heroPhotoIndex = 0;
       delete spotlight.photo;
+    } else if (mediaPhotos.length) {
+      spotlight.photos = applyPhotoRule(mediaPhotos, spotlightKey).slice(0, 6);
+      spotlight.photoTreatment = mediaEntry.photoTreatment || "polaroid-frame";
+      spotlight.heroPhotoIndex = 0;
+      delete spotlight.photo;
+    } else if (mediaPhoto) {
+      spotlight.photo = mediaPhoto;
+      spotlight.photoTreatment = mediaEntry.photoTreatment || spotlight.photoTreatment || "";
+      delete spotlight.photos;
     }
 
     return spotlight;
@@ -456,11 +568,10 @@
       normalizeCity(label.replace(/^NY\s+-\s+/i, "")),
       normalizeCity(label),
     ];
-    var aliases = CLUB_ALIASES[club.city] || [];
     var match = null;
 
-    aliases.forEach(function (alias) {
-      candidates.push(normalizeCity(alias));
+    getAliasCandidates(club.city).forEach(function (candidate) {
+      candidates.push(candidate);
     });
 
     candidates.some(function (candidate) {
@@ -474,9 +585,31 @@
     return match;
   }
 
-  function buildClubButtons(clubs, cache) {
+  function findMediaForClub(mediaRegistry, club) {
+    var label = cleanDisplayCity(club);
+    var rawCandidates = [
+      club.city,
+      club.displayCity,
+      label,
+      label.replace(/^NY\s+-\s+/i, ""),
+    ];
+    var match = null;
+
+    rawCandidates.forEach(function (value) {
+      getAliasCandidates(value).forEach(function (candidate) {
+        if (!match && candidate && mediaRegistry[candidate]) {
+          match = mediaRegistry[candidate];
+        }
+      });
+    });
+
+    return match;
+  }
+
+  function buildClubButtons(clubs, cache, mediaData) {
     var container = document.getElementById("clubs-list");
     var cacheCities = (cache && cache.cities) || {};
+    var mediaRegistry = buildMediaRegistry(mediaData);
     var photoUsageCounts = buildPhotoUsageCounts(cacheCities);
     var filtered = [];
     var deduped = new Map();
@@ -485,10 +618,11 @@
       var override = (window.CLUB_OVERRIDES && window.CLUB_OVERRIDES[club.city]) || {};
       if (isSuppressedClub(club)) return;
       var record = findRecordForClub(cacheCities, club);
-      if (!record) return;
-      var spotlight = mergeSpotlight(Object.assign({}, club, override), record, photoUsageCounts);
+      var mediaEntry = findMediaForClub(mediaRegistry, club);
+      if (!record && !mediaEntry) return;
+      var spotlight = mergeSpotlight(Object.assign({}, club, override), record, photoUsageCounts, mediaEntry);
       var hasVisual = Boolean(spotlight && spotlight.photos && spotlight.photos.length);
-      if (!spotlight || !hasVisual) return;
+      if (!hasVisual && !(spotlight && spotlight.photo)) return;
       filtered.push({
         club: Object.assign({}, club, override),
         spotlight: spotlight,
@@ -548,7 +682,42 @@
 
   function readRequestedCity() {
     var params = new URLSearchParams(window.location.search);
-    return normalizeCity(params.get("city") || "");
+    return {
+      raw: params.get("city") || "",
+      normalized: normalizeCity(params.get("city") || ""),
+    };
+  }
+
+  function getButtonMatchCandidates(button) {
+    var dataset = button.dataset || {};
+    var rawValues = [
+      dataset.city,
+      dataset.displayCity,
+      (dataset.displayCity || "").replace(/^NY\s+-\s+/i, ""),
+    ].filter(Boolean);
+    var candidates = [];
+
+    rawValues.forEach(function (value) {
+      candidates.push(normalizeCity(value));
+      candidates.push(normalizeSpotlightLookup(value));
+      getAliasCandidates(value).forEach(function (candidate) {
+        candidates.push(candidate);
+      });
+    });
+
+    return Array.from(new Set(candidates.filter(Boolean)));
+  }
+
+  function resolveRequestedButton(buttons, requestedCity) {
+    if (!requestedCity || !requestedCity.normalized) return null;
+    var requestedCandidates = getAliasCandidates(requestedCity.raw || requestedCity.normalized);
+
+    return buttons.find(function (button) {
+      var buttonCandidates = getButtonMatchCandidates(button);
+      return requestedCandidates.some(function (candidate) {
+        return buttonCandidates.includes(candidate);
+      });
+    }) || null;
   }
 
   function wireStandaloneBehavior(buttons) {
@@ -563,11 +732,10 @@
       }, true);
     }
 
-    var target = buttons.find(function (button) {
-      return normalizeCity(button.dataset.city) === requestedCity || normalizeCity(button.dataset.displayCity) === requestedCity;
-    });
+    var target = resolveRequestedButton(buttons, requestedCity);
+    var hasExplicitRequest = Boolean(requestedCity && requestedCity.normalized);
 
-    if (!target) {
+    if (!target && !hasExplicitRequest) {
       target = buttons.find(function (button) {
         return normalizeCity(button.dataset.city).indexOf("biarritz") !== -1;
       }) || buttons.find(function (button) {
@@ -579,6 +747,8 @@
       setTimeout(function () {
         target.click();
       }, 240);
+    } else if (hasExplicitRequest) {
+      console.warn("WWTA standalone route could not resolve requested city:", requestedCity.raw);
     }
   }
 
@@ -586,10 +756,12 @@
     Promise.all([
       loadJson(CLUBS_MAP_URL),
       loadJson(CACHE_URL).catch(function () { return { cities: {} }; }),
+      loadJson(MEDIA_URL).catch(function () { return { clubs: [] }; }),
     ]).then(function (results) {
       var clubs = results[0] || [];
       var cache = results[1] || { cities: {} };
-      var buttons = buildClubButtons(clubs, cache);
+      var media = results[2] || { clubs: [] };
+      var buttons = buildClubButtons(clubs, cache, media);
       wireStandaloneBehavior(buttons);
     }).catch(function (error) {
       console.error("WWTA bootstrap error:", error);

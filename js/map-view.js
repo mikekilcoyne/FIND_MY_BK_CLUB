@@ -3,6 +3,9 @@
 
   var BKClubData = window.BKClubData || {};
   var fetchSheetRows = BKClubData.fetchSheetRows;
+  var loadLatestHappeningsRegistry = BKClubData.loadLatestHappeningsRegistry;
+  var clubHasLatestHappenings = BKClubData.clubHasLatestHappenings;
+  var renderLatestHappeningsButton = BKClubData.renderLatestHappeningsButton;
   var createSheetAccess = BKClubData.createSheetAccess;
   var getOverrideForCity = BKClubData.getOverrideForCity;
   var sharedShouldHideClub = BKClubData.shouldHideClub;
@@ -854,6 +857,10 @@
     var util = document.createElement("div");
     util.className = "card-utility";
 
+    if (clubHasLatestHappenings && clubHasLatestHappenings(club) && renderLatestHappeningsButton) {
+      util.appendChild(renderLatestHappeningsButton(club));
+    }
+
     var mapsURL = club.mapsURL ||
       "https://maps.google.com/?q=Breakfast+Club+" + encodeURIComponent(club.displayCity || club.city);
     var mapsBtn = renderMapIcon(mapsURL, club.venue ? "Open " + club.venue + " in Google Maps" : "Open in Google Maps");
@@ -1265,6 +1272,7 @@
         return res.json();
       }),
       fetchSheetRows().then(function (result) { return result.rows; }),
+      loadLatestHappeningsRegistry ? loadLatestHappeningsRegistry() : Promise.resolve(),
     ])
       .then(function (results) {
         var clubs = mergeCSV(results[0], results[1]).filter(function (club) {

@@ -12,6 +12,9 @@ const {
   extractEmail: sharedExtractEmail,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
   toISODate: sharedToISODate,
+  loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
+  clubHasLatestHappenings: sharedClubHasLatestHappenings,
+  renderLatestHappeningsButton: sharedRenderLatestHappeningsButton,
 } = BKClubData;
 const CLUB_OVERRIDES = window.CLUB_OVERRIDES || {};
 
@@ -799,6 +802,10 @@ function renderDayDetails(isoDate, monthEvents) {
       const util = document.createElement("div");
       util.className = "card-utility";
 
+      if (sharedClubHasLatestHappenings && sharedClubHasLatestHappenings(club) && sharedRenderLatestHappeningsButton) {
+        util.append(sharedRenderLatestHappeningsButton(club));
+      }
+
       if (club.venue) {
         const mapLink = renderMapIcon(
           getMapURL(`${club.venue}, ${club.city}`),
@@ -939,6 +946,9 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
+    if (sharedLoadLatestHappeningsRegistry) {
+      await sharedLoadLatestHappeningsRegistry();
+    }
     const { rows, usedLocalSnapshot } = await fetchSheetRows();
     const { col } = createSheetAccess(rows);
 

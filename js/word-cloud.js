@@ -1248,10 +1248,10 @@
     }
 
     if (!overlayPreambleHasTyped) {
-      typeOverlayPreamble("Latest happenings from...");
+      typeOverlayPreamble("Latest Happenings...");
       overlayPreambleHasTyped = true;
     } else {
-      showOverlayPreamble("Latest happenings from...");
+      showOverlayPreamble("Latest Happenings...");
     }
 
     stopPhotoCycle();
