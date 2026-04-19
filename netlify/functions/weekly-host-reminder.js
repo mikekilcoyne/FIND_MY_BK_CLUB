@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { getConfiguredStore } from "./lib/blob-store.js";
 
 // Runs every Sunday at 16:30 UTC (12:30pm ET)
 // Fetches active host emails from the Google Sheet and sends a weekly reminder via SendGrid.
@@ -52,13 +52,13 @@ const FROM_EMAIL = "ben@breakfastclubbing.com";
 const FROM_NAME  = "Breakfast Club HQ";
 const REPLY_TO   = "ben@breakfastclubbing.com";
 const REMINDER_LOCK_STORE = "weekly-host-reminder";
-const REMINDER_LOCK_KEY_PREFIX = "scheduled-send";
-const CORRECTION_LOCK_KEY_PREFIX = "correction-send";
+const REMINDER_RUN_KEY_PREFIX = "run-summary";
+const RECIPIENT_LOCK_KEY_PREFIX = "recipient-send";
+const SEND_CONCURRENCY = 8;
 
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
-const ARTICLE_URL = "https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html";
-const LATEST_HAPPENINGS_GIF_URL = "https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif";
+const LATEST_HAPPENINGS_URL = "https://breakfastclubbing.com/what-we-talked-about";
 
 // ── CSV parser ────────────────────────────────────────────────────────────────
 
@@ -156,32 +156,65 @@ What I meant to send below:
   };
 }
 
-async function claimSendLock(lockPrefix, lockValue, force = false) {
+function getReminderStore() {
+  return getConfiguredStore(REMINDER_LOCK_STORE, { consistency: "strong" });
+}
+
+function buildRecipientLockKey(mode, lockValue, email) {
+  const safeEmail = Buffer.from(String(email).trim().toLowerCase()).toString("base64url");
+  return `${RECIPIENT_LOCK_KEY_PREFIX}/${mode}/${lockValue}/${safeEmail}.json`;
+}
+
+async function assertReminderStoreReady(store) {
+  const healthcheckKey = `${REMINDER_RUN_KEY_PREFIX}/healthcheck-${Date.now()}-${Math.random().toString(36).slice(2)}.json`;
+  await store.setJSON(healthcheckKey, { checkedAt: new Date().toISOString() }, { onlyIfNew: true });
+  await store.delete(healthcheckKey);
+}
+
+async function claimRecipientSend(store, mode, lockValue, email, cities, force = false) {
+  const key = buildRecipientLockKey(mode, lockValue, email);
+
   if (force) {
-    return { claimed: true, store: null, key: null };
+    return { claimed: true, key };
   }
 
-  const store = getStore({ name: REMINDER_LOCK_STORE, consistency: "strong" });
-  const key = `${lockPrefix}/${lockValue}`;
   const { modified } = await store.setJSON(
     key,
     {
       status: "in_progress",
+      mode,
       lockValue,
+      email,
+      cities,
       claimedAt: new Date().toISOString(),
     },
     { onlyIfNew: true }
   );
 
-  return { claimed: modified, store, key };
+  return { claimed: modified, key };
 }
 
-async function completeReminderLock(store, key, summary) {
-  if (!store || !key) return;
+async function completeRecipientSend(store, key, summary, force = false) {
+  if (!store || !key || force) return;
 
   await store.setJSON(key, {
     status: "completed",
     completedAt: new Date().toISOString(),
+    ...summary,
+  });
+}
+
+async function releaseRecipientSend(store, key, force = false) {
+  if (!store || !key || force) return;
+  await store.delete(key);
+}
+
+async function recordReminderRun(store, mode, lockValue, summary) {
+  if (!store) return;
+
+  const key = `${REMINDER_RUN_KEY_PREFIX}/${mode}/${lockValue}-${Date.now()}.json`;
+  await store.setJSON(key, {
+    createdAt: new Date().toISOString(),
     ...summary,
   });
 }
@@ -254,29 +287,23 @@ function buildEmailBody(cities, targetSunday, mode = "scheduled") {
 
 ${topNotice}
 
-Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+BC just hit 100 newsletters.
 
-This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
+All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
 
-Stoked that we're helping create those micro-scenes around the globe.
+No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
 
-Newest micro-scene:
-NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
+Thank you to all of you amazing hosts for turning this into a real, global community.
 
-We're also getting close on a new site feature: 'Latest Happenings.'
-
-Here's an early preview:
-${LATEST_HAPPENINGS_GIF_URL}
-
-It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
-
-Anywho, call for updates. ${cityLead}
+On that same note: ${cityLead}
 
 ──────────────────────────
 
 ${updateBlock}
 
-If everything looks right, no action needed. See you at the table.
+If everything's good, you're good.
+
+— Ben Dietz
 
 Questions? ben@breakfastclubbing.com
 
@@ -299,36 +326,21 @@ function buildEmailHTML(cities, targetSunday, mode = "scheduled") {
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
   ${topNotice}
+  <p style="font-size: 15px; line-height: 1.6;">BC just hit 100 newsletters.</p>
   <p style="font-size: 15px; line-height: 1.6;">
-    Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+    All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
-    This week, it was this piece in T Magazine:
-    <a href="${ARTICLE_URL}" style="color: #b07d3a;">Have You Found Your Microscene?</a>
+    No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
-    Stoked that we're helping create those micro-scenes around the globe.
+    Thank you to all of you amazing hosts for turning this into a real, global community.
   </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    <strong>Newest micro-scene:</strong><br>
-    NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    We're also getting close on a new site feature: <strong>'Latest Happenings.'</strong>
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">Here's an early preview:</p>
-  <div style="margin: 24px 0; text-align: center;">
-    <img src="${LATEST_HAPPENINGS_GIF_URL}" alt="Latest Happenings preview" style="display: block; width: 100%; max-width: 492px; height: auto; margin: 0 auto; border: 1px solid #eee;">
-  </div>
-  <p style="font-size: 15px; line-height: 1.6;">
-    It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">Anywho, call for updates. ${cityLead}</p>
+  <p style="font-size: 15px; line-height: 1.6;">On that same note: ${cityLead}</p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   ${updateBlock}
-  <p style="font-size: 15px; line-height: 1.6;">
-    If everything looks right, no action needed. See you at the table.
-  </p>
+  <p style="font-size: 15px; line-height: 1.6;">If everything's good, you're good.</p>
+  <p style="font-size: 15px; line-height: 1.6;">— Ben Dietz</p>
   <p style="font-size: 14px; line-height: 1.8; color: #666; margin-top: 32px;">
     Questions? <a href="mailto:ben@breakfastclubbing.com" style="color: #b07d3a;">ben@breakfastclubbing.com</a>
   </p>
@@ -349,10 +361,10 @@ function buildSubject(cities, mode = "scheduled") {
   }
 
   if (cities.length <= 1) {
-    return `Breakfast Club reminder — update your ${cities[0] || "club"} listing`;
+    return `BC reminder - update your ${cities[0] || "club"} listing`;
   }
 
-  return "Breakfast Club reminder — update your club listings";
+  return "BC reminder - update your club listings";
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -366,12 +378,12 @@ export async function handler(event) {
 
   const params = event?.queryStringParameters || {};
   const force = params.force === "1";
+  const dryRun = params.dry === "1";
   const mode = params.mode === "correction" ? "correction" : "scheduled";
   const excludedEmails = parseEmailList(params.exclude);
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
-  const lockPrefix = mode === "correction" ? CORRECTION_LOCK_KEY_PREFIX : REMINDER_LOCK_KEY_PREFIX;
   const lockValue = mode === "correction" ? correctionDate : cycleDate;
 
   // 1. Fetch sheet (fall back to hardcoded list on any error)
@@ -422,36 +434,62 @@ export async function handler(event) {
     };
   }
 
-  let reminderLock;
+  let reminderStore;
   try {
-    reminderLock = await claimSendLock(lockPrefix, lockValue, force);
+    reminderStore = getReminderStore();
+    await assertReminderStoreReady(reminderStore);
   } catch (err) {
-    console.error(`Unable to claim send lock for ${lockValue}:`, err.message);
+    console.error(`Unable to initialize reminder store for ${lockValue}:`, err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Unable to claim reminder lock", mode, lockValue }),
+      body: JSON.stringify({ error: "Unable to initialize reminder store", mode, lockValue }),
     };
   }
 
-  if (!reminderLock.claimed) {
-    console.log(`Skipping send for ${lockValue} — ${mode} email already sent or in progress`);
+  if (dryRun) {
+    console.log(`Dry run ready for ${lockValue} — ${filteredRecipients.length} unique host inboxes`);
     return {
       statusCode: 200,
-      body: JSON.stringify({ skipped: true, reason: "already-sent", mode, lockValue }),
+      body: JSON.stringify({
+        dryRun: true,
+        mode,
+        lockValue,
+        recipients: filteredRecipients.length,
+        excludedEmails: [...excludedEmails],
+      }),
     };
   }
 
   if (force) {
-    console.warn(`Force send requested for ${lockValue} — bypassing reminder lock`);
+    console.warn(`Force send requested for ${lockValue} — bypassing recipient locks`);
   }
 
-  console.log(`Sending to ${filteredRecipients.length} unique host inboxes`);
+  console.log(`Sending to ${filteredRecipients.length} unique host inboxes with concurrency ${SEND_CONCURRENCY}`);
 
   // 3. Send via SendGrid
   let sent = 0;
   let failed = 0;
+  let skipped = 0;
+  let nextRecipientIndex = 0;
 
-  for (const { email, cities } of filteredRecipients) {
+  async function sendReminder(recipient) {
+    const { email, cities } = recipient;
+    let recipientLock;
+
+    try {
+      recipientLock = await claimRecipientSend(reminderStore, mode, lockValue, email, cities, force);
+    } catch (err) {
+      console.error(`Unable to claim recipient lock for ${email}:`, err.message);
+      failed++;
+      return;
+    }
+
+    if (!recipientLock.claimed) {
+      skipped++;
+      console.log(`↷ Skipped ${email} (${cities.join(", ") || "no city"}) — already sent for ${lockValue}`);
+      return;
+    }
+
     const payload = {
       personalizations: [{ to: [{ email }] }],
       from: { email: FROM_EMAIL, name: FROM_NAME },
@@ -478,31 +516,62 @@ export async function handler(event) {
       });
 
       if (res.status === 202) {
+        await completeRecipientSend(reminderStore, recipientLock.key, {
+          email,
+          cities,
+          cycleDate,
+          lockValue,
+          mode,
+        }, force);
         sent++;
         console.log(`✓ Sent to ${email} (${cities.join(", ") || "no city"})`);
       } else {
         const body = await res.text();
         console.error(`✗ Failed for ${email}: ${res.status} ${body}`);
+        await releaseRecipientSend(reminderStore, recipientLock.key, force);
         failed++;
       }
     } catch (err) {
       console.error(`✗ Error sending to ${email}:`, err.message);
+      await releaseRecipientSend(reminderStore, recipientLock.key, force);
       failed++;
     }
   }
 
-  await completeReminderLock(reminderLock.store, reminderLock.key, {
+  const workerCount = Math.min(SEND_CONCURRENCY, filteredRecipients.length);
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextRecipientIndex < filteredRecipients.length) {
+        const currentIndex = nextRecipientIndex++;
+        const recipient = filteredRecipients[currentIndex];
+        if (!recipient) return;
+        await sendReminder(recipient);
+      }
+    })
+  );
+
+  await recordReminderRun(reminderStore, mode, lockValue, {
     cycleDate,
     mode,
     lockValue,
     sent,
     failed,
+    skipped,
     recipients: filteredRecipients.length,
     excludedEmails: [...excludedEmails],
   });
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ sent, failed, recipients: filteredRecipients.length, cycleDate, mode, lockValue, excludedEmails: [...excludedEmails] }),
+    body: JSON.stringify({
+      sent,
+      failed,
+      skipped,
+      recipients: filteredRecipients.length,
+      cycleDate,
+      mode,
+      lockValue,
+      excludedEmails: [...excludedEmails],
+    }),
   };
 }

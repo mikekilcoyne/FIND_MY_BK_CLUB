@@ -11,11 +11,11 @@ const TO_EMAILS  = (process.env.TEST_EMAIL_TO || "mk@yellowsatinjacket.com")
 const FROM_EMAIL = "ben@breakfastclubbing.com";
 const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
 const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
-const ARTICLE_URL = process.env.TEST_ARTICLE_URL || "https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html";
-const LATEST_HAPPENINGS_GIF_URL = process.env.TEST_GIF_URL || "https://69c91f509b35a6b3b3e908f2--luxury-toffee-ec4a34.netlify.app/LATEST_HAPPENINS.gif";
+const LATEST_HAPPENINGS_URL = process.env.TEST_LATEST_HAPPENINGS_URL || "https://breakfastclubbing.com/what-we-talked-about";
 const TEST_CITY_LABEL = process.env.TEST_CITY_LABEL || "New York — Williamsburg";
 const TEST_FLYER_EXAMPLE = process.env.TEST_FLYER_EXAMPLE || "NewYorkWilliamsburg_2026-03-23.jpg";
 const TEST_MODE = process.env.TEST_MODE === "correction" ? "correction" : "scheduled";
+const TEST_SUBJECT = process.env.TEST_SUBJECT || "BC reminder - update your club listing";
 
 const apiKey = process.env.SENDGRID_API_KEY;
 if (!apiKey) { console.error("Set SENDGRID_API_KEY env var"); process.exit(1); }
@@ -44,23 +44,15 @@ const plain = `Hey hosts,
 
 ${topNoticeText}
 
-Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+BC just hit 100 newsletters.
 
-This week, it was this piece in T Magazine: Have You Found Your Microscene? (${ARTICLE_URL})
+All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
 
-Stoked that we're helping create those micro-scenes around the globe.
+No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
 
-Newest micro-scene:
-NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
+Thank you to all of you amazing hosts for turning this into a real, global community.
 
-We're also getting close on a new site feature: 'Latest Happenings.'
-
-Here's an early preview:
-${LATEST_HAPPENINGS_GIF_URL}
-
-It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
-
-Anywho, call for updates. For ${TEST_CITY_LABEL}, here's where to update:
+On that same note: For ${TEST_CITY_LABEL}, here's where to update:
 
 ──────────────────────────
 
@@ -69,7 +61,9 @@ Anywho, call for updates. For ${TEST_CITY_LABEL}, here's where to update:
 
 Flyer naming: City_YYYY-MM-DD.jpg (e.g. ${TEST_FLYER_EXAMPLE})
 
-If everything looks right, no action needed. See you at the table.
+If everything's good, you're good.
+
+— Ben Dietz
 
 Questions? ben@breakfastclubbing.com
 
@@ -84,31 +78,17 @@ const html = `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
   ${topNoticeHtml}
+  <p style="font-size: 15px; line-height: 1.6;">BC just hit 100 newsletters.</p>
   <p style="font-size: 15px; line-height: 1.6;">
-    Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+    All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
-    This week, it was this piece in T Magazine:
-    <a href="${ARTICLE_URL}" style="color: #b07d3a;">Have You Found Your Microscene?</a>
+    No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
   </p>
   <p style="font-size: 15px; line-height: 1.6;">
-    Stoked that we're helping create those micro-scenes around the globe.
+    Thank you to all of you amazing hosts for turning this into a real, global community.
   </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    <strong>Newest micro-scene:</strong><br>
-    NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    We're also getting close on a new site feature: <strong>'Latest Happenings.'</strong>
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">Here's an early preview:</p>
-  <div style="margin: 24px 0; text-align: center;">
-    <img src="${LATEST_HAPPENINGS_GIF_URL}" alt="Latest Happenings preview" style="display: block; width: 100%; max-width: 492px; height: auto; margin: 0 auto; border: 1px solid #eee;">
-  </div>
-  <p style="font-size: 15px; line-height: 1.6;">
-    It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">Anywho, call for updates. For <strong>${TEST_CITY_LABEL}</strong>, here's where to update:</p>
+  <p style="font-size: 15px; line-height: 1.6;">On that same note: For <strong>${TEST_CITY_LABEL}</strong>, here's where to update:</p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   <p style="font-size: 15px; line-height: 1.8;">
     → <a href="${SHEET_LINK}" style="color: #b07d3a;">Master Sheet</a> (update your listing)<br>
@@ -117,9 +97,8 @@ const html = `
   <p style="font-size: 13px; line-height: 1.6; color: #666;">
     Flyer naming: City_YYYY-MM-DD.jpg (e.g. <code>${TEST_FLYER_EXAMPLE}</code>)
   </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    If everything looks right, no action needed. See you at the table.
-  </p>
+  <p style="font-size: 15px; line-height: 1.6;">If everything's good, you're good.</p>
+  <p style="font-size: 15px; line-height: 1.6;">— Ben Dietz</p>
   <p style="font-size: 14px; line-height: 1.8; color: #666; margin-top: 32px;">
     Questions? <a href="mailto:ben@breakfastclubbing.com" style="color: #b07d3a;">ben@breakfastclubbing.com</a>
   </p>
@@ -146,7 +125,7 @@ const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
     },
     subject: TEST_MODE === "correction"
       ? "Sorry!"
-      : `[TEST] Breakfast Club — ${TEST_CITY_LABEL} weekly update link`,
+      : TEST_SUBJECT,
     content: [
       { type: "text/plain", value: plain },
       { type: "text/html",  value: html },

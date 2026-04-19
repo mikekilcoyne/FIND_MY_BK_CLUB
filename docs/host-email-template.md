@@ -13,16 +13,15 @@ Use this file to:
 
 ### Subject
 
-`Breakfast Club reminder — update your club listing`
+`BC reminder - update your club listing`
 
 For multi-club hosts:
 
-`Breakfast Club reminder — update your club listings`
+`BC reminder - update your club listings`
 
 ### Link Slots
 
-- `ARTICLE_URL`: `https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html`
-- `LATEST_HAPPENINGS_GIF_URL`: `https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif`
+- `LATEST_HAPPENINGS_URL`: `https://breakfastclubbing.com/what-we-talked-about`
 - `MASTER_SHEET_LINK`: `https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit`
 - `FLYER_FOLDER_LINK`: `https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe`
 - `BC_INTERNATIONAL_EMAIL_URL`: `TODO`
@@ -33,30 +32,22 @@ For multi-club hosts:
 ```md
 Hey hosts,
 
-Every week, I read something that reminds me that what we're building together as a BC community around the world is not only meaningful, but necessary.
+BC just hit 100 newsletters.
 
-This week, it was this piece in T Magazine: [Have You Found Your Microscene?](https://www.nytimes.com/2026/03/23/t-magazine/nyc-creative-scenes.html)
+All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
 
-Stoked that we're helping create those micro-scenes around the globe.
+No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
 
-Newest micro-scene:
-NYC - Upper West Side | Wednesdays @ 8:30 AM | Viand Cafe, 2130 Broadway
+Thank you to all of you amazing hosts for turning this into a real, global community.
 
-We're also getting close on a new site feature: 'Latest Happenings.'
-
-Here's an early preview:
-https://breakfastclubbing.com/assets/LATEST_HAPPENINS.gif
-
-It pulls imagery from the Breakfast Clubbing newsletter (which are in turn pulled from Linkedin), so as long as we've got those, you're golden.
-
-Anywho, call for updates. For [CITY], here's where to update:
+On that same note: For [CITY], here's where to update:
 
 - BC International Email: TODO
 - Flyer Update list: TODO
 - Master Sheet: https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit
 - Flyer Folder: https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe
 
-If everything looks right, no action needed. See you at the table.
+If everything's good, you're good.
 
 Questions? ben@breakfastclubbing.com
 
@@ -140,7 +131,7 @@ For New York — Hamptons, here's where to update:
 
 Flyer naming: City_YYYY-MM-DD.jpg (e.g. NewYorkHamptons_2026-03-22.jpg)
 
-If everything looks right, no action needed. See you at the table.
+If everything's good, you're good.
 
 Questions? ben@breakfastclubbing.com
 
