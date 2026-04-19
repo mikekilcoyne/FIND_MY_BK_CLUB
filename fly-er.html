@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fly-Er | Breakfast Club</title>
+    <meta
+      name="description"
+      content="Scroll the latest Breakfast Club chapter flyers, poster-style."
+    />
+    <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
+    <link rel="stylesheet" href="./css/responsive-framework.css" />
+    <link rel="stylesheet" href="./css/flyer-lightbox.css" />
+    <link rel="stylesheet" href="./css/flyer-page.css" />
+  </head>
+  <body class="flyer-page-body">
+    <main class="flyer-page-shell">
+      <div class="flyer-page-chrome">
+        <a href="./index.html" class="flyer-page-back">Back to Find My Club</a>
+        <a href="#flyer-wall" class="flyer-page-jump">Loading cities...</a>
+      </div>
+      <header class="flyer-page-hero">
+        <h1 class="flyer-page-title">Frequent Fly-Ers</h1>
+        <p class="flyer-page-copy">Scroll BC Fly-Ers from Across the Globe.</p>
+      </header>
+
+      <section class="flyer-wall-section" aria-label="Flyer wall">
+        <p id="flyer-wall-status" class="flyer-wall-status">Loading posters...</p>
+        <div id="flyer-wall" class="flyer-wall" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="./js/club-overrides.js"></script>
+    <script src="./js/club-data.js"></script>
+    <script src="./js/flyer-lightbox.js"></script>
+    <script src="./js/flyer-page.js"></script>
+  </body>
+</html>

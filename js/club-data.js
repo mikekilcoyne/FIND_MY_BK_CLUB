@@ -25,7 +25,7 @@
 
   function shouldHideClub(city) {
     const key = normalize(city);
-    return key === "austin" || key === "austin, tx";
+    return key === "";
   }
 
   function parseCSVLine(line) {

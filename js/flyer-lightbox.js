@@ -7,6 +7,7 @@
   var flyerKeyHandler = null;
   var flyerTouchStartX = 0;
   var flyerTouchDeltaX = 0;
+  var captionFadeTimer = null;
 
   function normalizeItem(item) {
     if (!item || !item.url) return null;
@@ -70,6 +71,30 @@
     return parts.join("  ·  ");
   }
 
+  function setCaptionFaded(isFaded) {
+    if (!lightbox) return;
+    var caption = lightbox.querySelector(".flyer-lightbox-caption");
+    if (!caption) return;
+    if (isFaded) {
+      caption.classList.add("is-faded");
+    } else {
+      caption.classList.remove("is-faded");
+    }
+  }
+
+  function scheduleCaptionFade() {
+    if (captionFadeTimer) {
+      window.clearTimeout(captionFadeTimer);
+      captionFadeTimer = null;
+    }
+    setCaptionFaded(false);
+    if (window.matchMedia && window.matchMedia("(hover: none)").matches) {
+      captionFadeTimer = window.setTimeout(function () {
+        setCaptionFaded(true);
+      }, 1300);
+    }
+  }
+
   function buildFlyerOverlay() {
     lightbox = document.createElement("div");
     lightbox.className = "flyer-lightbox";
@@ -103,27 +128,38 @@
     var prevBtn = document.createElement("button");
     prevBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--prev";
     prevBtn.setAttribute("aria-label", "Previous flyer");
-    prevBtn.textContent = "←";
+    var prevIcon = document.createElement("img");
+    prevIcon.className = "flyer-lightbox-nav-icon";
+    prevIcon.src = "./assets/ui/handdrawn-arrows/arrow-right-drawn.png";
+    prevIcon.alt = "";
+    prevIcon.setAttribute("aria-hidden", "true");
     prevBtn.addEventListener("click", function () {
       stepFlyer(-1);
     });
+    prevBtn.append(prevIcon);
 
     var nextBtn = document.createElement("button");
     nextBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--next";
     nextBtn.setAttribute("aria-label", "Next flyer");
-    nextBtn.textContent = "→";
+    var nextIcon = document.createElement("img");
+    nextIcon.className = "flyer-lightbox-nav-icon";
+    nextIcon.src = "./assets/ui/handdrawn-arrows/arrow-right-drawn.png";
+    nextIcon.alt = "";
+    nextIcon.setAttribute("aria-hidden", "true");
     nextBtn.addEventListener("click", function () {
       stepFlyer(1);
     });
+    nextBtn.append(nextIcon);
 
     var stage = document.createElement("div");
     stage.className = "flyer-lightbox-stage";
 
+    var figure = document.createElement("div");
+    figure.className = "flyer-lightbox-figure";
+
     var img = document.createElement("img");
     img.className = "flyer-lightbox-img";
     img.alt = "";
-
-    stage.append(prevBtn, img, nextBtn);
 
     var caption = document.createElement("div");
     caption.className = "flyer-lightbox-caption";
@@ -135,6 +171,8 @@
     captionMeta.className = "flyer-lightbox-caption-meta";
 
     caption.append(captionCity, captionMeta);
+    figure.append(img, caption);
+    stage.append(prevBtn, figure, nextBtn);
 
     var hint = document.createElement("div");
     hint.className = "flyer-lightbox-hint";
@@ -143,7 +181,7 @@
     var gallery = document.createElement("div");
     gallery.className = "flyer-lightbox-gallery";
 
-    panel.append(topbar, stage, caption, hint, gallery);
+    panel.append(topbar, stage, hint, gallery);
     lightbox.append(backdrop, panel);
 
     lightbox.addEventListener("click", function (e) {
@@ -163,6 +201,13 @@
     stage.addEventListener("touchend", function () {
       if (Math.abs(flyerTouchDeltaX) < 45) return;
       stepFlyer(flyerTouchDeltaX < 0 ? 1 : -1);
+    });
+
+    figure.addEventListener("mouseenter", function () {
+      setCaptionFaded(true);
+    });
+    figure.addEventListener("mouseleave", function () {
+      setCaptionFaded(false);
     });
 
     document.body.append(lightbox);
@@ -187,8 +232,17 @@
 
     var metaLine = buildMetaLine(item);
     captionCity.textContent = item.city || "Breakfast Club";
+    captionCity.classList.remove("is-long", "is-xlong");
+    if ((item.city || "").length > 18) {
+      captionCity.classList.add("is-long");
+    }
+    if ((item.city || "").length > 24) {
+      captionCity.classList.remove("is-long");
+      captionCity.classList.add("is-xlong");
+    }
     captionMeta.textContent = metaLine;
     caption.hidden = !item.city && !metaLine;
+    scheduleCaptionFade();
 
     var multi = flyerGalleryItems.length > 1;
     prevBtn.hidden = !multi;
@@ -221,6 +275,10 @@
 
   function closeFlyerLightbox() {
     if (lightbox) lightbox.hidden = true;
+    if (captionFadeTimer) {
+      window.clearTimeout(captionFadeTimer);
+      captionFadeTimer = null;
+    }
     document.body.style.overflow = "";
     document.body.classList.remove("flyer-overlay-open");
     if (flyerKeyHandler) {

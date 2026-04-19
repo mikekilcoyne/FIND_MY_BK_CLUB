@@ -28,18 +28,17 @@
   },
   {
     "city": "austin, tx",
-    "displayCity": "Austin (SXSW Pop-Up), TX",
+    "displayCity": "Austin, TX",
     "latitude": 30.2672,
     "longitude": -97.7431,
     "region": "Southeast US",
-    "host": "Eric Korsh (@erickorsh)",
-    "venue": "Nate's Baked Goods & Coffee, 401 W 18th St",
-    "upcoming_date": "2026-03-15",
-    "mapsURL": "https://maps.google.com/?q=Nate%27s+Baked+Goods+%26+Coffee%2C+401+W+18th+St%2C+Austin%2C+TX",
+    "host": "Alyssa Gray (@alyssajgray)",
+    "venue": "Jo's Coffee Downtown, 242 W 2nd St",
+    "upcoming_date": "2026-04-26",
+    "mapsURL": "https://maps.google.com/?q=Jo%27s+Coffee+Downtown%2C+242+W+2nd+St%2C+Austin%2C+TX+78701",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "specific", "dates": ["2026-03-15"] },
-    "isPopup": true,
-    "flyerURL": "assets/SXSW_2026-3-15.png"
+    "schedule": { "type": "specific", "dates": ["2026-04-26"] },
+    "flyerURL": "assets/flyers/austin-apr-26-2026.png"
   },
   {
     "city": "barcelona, spain",
@@ -458,11 +457,11 @@
     "region": "Other",
     "host": "Carla Batista, Jacob Larrinaga & Daniela Jované (@carlibee___ @academiadespierta @danivjovane)",
     "email": "cbatistajf@gmail.com",
-    "venue": "Sassy Café",
+    "venue": "Les Mecs, Calle Uruguay",
     "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Sassy+Cafe+Panama+City+Panama",
+    "mapsURL": "https://maps.google.com/?q=Les+Mecs+Calle+Uruguay+Panama+City",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 4 }
   },
   {
     "city": "paris, france",
