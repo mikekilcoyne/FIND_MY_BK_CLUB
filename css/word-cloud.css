@@ -1917,6 +1917,262 @@
   max-width: min(100%, var(--wc-chip-max, 320px));
 }
 
+.wc-overlay--text-only-capture {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 241, 214, 0.72), rgba(255, 241, 214, 0) 32%),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 28%),
+    radial-gradient(circle at 50% 82%, rgba(204, 224, 255, 0.34), rgba(204, 224, 255, 0) 34%),
+    linear-gradient(135deg, #fbf5ea 0%, #efe4d4 42%, #ddd5cb 100%);
+}
+
+.wc-overlay--text-only-capture::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+  opacity: 1;
+}
+
+.wc-overlay--text-only-capture::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(17, 17, 17, 0.02) 0,
+      rgba(17, 17, 17, 0.02) 1px,
+      transparent 1px,
+      transparent 92px
+    );
+  opacity: 1;
+}
+
+.wc-overlay--text-only-capture .wc-overlay-header {
+  padding-top: clamp(34px, 5vh, 54px);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-preamble {
+  color: rgba(28, 27, 25, 0.86);
+  font-size: clamp(16px, 1.5vw, 20px);
+  letter-spacing: -0.02em;
+}
+
+.wc-overlay--text-only-capture .wc-overlay-city-row {
+  gap: 12px;
+}
+
+.wc-overlay--text-only-capture .wc-overlay-city {
+  color: #111111;
+  font-size: clamp(42px, 6vw, 92px);
+  letter-spacing: -0.045em;
+}
+
+.wc-overlay--text-only-capture .wc-overlay-city-button {
+  padding: 10px 20px 12px;
+  border-radius: 18px;
+  border-color: rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow:
+    0 24px 60px rgba(61, 46, 28, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-city-button:hover {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(17, 17, 17, 0.12);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-club-swap-pointer {
+  width: 42px;
+  height: 42px;
+  border-color: rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  color: rgba(17, 17, 17, 0.78);
+  box-shadow:
+    0 18px 40px rgba(61, 46, 28, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-club-swap-pointer:hover {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(17, 17, 17, 0.12);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-meta {
+  color: rgba(17, 17, 17, 0.5);
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.wc-overlay--text-only-capture .wc-overlay-stage--zones {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 36vw) minmax(0, 1fr);
+  gap: clamp(18px, 2.8vw, 40px);
+  padding: clamp(12px, 2vw, 28px) clamp(32px, 5vw, 92px) clamp(42px, 8vh, 84px);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-word {
+  color: rgba(17, 17, 17, 0.86) !important;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5),
+    0 18px 34px rgba(108, 86, 57, 0.12);
+}
+
+.wc-overlay--text-only-capture .wc-overlay-nav,
+.wc-overlay--text-only-capture .wc-carousel-ghost,
+.wc-overlay--text-only-capture .wc-overlay-photo-dots,
+.wc-overlay--text-only-capture .wc-overlay-toggle,
+.wc-overlay--text-only-capture .wc-overlay-close,
+.wc-overlay--text-only-capture .wc-overlay-art,
+.wc-overlay--text-only-capture .wc-overlay-source-date,
+.wc-overlay--text-only-capture .wc-overlay-hint {
+  display: none !important;
+}
+
+.wc-overlay--single-polaroid-capture {
+  --wc-frame-photo-height: clamp(380px, calc((100vh - 150px) * 0.84), 720px);
+  --wc-frame-photo-width: calc(var(--wc-frame-photo-height) * 0.8);
+  background:
+    radial-gradient(circle at 24% 22%, rgba(255, 250, 242, 0.84), rgba(255, 250, 242, 0) 32%),
+    radial-gradient(circle at 76% 18%, rgba(248, 252, 255, 0.5), rgba(248, 252, 255, 0) 30%),
+    linear-gradient(180deg, #f2e7d9 0%, #e3d6c6 100%);
+}
+
+.wc-overlay--single-polaroid-capture::before {
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 48%);
+  opacity: 1;
+}
+
+.wc-overlay--single-polaroid-capture::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(86, 66, 39, 0.08)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(68, 51, 28, 0.03) 0,
+      rgba(68, 51, 28, 0.03) 1px,
+      transparent 1px,
+      transparent 120px
+    );
+  opacity: 1;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-header {
+  padding-top: 20px;
+  padding-bottom: 8px;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-preamble {
+  display: none;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-city {
+  color: #17120d;
+  font-size: clamp(52px, 8vw, 118px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  max-width: min(100%, calc(100vw - 100px));
+  text-wrap: balance;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-city-button {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-meta {
+  color: rgba(33, 25, 18, 0.4);
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-size: clamp(10px, 0.9vw, 12px);
+  letter-spacing: 0.12em;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-stage--zones {
+  grid-template-columns: minmax(150px, 1fr) minmax(420px, 44vw) minmax(150px, 1fr);
+  gap: clamp(36px, 5vw, 96px);
+  padding: 16px clamp(52px, 6vw, 120px) clamp(48px, 7vh, 82px);
+  align-items: center;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--top,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--bottom,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--top-left,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--top-right,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--bottom-left,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--bottom-right {
+  display: none;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--left,
+.wc-overlay--single-polaroid-capture .wc-overlay-zone--right {
+  align-content: center;
+  gap: 18px;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-word {
+  color: rgba(23, 18, 13, 0.9) !important;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.46),
+    0 16px 28px rgba(103, 77, 45, 0.1);
+  max-width: min(100%, 180px);
+  line-height: 1.02;
+  opacity: 0.94;
+  text-align: center;
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-club-swap-pointer {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9;
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  border-color: rgba(48, 35, 17, 0.12);
+  background: rgba(255, 252, 247, 0.72);
+  color: rgba(28, 21, 15, 0.88);
+  font-size: 24px;
+  box-shadow:
+    0 18px 40px rgba(74, 54, 29, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.wc-overlay--single-polaroid-capture #wc-overlay-swap-club-prev {
+  left: calc(50% - (var(--wc-frame-photo-width) / 2) - clamp(54px, 4vw, 76px));
+}
+
+.wc-overlay--single-polaroid-capture #wc-overlay-swap-club-next {
+  left: calc(50% + (var(--wc-frame-photo-width) / 2) + clamp(12px, 1.8vw, 22px));
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-club-swap-pointer:hover {
+  background: rgba(255, 252, 247, 0.86);
+  border-color: rgba(48, 35, 17, 0.2);
+}
+
+.wc-overlay--single-polaroid-capture .wc-overlay-nav,
+.wc-overlay--single-polaroid-capture .wc-carousel-ghost,
+.wc-overlay--single-polaroid-capture .wc-overlay-photo-dots,
+.wc-overlay--single-polaroid-capture .wc-overlay-toggle,
+.wc-overlay--single-polaroid-capture .wc-overlay-close,
+.wc-overlay--single-polaroid-capture .wc-overlay-art,
+.wc-overlay--single-polaroid-capture .wc-overlay-source-date,
+.wc-overlay--single-polaroid-capture .wc-overlay-hint {
+  display: none !important;
+}
+
 .wc-overlay--photo-frame::after {
   background:
     linear-gradient(
@@ -1975,6 +2231,53 @@
 
   .wc-overlay--photo-frame .wc-overlay-stage--zones {
     padding: 0;
+  }
+
+  .wc-overlay--text-only-capture .wc-overlay-city {
+    font-size: clamp(34px, 10vw, 54px);
+  }
+
+  .wc-overlay--text-only-capture .wc-overlay-stage--zones {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 36vw) minmax(0, 1fr);
+    gap: 14px;
+    padding: 8px 16px 30px;
+  }
+
+  .wc-overlay--single-polaroid-capture {
+    --wc-frame-photo-height: clamp(290px, calc((100vh - 150px) * 0.62), 470px);
+  }
+
+  .wc-overlay--single-polaroid-capture .wc-overlay-header {
+    padding: 20px 18px 8px;
+  }
+
+  .wc-overlay--single-polaroid-capture .wc-overlay-city {
+    font-size: clamp(38px, 10.5vw, 68px);
+    max-width: calc(100vw - 34px);
+  }
+
+  .wc-overlay--single-polaroid-capture .wc-overlay-stage--zones {
+    grid-template-columns: minmax(76px, 1fr) minmax(220px, 56vw) minmax(76px, 1fr);
+    gap: 10px;
+    padding: 8px 10px 18px;
+  }
+
+  .wc-overlay--single-polaroid-capture .wc-overlay-word {
+    max-width: min(100%, 96px);
+  }
+
+  .wc-overlay--single-polaroid-capture .wc-overlay-club-swap-pointer {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .wc-overlay--single-polaroid-capture #wc-overlay-swap-club-prev {
+    left: calc(50% - (var(--wc-frame-photo-width) / 2) - 34px);
+  }
+
+  .wc-overlay--single-polaroid-capture #wc-overlay-swap-club-next {
+    left: calc(50% + (var(--wc-frame-photo-width) / 2) - 14px);
   }
 }
 

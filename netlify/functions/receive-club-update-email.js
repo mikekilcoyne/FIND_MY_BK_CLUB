@@ -1,5 +1,5 @@
-import { getStore } from "@netlify/blobs";
 import { buildTicket, TRUSTED_APPROVERS } from "./lib/club-update-intake.js";
+import { getConfiguredStore } from "./lib/blob-store.js";
 
 function json(statusCode, body) {
   return {
@@ -36,7 +36,7 @@ function parseBody(event) {
 }
 
 async function persistTicket(ticket) {
-  const store = getStore({ name: "club-update-intake", consistency: "strong" });
+  const store = getConfiguredStore("club-update-intake", { consistency: "strong" });
   await store.setJSON(`${ticket.status}/${ticket.id}.json`, ticket);
   await store.setJSON("latest.json", ticket);
 }

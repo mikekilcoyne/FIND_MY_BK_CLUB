@@ -688,6 +688,18 @@
     };
   }
 
+  function readPreviewMode() {
+    var params = new URLSearchParams(window.location.search);
+    var rawMode = (params.get("mode") || params.get("view") || "").toLowerCase().trim();
+    if (rawMode === "text" || rawMode === "text-only" || rawMode === "capture") {
+      return "text-only";
+    }
+    if (rawMode === "polaroid" || rawMode === "photo" || rawMode === "hero") {
+      return "polaroid";
+    }
+    return "";
+  }
+
   function getButtonMatchCandidates(button) {
     var dataset = button.dataset || {};
     var rawValues = [
@@ -722,7 +734,11 @@
 
   function wireStandaloneBehavior(buttons) {
     var requestedCity = readRequestedCity();
+    var previewMode = readPreviewMode();
     window.WWTA_RETURN_URL = RETURN_URL;
+    if (document.body && previewMode) {
+      document.body.dataset.wordCloudPreviewMode = previewMode;
+    }
     var closeButton = document.getElementById("wc-overlay-close");
     if (closeButton) {
       closeButton.addEventListener("click", function (event) {

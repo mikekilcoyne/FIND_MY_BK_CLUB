@@ -41,6 +41,8 @@
   const DEFAULT_OVERLAY_CLEAN_BACKGROUND = true;
   let overlayUseCleanBackground = DEFAULT_OVERLAY_CLEAN_BACKGROUND;
   const liveDates = {}; // normalised city key → ISO date string from Substack recap
+  let overlayPreviewMode = "";
+  const overlayHeroPhotoCache = new Map();
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -114,6 +116,22 @@
 
   function getOverlayClubSwapButtons() {
     return Array.from(document.querySelectorAll("#wc-overlay-city, #wc-overlay-swap-club-prev, #wc-overlay-swap-club-next"));
+  }
+
+  function getOverlayPreviewMode() {
+    return overlayPreviewMode || "";
+  }
+
+  function isTextOnlyCaptureMode() {
+    return getOverlayPreviewMode() === "text-only";
+  }
+
+  function isSinglePolaroidCaptureMode() {
+    return getOverlayPreviewMode() === "polaroid";
+  }
+
+  function isCaptureModeWithClubNav() {
+    return isTextOnlyCaptureMode() || isSinglePolaroidCaptureMode();
   }
 
   function useMatchedPhotoBackdrop() {
@@ -630,6 +648,13 @@
   function syncOverlayPhotoNav() {
     const prevBtn = document.getElementById("wc-overlay-prev");
     const nextBtn = document.getElementById("wc-overlay-next");
+    if (isSinglePolaroidCaptureMode()) {
+      if (prevBtn) prevBtn.hidden = true;
+      if (nextBtn) nextBtn.hidden = true;
+      syncOverlayPhotoDots();
+      syncOverlayCarouselGhosts();
+      return;
+    }
     const hasMultiplePhotos = overlayPhotos.length > 1;
     if (prevBtn) prevBtn.hidden = !hasMultiplePhotos;
     if (nextBtn) nextBtn.hidden = !hasMultiplePhotos;
@@ -645,6 +670,69 @@
     if (prevButton) prevButton.hidden = !canSwap;
     if (nextButton) nextButton.hidden = !canSwap;
     if (cityButton) cityButton.disabled = !canSwap;
+  }
+
+  function getHeroPhotoScore(url, width, height) {
+    if (!width || !height) return 0;
+    const aspect = width / height;
+    let score = 0;
+
+    if (height >= width) score += 4;
+    if (aspect >= 0.65 && aspect <= 1.05) score += 3;
+    if (height >= 900) score += 1.5;
+    if (width >= 700) score += 1;
+    if (/whatsapp image|photo-/i.test(url || "")) score += 0.5;
+
+    return score;
+  }
+
+  function chooseHeroPhoto(photos, preferredIndex, onResolved) {
+    if (!Array.isArray(photos) || !photos.length) {
+      if (typeof onResolved === "function") onResolved(null, 0);
+      return;
+    }
+
+    const safePreferredIndex = Number.isInteger(preferredIndex)
+      ? Math.max(0, Math.min(preferredIndex, photos.length - 1))
+      : 0;
+    const cacheKey = photos.join("|");
+    const cachedIndex = overlayHeroPhotoCache.get(cacheKey);
+    if (Number.isInteger(cachedIndex) && cachedIndex >= 0 && cachedIndex < photos.length) {
+      if (typeof onResolved === "function") onResolved(photos[cachedIndex], cachedIndex);
+      return;
+    }
+
+    let pending = photos.length;
+    let bestIndex = safePreferredIndex;
+    let bestScore = getHeroPhotoScore(photos[safePreferredIndex], 0, 0) + 0.25;
+    let settled = false;
+
+    function finish() {
+      if (settled) return;
+      settled = true;
+      overlayHeroPhotoCache.set(cacheKey, bestIndex);
+      if (typeof onResolved === "function") onResolved(photos[bestIndex], bestIndex);
+    }
+
+    photos.forEach(function (src, index) {
+      const probe = new Image();
+      probe.onload = function () {
+        const score = getHeroPhotoScore(src, probe.naturalWidth, probe.naturalHeight) + (index === safePreferredIndex ? 0.25 : 0);
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+        pending -= 1;
+        if (pending <= 0) finish();
+      };
+      probe.onerror = function () {
+        pending -= 1;
+        if (pending <= 0) finish();
+      };
+      probe.src = src;
+    });
+
+    setTimeout(finish, 260);
   }
 
   function getOverlayClubButtonKey(button, fallbackIndex) {
@@ -1114,6 +1202,9 @@
   }
 
   function getOverlayZoneOrder(width, surroundPhoto) {
+    if (isSinglePolaroidCaptureMode()) {
+      return ["left", "right"];
+    }
     if (surroundPhoto) {
       if (width <= 540) return ["top", "left", "right", "bottom"];
       if (width <= 860) return ["top-left", "top-right", "left", "right", "bottom-left", "bottom-right"];
@@ -1126,6 +1217,9 @@
   }
 
   function getOverlayChipMax(zoneName, stageWidth) {
+    if (isSinglePolaroidCaptureMode()) {
+      return Math.min(220, Math.max(140, Math.round(stageWidth * 0.14)));
+    }
     if (zoneName === "top" || zoneName === "bottom") {
       return Math.min(320, Math.max(220, Math.round(stageWidth * 0.26)));
     }
@@ -1155,7 +1249,9 @@
 
       const items = zoneBuckets.get(zoneName) || [];
       items.forEach(({ text, weight, index }) => {
-        const px = Math.min(30, Math.max(14, Math.round(weight * 2.15 * sizeScale)));
+        const px = isSinglePolaroidCaptureMode()
+          ? Math.min(28, Math.max(16, Math.round(weight * 1.8 * sizeScale)))
+          : Math.min(30, Math.max(14, Math.round(weight * 2.15 * sizeScale)));
         const span = document.createElement("span");
         span.dataset.fullText = text.toUpperCase();
         span.dataset.typingIndex = String(index);
@@ -1194,6 +1290,8 @@
     const artEl         = document.getElementById("wc-overlay-art");
     const photoEl       = document.getElementById("wc-overlay-photo");
     if (!overlay || !stage) return;
+    const textOnlyCapture = isTextOnlyCaptureMode();
+    const singlePolaroidCapture = isSinglePolaroidCaptureMode();
 
     // Set title — strip country suffix for cleaner look (e.g. "Amsterdam, NL" → "Amsterdam")
     const resolvedCityLabel = (displayCity || cityKey || "").trim();
@@ -1222,9 +1320,10 @@
     const heroPhotoIndex = spotlight && Number.isInteger(spotlight.heroPhotoIndex)
       ? Math.max(0, Math.min(spotlight.heroPhotoIndex, photos ? photos.length - 1 : 0))
       : 0;
-    const heroPhoto = photos && photos.length ? photos[heroPhotoIndex] : null;
-    overlayPhotos = photos ? photos.slice() : [];
-    overlayPhotoIdx = overlayPhotos.length ? heroPhotoIndex : 0;
+    const preferredHeroPhoto = photos && photos.length ? photos[heroPhotoIndex] : null;
+    const heroPhoto = preferredHeroPhoto;
+    overlayPhotos = singlePolaroidCapture && photos && photos.length ? [heroPhoto] : (photos ? photos.slice() : []);
+    overlayPhotoIdx = overlayPhotos.length ? 0 : 0;
     overlayPhotoTransitioning = false;
     rememberOverlayClubVisit();
     if (metaEl) {
@@ -1256,7 +1355,7 @@
 
     stopPhotoCycle();
     let bgPhotosEl = overlay.querySelector(".wc-overlay-bg-photos");
-    if (photos) {
+    if (photos && !textOnlyCapture) {
       overlay.classList.add("wc-overlay--recap-simple");
       overlay.classList.add("wc-overlay--photo-bg");
       syncOverlayCleanBackgroundControl(true);
@@ -1266,7 +1365,7 @@
         bgPhotosEl.setAttribute("aria-hidden", "true");
         overlay.insertBefore(bgPhotosEl, overlay.firstChild);
       }
-      overlay.classList.toggle("wc-overlay--photo-frame", photoTreatment === "polaroid-frame");
+      overlay.classList.toggle("wc-overlay--photo-frame", photoTreatment === "polaroid-frame" || singlePolaroidCapture);
       bgPhotosEl.innerHTML = buildOverlayPhotoMarkup(heroPhoto || photos[0], photoTreatment, frameVariant, heroPhoto || photos[0]);
       applyOverlayExposureProfile(bgPhotosEl, cityKey);
       refreshOverlayFrameVariant(bgPhotosEl);
@@ -1274,6 +1373,21 @@
       syncOverlayFrameControls(photoTreatment === "polaroid-frame");
       if (photoTreatment === "polaroid-frame") {
         setOverlayFrameVariant(frameVariant, { skipWordFade: true });
+      }
+      if (singlePolaroidCapture) {
+        chooseHeroPhoto(photos, heroPhotoIndex, function (resolvedHeroPhoto) {
+          const finalHeroPhoto = resolvedHeroPhoto || preferredHeroPhoto || photos[0];
+          const latestShell = overlay.querySelector(".wc-overlay-bg-photos");
+          if (!latestShell || overlay.hidden) return;
+          overlayPhotos = finalHeroPhoto ? [finalHeroPhoto] : [];
+          overlayPhotoIdx = 0;
+          latestShell.innerHTML = buildOverlayPhotoMarkup(finalHeroPhoto, "polaroid-frame", frameVariant, finalHeroPhoto);
+          applyOverlayExposureProfile(latestShell, cityKey);
+          refreshOverlayFrameVariant(latestShell);
+          overlay.classList.add("wc-overlay--photo-frame");
+          syncOverlayPhotoNav();
+          syncOverlayFrameCenter();
+        });
       }
     } else {
       overlay.classList.add("wc-overlay--recap-simple");
@@ -1283,6 +1397,8 @@
       syncOverlayCleanBackgroundControl(false);
       if (bgPhotosEl) { bgPhotosEl.remove(); }
     }
+    overlay.classList.toggle("wc-overlay--text-only-capture", textOnlyCapture);
+    overlay.classList.toggle("wc-overlay--single-polaroid-capture", singlePolaroidCapture);
     syncOverlayPhotoNav();
     syncOverlayClubSwapControl();
 
@@ -1293,7 +1409,7 @@
     }
 
     if (photoEl) {
-      if (photoURL) {
+      if (photoURL && !textOnlyCapture && !singlePolaroidCapture) {
         photoEl.src = photoURL;
         photoEl.removeAttribute("hidden");
         if (artEl) artEl.removeAttribute("hidden");
@@ -1320,6 +1436,21 @@
     overlay.classList.remove("wc-overlay--closing");
     syncOverlayCitySizing();
     syncOverlayFrameCenter();
+    requestAnimationFrame(function () {
+      const baseWords = getTopicsForCity(cityKey);
+      const selectedWords = singlePolaroidCapture
+        ? baseWords.slice(0, 6)
+        : baseWords;
+      const words = selectedWords.map(function (text, index) {
+        return {
+          text: text,
+          weight: singlePolaroidCapture
+            ? Math.max(8, 11 - index * 0.5)
+            : Math.max(7, 12 - index * 0.45),
+        };
+      });
+      renderOverlayWords(stage, words, !textOnlyCapture);
+    });
 
     // Trap Escape key
     document.addEventListener("keydown", onOverlayKeydown);
@@ -1352,6 +1483,8 @@
       overlay.classList.remove("wc-overlay--photo-bg");
       overlay.classList.remove("wc-overlay--clean-backdrop");
       overlay.classList.remove("wc-overlay--photo-frame");
+      overlay.classList.remove("wc-overlay--text-only-capture");
+      overlay.classList.remove("wc-overlay--single-polaroid-capture");
       const bgPhotosEl    = overlay.querySelector(".wc-overlay-bg-photos");
       if (bgPhotosEl) bgPhotosEl.remove();
       const stage         = document.getElementById("wc-overlay-stage");
@@ -1420,6 +1553,11 @@
   }
 
   function onOverlayKeydown(e) {
+    if (isSinglePolaroidCaptureMode()) {
+      if (e.key === "ArrowRight") navigateOverlay(+1);
+      if (e.key === "ArrowLeft") navigateOverlay(-1);
+      return;
+    }
     if (e.key === "ArrowRight") navigateOverlayPhoto(+1);
     if (e.key === "ArrowLeft")  navigateOverlayPhoto(-1);
   }
@@ -1441,8 +1579,20 @@
     // Prev / Next nav buttons
     const prevBtn = document.getElementById("wc-overlay-prev");
     const nextBtn = document.getElementById("wc-overlay-next");
-    if (prevBtn) prevBtn.addEventListener("click", () => navigateOverlayPhoto(-1));
-    if (nextBtn) nextBtn.addEventListener("click", () => navigateOverlayPhoto(+1));
+    if (prevBtn) prevBtn.addEventListener("click", () => {
+      if (isSinglePolaroidCaptureMode()) {
+        navigateOverlay(-1);
+        return;
+      }
+      navigateOverlayPhoto(-1);
+    });
+    if (nextBtn) nextBtn.addEventListener("click", () => {
+      if (isSinglePolaroidCaptureMode()) {
+        navigateOverlay(+1);
+        return;
+      }
+      navigateOverlayPhoto(+1);
+    });
     const prevGhost = document.getElementById("wc-carousel-ghost-prev");
     const nextGhost = document.getElementById("wc-carousel-ghost-next");
     if (prevGhost) {
@@ -1492,7 +1642,11 @@
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-          navigateOverlayPhoto(dx < 0 ? +1 : -1);
+          if (isSinglePolaroidCaptureMode()) {
+            navigateOverlay(dx < 0 ? +1 : -1);
+          } else {
+            navigateOverlayPhoto(dx < 0 ? +1 : -1);
+          }
         }
       }, { passive: true });
     }
@@ -1618,6 +1772,11 @@
     const MAX_LIVE_WAIT = 1500;
     const isPreviewMode = document.body && document.body.dataset.wordCloudPreview === "true";
     const previewConfig = window.WORD_CLOUD_PREVIEW || null;
+    overlayPreviewMode = (
+      (document.body && document.body.dataset && document.body.dataset.wordCloudPreviewMode) ||
+      (previewConfig && previewConfig.mode) ||
+      ""
+    ).toLowerCase();
 
     initOverlayListeners();
 
