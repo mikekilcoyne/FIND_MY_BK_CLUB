@@ -877,15 +877,7 @@ function getFlyerFeatureLead(items = []) {
 }
 
 function getFlyerFeatureHeadline(items = []) {
-  const cities = [];
-  (items || []).forEach((item) => {
-    const label = getFlyerFeatureCityLabel(item && item.city);
-    if (label && !cities.includes(label)) cities.push(label);
-  });
-
-  if (cities.length >= 2) return `Latest flyers from ${cities[0]}, ${cities[1]}, and more...`;
-  if (cities.length === 1) return `Latest flyers from ${cities[0]} (and more)...`;
-  return "Latest flyers from clubs worldwide.";
+  return "Latest flyers from Austin, Barcelona, and more...";
 }
 
 function openFlyerCollection(items, selectedItem = null) {
