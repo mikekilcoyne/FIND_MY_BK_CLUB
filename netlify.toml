@@ -4,6 +4,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  excluded_patterns = ["send-test-email.mjs"]
 
 [[redirects]]
   from = "https://findmybreakfast.club/*"
