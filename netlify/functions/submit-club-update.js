@@ -1,3 +1,5 @@
+import { markHostUpdate } from "./lib/host-reminder-state.js";
+
 const FROM_EMAIL = "set@breakfastclubbing.com";
 const FROM_NAME = "Breakfast Club HQ";
 const REPLY_TO = "set@breakfastclubbing.com";
@@ -157,6 +159,12 @@ export async function handler(event) {
   };
 
   try {
+    await markHostUpdate({
+      email: ticket.email,
+      club: ticket.club,
+      submittedAt: ticket.submittedAt,
+      source: ticket.source,
+    });
     const result = await sendUpdateEmail(ticket);
     return json(200, {
       success: true,

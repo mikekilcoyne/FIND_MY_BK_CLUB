@@ -11,7 +11,6 @@ const {
   extractInstagramURL: sharedExtractInstagramURL,
   extractLinkedInURL: sharedExtractLinkedInURL,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
-  buildLatestHappeningsKeys: sharedBuildLatestHappeningsKeys,
   loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
   clubHasLatestHappenings: sharedClubHasLatestHappenings,
   renderLatestHappeningsButton: sharedRenderLatestHappeningsButton,
@@ -28,8 +27,11 @@ const siteTitle = document.querySelector("#site-title");
 const mainHeadline = document.querySelector("#main-headline");
 const regionHeadline = document.querySelector("#region-headline");
 const regionFilter = document.querySelector("#region-filter");
+const flyerFeature = document.querySelector("#flyer-feature");
+const flyerFeatureTitle = document.querySelector("#flyer-feature-title");
+const flyerFeatureText = document.querySelector("#flyer-feature-text");
+const flyerFeatureButton = document.querySelector("#flyer-feature-button");
 const calendarViewLink = document.querySelector(".calendar-headline-link");
-const featureCalloutTitle = document.querySelector(".feature-callout__title[data-typing-text]");
 const mobileResourcesToggle = document.querySelector(".mobile-resources-toggle");
 const mobileResourcesBody = document.querySelector("#mobile-resources-body");
 const backToTopBtn = document.querySelector("#back-to-top");
@@ -43,8 +45,7 @@ const clubUpdateStatus = document.querySelector("#club-update-status");
 let flyerGalleryItems = [];
 const CLUB_UPDATE_ENDPOINT = "/.netlify/functions/submit-club-update";
 let activeClubUpdateContext = null;
-let latestHappeningsCityKeys = new Set();
-let latestHappeningsLoaded = false;
+let flyerWallManifestPromise = null;
 
 const REGION_ORDER = [
   "Northeast US",
@@ -136,98 +137,7 @@ const DAYS = [
 
 function shouldHideClub(city) {
   if (sharedShouldHideClub) return sharedShouldHideClub(city);
-  return normalize(city || "") === "austin" || normalize(city || "") === "austin, tx";
-}
-
-function buildLatestHappeningsKeys(value, options = {}) {
-  if (sharedBuildLatestHappeningsKeys) return sharedBuildLatestHappeningsKeys(value, options);
-  const { loose = true } = options;
-  const raw = normalize(value || "")
-    .replace(/[\u2014\u2013]/g, "-")
-    .replace(/\s+/g, " ")
-    .replace(/\s*-\s*/g, " - ")
-    .trim();
-  if (!raw) return [];
-
-  const keys = new Set();
-  const addKey = (candidate) => {
-    const normalized = normalize(candidate || "")
-      .replace(/[\u2014\u2013]/g, "-")
-      .replace(/\s+/g, " ")
-      .replace(/\s*-\s*/g, " - ")
-      .trim();
-    if (normalized) keys.add(normalized);
-  };
-  const addCommaStripped = (candidate) => {
-    addKey(candidate);
-    if (loose) addKey(String(candidate || "").replace(/,\s*[a-z]{2,3}$/i, ""));
-  };
-
-  addCommaStripped(raw);
-
-  if (/^[a-z0-9-]+$/.test(raw) && raw.includes("-")) {
-    const spaced = raw.replace(/-/g, " ");
-    addCommaStripped(spaced);
-
-    if (raw.startsWith("new-york-")) {
-      const tail = raw.replace(/^new-york-/, "").replace(/-/g, " ").trim();
-      addCommaStripped(`new york - ${tail}`);
-      addCommaStripped(`ny - ${tail}`);
-      addCommaStripped(tail);
-    }
-  }
-
-  if (raw.startsWith("new york - ")) {
-    const tail = raw.replace(/^new york - /, "").trim();
-    addCommaStripped(`ny - ${tail}`);
-    addCommaStripped(tail);
-  }
-
-  if (raw.startsWith("ny - ")) {
-    const tail = raw.replace(/^ny - /, "").trim();
-    addCommaStripped(`new york - ${tail}`);
-    addCommaStripped(tail);
-  }
-
-  return Array.from(keys);
-}
-
-async function loadLatestHappeningsRegistry() {
-  if (sharedLoadLatestHappeningsRegistry) return sharedLoadLatestHappeningsRegistry();
-  if (latestHappeningsLoaded) return latestHappeningsCityKeys;
-  latestHappeningsLoaded = true;
-
-  try {
-    const response = await fetch(LATEST_HAPPENINGS_MEDIA_URL);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    const nextKeys = new Set();
-
-    (data.clubs || []).forEach((club) => {
-      if (!club || !Array.isArray(club.photos) || !club.photos.length) return;
-      buildLatestHappeningsKeys(club.slug).forEach((key) => nextKeys.add(key));
-      buildLatestHappeningsKeys(club.displayName).forEach((key) => nextKeys.add(key));
-    });
-
-    latestHappeningsCityKeys = nextKeys;
-  } catch (_error) {
-    latestHappeningsCityKeys = new Set();
-  }
-
-  return latestHappeningsCityKeys;
-}
-
-function clubHasLatestHappenings(club) {
-  if (sharedClubHasLatestHappenings) return sharedClubHasLatestHappenings(club);
-  const displayCity = getDisplayCity(club);
-  const city = club.city || "";
-  const useLooseDisplayMatch = !/,/.test(displayCity);
-  const useLooseCityMatch = !/,/.test(city);
-  return buildLatestHappeningsKeys(displayCity, { loose: useLooseDisplayMatch }).some(
-    (key) => latestHappeningsCityKeys.has(key),
-  ) || buildLatestHappeningsKeys(city, { loose: useLooseCityMatch }).some(
-    (key) => latestHappeningsCityKeys.has(key),
-  );
+  return false;
 }
 
 function loadSiteCopy() {
@@ -236,27 +146,6 @@ function loadSiteCopy() {
   if (mainHeadline) mainHeadline.textContent = copy.mainHeadline;
 
   if (searchInput) searchInput.placeholder = copy.searchPlaceholder;
-}
-
-function typeFeatureCalloutTitle() {
-  if (!featureCalloutTitle) return;
-  const fullText = featureCalloutTitle.dataset.typingText || featureCalloutTitle.textContent || "";
-  if (!fullText) return;
-
-  featureCalloutTitle.textContent = "";
-
-  let index = 0;
-  const step = () => {
-    index += 1;
-    featureCalloutTitle.textContent = fullText.slice(0, index);
-    if (index < fullText.length) {
-      const char = fullText.charAt(index - 1);
-      const delay = char === "." ? 120 : char === " " ? 38 : 58;
-      window.setTimeout(step, delay);
-    }
-  };
-
-  window.setTimeout(step, 260);
 }
 
 function parseCSVLine(line) {
@@ -805,19 +694,6 @@ function renderMapIcon(url, title) {
   return renderSocialIcon("maps", url, title || "Open in Google Maps");
 }
 
-function renderLatestHappeningsButton(club) {
-  if (sharedRenderLatestHappeningsButton) return sharedRenderLatestHappeningsButton(club);
-  const link = document.createElement("a");
-  const cityParam = encodeURIComponent((club.city || getDisplayCity(club) || "").trim());
-  link.href = `./what-we-talked-about.html?city=${cityParam}`;
-  link.className = "card-latest-happenings-btn";
-  link.setAttribute("aria-label", `Open Latest Happenings for ${getDisplayCity(club)}`);
-  link.innerHTML =
-    '<span class="card-latest-happenings-btn__badge" aria-hidden="true">NEW</span>' +
-    '<span class="card-latest-happenings-btn__label">Latest happenings...</span>';
-  return link;
-}
-
 function dedupeSocialItems(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -927,10 +803,11 @@ function renderSocialMenu(type, items) {
   return details;
 }
 
-function getFlyerGalleryItems() {
+function buildFlyerGalleryItems(items = clubs, options = {}) {
+  const { activeOnly = false } = options;
   const seen = new Set();
-  return clubs
-    .filter((club) => club && club.flyerURL)
+  return (items || [])
+    .filter((club) => club && club.flyerURL && (!activeOnly || club.isActive !== false))
     .map((club) => ({
       city: getDisplayCity(club),
       url: club.flyerURL,
@@ -944,6 +821,78 @@ function getFlyerGalleryItems() {
       seen.add(key);
       return true;
     });
+}
+
+function getFlyerGalleryItems() {
+  return buildFlyerGalleryItems(clubs);
+}
+
+function getPreferredFlyerGalleryItems(items = clubs) {
+  const activeItems = buildFlyerGalleryItems(items, { activeOnly: true });
+  return activeItems.length ? activeItems : buildFlyerGalleryItems(items);
+}
+
+function isFlyerWallImage(url = "") {
+  return /\.(png|jpe?g|gif|webp|avif)$/i.test(url);
+}
+
+function fetchFlyerWallManifestItems() {
+  if (!flyerWallManifestPromise) {
+    flyerWallManifestPromise = fetch("./data/flyer-wall.json")
+      .then((response) => {
+        if (!response.ok) throw new Error("manifest unavailable");
+        return response.json();
+      })
+      .then((manifest) => (manifest.items || [])
+        .filter((item) => item && item.url && item.city && isFlyerWallImage(item.url))
+        .map((item) => ({
+          city: compactText(item.city || ""),
+          url: item.url,
+        })));
+  }
+
+  return flyerWallManifestPromise.catch(() => []);
+}
+
+function getFlyerPageHref(cityName = "") {
+  const base = "./fly-er.html";
+  const city = compactText(cityName);
+  return city ? `${base}?city=${encodeURIComponent(city)}` : base;
+}
+
+function formatFlyerCitySummary(items) {
+  const cities = Array.from(new Set((items || []).map((item) => item.city).filter(Boolean)));
+  if (!cities.length) return "";
+  if (cities.length === 1) return cities[0];
+  if (cities.length === 2) return `${cities[0]} and ${cities[1]}`;
+  return `${cities[0]}, ${cities[1]}, and more`;
+}
+
+function getFlyerFeatureCityLabel(value = "") {
+  return compactText(value).replace(/,\s*[A-Z]{2,3}$/g, "");
+}
+
+function getFlyerFeatureLead(items = []) {
+  return (items || [])[0] || null;
+}
+
+function getFlyerFeatureHeadline(items = []) {
+  const cities = [];
+  (items || []).forEach((item) => {
+    const label = getFlyerFeatureCityLabel(item && item.city);
+    if (label && !cities.includes(label)) cities.push(label);
+  });
+
+  if (cities.length >= 2) return `Latest flyers from ${cities[0]}, ${cities[1]}, and more...`;
+  if (cities.length === 1) return `Latest flyers from ${cities[0]} (and more)...`;
+  return "Latest flyers from clubs worldwide.";
+}
+
+function openFlyerCollection(items, selectedItem = null) {
+  const nextItems = (items || []).filter((item) => item && item.url);
+  if (!nextItems.length) return;
+  const target = selectedItem || nextItems[0];
+  openFlyerLightbox(target.url, target.city, { items: nextItems });
 }
 
 function renderHostText(text) {
@@ -968,11 +917,12 @@ function createTitleBadges(club) {
     wrap.append(featuredBadge);
   }
 
-  if (club.isNew) {
-    const newBadge = document.createElement("span");
-    newBadge.className = "badge badge-new";
-    newBadge.textContent = "New";
-    wrap.append(newBadge);
+  if (club.statusBadge || club.isNew) {
+    const statusBadge = document.createElement("span");
+    const label = compactText(club.statusBadge) || "New";
+    statusBadge.className = `badge ${label.toLowerCase() === "returning" ? "badge-returning" : "badge-new"}`;
+    statusBadge.textContent = label;
+    wrap.append(statusBadge);
   }
 
   return wrap.childNodes.length ? wrap : null;
@@ -1082,6 +1032,57 @@ function getStartsAtLabel(club) {
 
 function createFlyerCallout(club) {
   return null;
+}
+
+async function renderFlyerFeature(items) {
+  if (!flyerFeature || !flyerFeatureTitle || !flyerFeatureText || !flyerFeatureButton) return;
+
+  const fallbackItems = getPreferredFlyerGalleryItems(items);
+  const wallItems = await fetchFlyerWallManifestItems();
+  const flyerItems = wallItems.length ? wallItems : fallbackItems;
+  const featuredFlyer = getFlyerFeatureLead(flyerItems);
+  const featuredCity = getFlyerFeatureCityLabel(featuredFlyer ? featuredFlyer.city : "");
+
+  flyerFeatureTitle.textContent = featuredFlyer
+    ? getFlyerFeatureHeadline(flyerItems)
+    : "Latest flyers from clubs worldwide.";
+  flyerFeatureText.textContent = "";
+  flyerFeatureText.hidden = true;
+  flyerFeatureButton.textContent = "View Fly-er Wall";
+  flyerFeatureButton.onclick = () => {
+    window.location.href = getFlyerPageHref(featuredFlyer ? featuredFlyer.city : "");
+  };
+  flyerFeature.hidden = false;
+}
+
+function getLatestHappeningsHref(cityName = "") {
+  const base = "./what-we-talked-about.html";
+  const city = compactText(cityName);
+  const params = new URLSearchParams();
+  if (city) params.set("city", city);
+  params.set("mode", "polaroid");
+  return `${base}?${params.toString()}`;
+}
+
+async function loadLatestHappeningsRegistry() {
+  if (sharedLoadLatestHappeningsRegistry) return sharedLoadLatestHappeningsRegistry();
+  return new Set();
+}
+
+function clubHasLatestHappenings(club) {
+  if (sharedClubHasLatestHappenings) return sharedClubHasLatestHappenings(club);
+  return false;
+}
+
+function renderLatestHappeningsButton(club) {
+  if (sharedRenderLatestHappeningsButton) return sharedRenderLatestHappeningsButton(club);
+  const link = document.createElement("a");
+  link.className = "card-latest-happenings-btn";
+  link.href = getLatestHappeningsHref(getDisplayCity(club));
+  link.innerHTML =
+    '<span class="card-latest-happenings-btn__badge" aria-hidden="true">NEW</span>' +
+    '<span class="card-latest-happenings-btn__label">Latest happenings...</span>';
+  return link;
 }
 
 function renderDayNav(items) {
@@ -1298,6 +1299,7 @@ function createClubCard(club) {
 
 function render(items) {
   clubsList.innerHTML = "";
+  void renderFlyerFeature(clubs);
 
   const activeItems = items.filter((club) => club.isActive !== false);
   const inactiveItems = items.filter((club) => club.isActive === false);
@@ -1646,7 +1648,7 @@ function renderRegionFilter() {
       btn.className = "region-pill" + (region === activeRegion ? " active" : "");
       if (region === "New") btn.classList.add("region-pill-new");
       btn.dataset.region = region;
-      btn.textContent = region;
+      btn.textContent = region === "New" ? "NEW" : region;
       btn.addEventListener("click", () => setRegion(region));
       regionFilter.append(btn);
     });
@@ -1681,7 +1683,7 @@ function renderRegionFilter() {
       btn.type = "button";
       btn.className = "region-mobile-option" + (region === activeRegion ? " is-active" : "");
       btn.dataset.region = region;
-      btn.textContent = region;
+      btn.textContent = region === "New" ? "NEW" : region;
       btn.addEventListener("click", () => {
         setRegion(region);
         areaWrap.open = false;
@@ -1700,7 +1702,7 @@ function renderRegionFilter() {
     btn.className = "region-pill" + (region === activeRegion ? " active" : "");
     if (region === "New") btn.classList.add("region-pill-new");
     btn.dataset.region = region;
-    btn.textContent = region;
+    btn.textContent = region === "New" ? "NEW" : region;
     btn.addEventListener("click", () => setRegion(region));
     regionFilter.append(btn);
   });
@@ -1775,6 +1777,29 @@ async function loadClubs() {
         };
       })
       .filter((club) => club.city && !shouldHideClub(club.city));
+
+    const staticEntries = (window.STATIC_CLUBS || [])
+      .filter((s) => s.city && !shouldHideClub(s.city))
+      .map((s) => ({
+        ...s,
+        isActive: true,
+        featured: false,
+        isVerified: Boolean((s.specificDates || []).length),
+        scheduleLabel: s.cadence || "",
+        day: "",
+        locationNote: s.locationNote || "",
+        instagramURL: "",
+        instagramItems: [],
+        linkedinURL: "",
+        linkedInItems: [],
+        extraSocials: [],
+        upcoming_date: (s.specificDates || [])[0] || "",
+        eventTimeLabel: "",
+        communityLink: "",
+        locationNoteDetail: "",
+        isIncomplete: false,
+      }));
+    clubs = clubs.concat(staticEntries);
 
     statusText.textContent = usedLocalSnapshot ? "(local sheet snapshot)" : "";
     flyerGalleryItems = getFlyerGalleryItems();
@@ -2069,8 +2094,14 @@ function stepFlyer(direction) {
   jumpToFlyer(activeFlyerIndex + direction);
 }
 
-function openFlyerLightbox(url, cityName) {
+function openFlyerLightbox(url, cityName, options) {
   if (!lightbox) buildFlyerOverlay();
+
+  if (Array.isArray(options)) {
+    flyerGalleryItems = options.filter((item) => item && item.url);
+  } else if (options && Array.isArray(options.items)) {
+    flyerGalleryItems = options.items.filter((item) => item && item.url);
+  }
 
   if (!flyerGalleryItems.length) {
     flyerGalleryItems = [{ city: cityName, url, venue: "", scheduleLabel: "", eventTime: "" }];
@@ -2111,7 +2142,6 @@ window.openFlyerLightbox = openFlyerLightbox;
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 loadSiteCopy();
-typeFeatureCalloutTitle();
 setupMobileResourcesToggle();
 setupDayJumpLinks();
 setupBackToTop();

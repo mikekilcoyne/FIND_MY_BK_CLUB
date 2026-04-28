@@ -296,17 +296,18 @@ window.CLUB_OVERRIDES = {
 // Pop-up and one-off clubs not in the main sheet — merged directly into calendar + list views.
 window.STATIC_CLUBS = [
   {
-    city: "Austin",
-    displayCity: "Austin",
+    city: "Los Angeles",
+    region: "West Coast",
+    displayCity: "LA East",
     cadence: "Pop-Up",
-    time: "Sunday, 8:30am CDT",
-    eventTime: "8:30 AM CDT",
-    venue: "Nate's Baked Goods & Coffee, 401 W 18th St",
-    hostName: "Eric Korsh",
-    instagramHandles: ["@erickorsh"],
-    specificDates: ["2026-03-15"],
-    locationNote: "SXSW Pop-Up",
-    flyerURL: "assets/SXSW_2026-3-15.png",
+    time: "Friday, 8:30am",
+    eventTime: "8:30 AM",
+    venue: "Lamill Coffee, Silverlake",
+    hostDisplay: "Scott Donaton, Kirsten Ludwig & Anita Schillhorn van Veen",
+    specificDates: ["2026-05-08"],
+    flyerURL: "./assets/flyers/2026/LosAngelesSilverlake_2026-05-08.jpeg",
     isNight: false,
+    isNew: true,
+    statusBadge: "Returning",
   },
 ];

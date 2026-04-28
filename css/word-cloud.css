@@ -2115,8 +2115,7 @@
 
 .wc-overlay--single-polaroid-capture .wc-overlay-zone--left,
 .wc-overlay--single-polaroid-capture .wc-overlay-zone--right {
-  align-content: center;
-  gap: 18px;
+  display: none;
 }
 
 .wc-overlay--single-polaroid-capture .wc-overlay-word {

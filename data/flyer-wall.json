@@ -11,11 +11,6 @@
       "sourceFile": "Barcelona_2026-04-08.jpg"
     },
     {
-      "city": "Biarritz, FR",
-      "url": "./assets/flyers/2026/Biarritz_2026_04_03.png",
-      "sourceFile": "Biarritz_2026_04_03.png"
-    },
-    {
       "city": "Burlington, VT",
       "url": "./assets/flyers/2026/BurlingtonVT_2026-04-13.jpg",
       "sourceFile": "BurlingtonVT_2026-04-13.jpg"
@@ -47,8 +42,8 @@
     },
     {
       "city": "Denver, CO",
-      "url": "./assets/flyers/2026/BC Denver - April 2026.png",
-      "sourceFile": "BC Denver - April 2026.png"
+      "url": "./assets/flyers/2026/Denver_2026-05-07.png",
+      "sourceFile": "Denver_2026-05-07.png"
     },
     {
       "city": "Los Angeles, CA",
@@ -67,8 +62,8 @@
     },
     {
       "city": "Maplewood, NJ",
-      "url": "./assets/flyers/2026/MaplewoodNJ_2026-04-17.png",
-      "sourceFile": "MaplewoodNJ_2026-04-17.png"
+      "url": "./assets/flyers/2026/MaplewoodNJ_2026-04-24.png",
+      "sourceFile": "MaplewoodNJ_2026-04-24.png"
     },
     {
       "city": "Melbourne — Fitzroy, AU",
