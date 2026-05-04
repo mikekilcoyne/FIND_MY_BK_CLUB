@@ -217,6 +217,35 @@
     return compactText(club && (club.eventTimeLabel || club.eventTime || club.time));
   }
 
+  function getDisplayCity(club) {
+    return (club && (club.displayCity || club.city)) || "";
+  }
+
+  function parseCoordinate(value) {
+    var parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function buildPreciseMapsURL(club) {
+    if (club && club.mapsURL) return club.mapsURL;
+
+    var lat = parseCoordinate(club && club.latitude);
+    var lng = parseCoordinate(club && club.longitude);
+    if (lat !== null && lng !== null) {
+      return "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng;
+    }
+
+    var fallbackQuery = (club && club.venue ? club.venue + ", " : "") + getDisplayCity(club);
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(fallbackQuery.trim());
+  }
+
+  function getClubConfirmationNote(club) {
+    if (!club) return "";
+    if (club.day && club.day !== "Every now and again" && getClubTimeLabel(club)) return "";
+    if (club.isVerified) return "";
+    return "Time: typically once a month, but confirm with host.";
+  }
+
   function getNextOccurrenceLabel(club) {
     var dates = (club && club.specificDates) || [];
     if (!dates.length) return "";
@@ -447,10 +476,11 @@
       wrap.appendChild(featuredBadge);
     }
 
-    if (club && club.isNew) {
+    if (club && (club.statusBadge || club.isNew)) {
       var newBadge = document.createElement("span");
+      var label = compactText(club.statusBadge) || "New";
       newBadge.className = "badge badge-new";
-      newBadge.textContent = "New";
+      newBadge.textContent = label;
       wrap.appendChild(newBadge);
     }
 
@@ -504,22 +534,119 @@
     return wrap;
   }
 
+  var CITY_LOOKUP_ALIASES = {
+    "las vegas": ["vegas"],
+    vegas: ["las vegas"],
+    milan: ["milano"],
+    milano: ["milan"],
+    soma: ["maplewood"],
+    maplewood: ["soma"],
+    "surf coast - torquay": ["torquay", "torquay, au"],
+    "torquay, au": ["torquay", "surf coast - torquay"],
+    torquay: ["torquay, au", "surf coast - torquay"],
+  };
+
+  function addCityLookupKey(target, value) {
+    var key = normCity(value)
+      .replace(/[\u2014\u2013]/g, "-")
+      .replace(/\s+/g, " ")
+      .replace(/\s*-\s*/g, " - ")
+      .trim();
+    if (key) target.add(key);
+  }
+
+  function buildCityLookupKeys(value, options) {
+    var opts = options || {};
+    var keys = new Set();
+    var raw = compactText(value).replace(/[\u2014\u2013]/g, "-");
+    if (!raw) return [];
+
+    addCityLookupKey(keys, raw);
+
+    if (/^new york\s*-\s*/i.test(raw)) {
+      var newYorkTail = raw.replace(/^new york\s*-\s*/i, "").trim();
+      addCityLookupKey(keys, "ny - " + newYorkTail);
+      addCityLookupKey(keys, newYorkTail);
+    } else if (/^ny\s*-\s*/i.test(raw)) {
+      var nyTail = raw.replace(/^ny\s*-\s*/i, "").trim();
+      addCityLookupKey(keys, "new york - " + nyTail);
+      addCityLookupKey(keys, nyTail);
+    }
+
+    if (opts.loose) {
+      var commaParts = raw.split(",").map(function (part) {
+        return part.trim();
+      }).filter(Boolean);
+      if (commaParts.length > 1) {
+        addCityLookupKey(keys, commaParts[0]);
+      }
+    }
+
+    Array.from(keys).forEach(function (key) {
+      var aliases = CITY_LOOKUP_ALIASES[key] || [];
+      aliases.forEach(function (alias) {
+        addCityLookupKey(keys, alias);
+      });
+    });
+
+    return Array.from(keys);
+  }
+
+  function resolveCityCells(club, override, exactLookup, looseLookup) {
+    var values = [
+      club && club.city,
+      club && club.displayCity,
+      override && override.displayCity,
+    ].filter(Boolean);
+
+    for (var i = 0; i < values.length; i += 1) {
+      var exactKeys = buildCityLookupKeys(values[i]);
+      for (var j = 0; j < exactKeys.length; j += 1) {
+        if (exactLookup[exactKeys[j]]) return exactLookup[exactKeys[j]];
+      }
+    }
+
+    for (var k = 0; k < values.length; k += 1) {
+      var looseKeys = buildCityLookupKeys(values[k], { loose: true });
+      for (var m = 0; m < looseKeys.length; m += 1) {
+        if (looseLookup[looseKeys[m]]) return looseLookup[looseKeys[m]];
+      }
+    }
+
+    return [];
+  }
+
   // ── Merge CSV onto geo club objects ───────────────────
 
   function mergeCSV(geoClubs, csvRows) {
     var sheet = createSheetAccess ? createSheetAccess(csvRows) : null;
     function col(name, cells) { return sheet ? sheet.col(name, cells) : ""; }
 
-    var byCity = {};
+    var byExactCity = {};
+    var byLooseCity = {};
+    var looseCollisions = {};
     csvRows.slice(1).forEach(function (cells) {
-      var key = normCity(col("city", cells));
-      if (key) byCity[key] = cells;
+      buildCityLookupKeys(col("city", cells)).forEach(function (key) {
+        if (key && !byExactCity[key]) byExactCity[key] = cells;
+      });
+
+      buildCityLookupKeys(col("city", cells), { loose: true }).forEach(function (key) {
+        if (!key) return;
+        if (byLooseCity[key] && byLooseCity[key] !== cells) {
+          looseCollisions[key] = true;
+          return;
+        }
+        byLooseCity[key] = cells;
+      });
+    });
+
+    Object.keys(looseCollisions).forEach(function (key) {
+      delete byLooseCity[key];
     });
 
     return geoClubs.map(function (club) {
-      var key = normCity(club.city);
       var override = getOverrideForCity ? getOverrideForCity(club.city) : {};
-      var cells = byCity[key] || [];
+      var cells = resolveCityCells(club, override, byExactCity, byLooseCity);
       var sheetUpcomingDate = sharedParseSheetUpcomingDate
         ? sharedParseSheetUpcomingDate(col("upcoming_date", cells))
         : col("upcoming_date", cells);
@@ -537,6 +664,8 @@
       return Object.assign({}, club, {
         displayCity: override.displayCity || club.displayCity || club.city,
         host: displayHost || sanitizeHostDisplay(club.host || ""),
+        latitude: parseCoordinate(col("latitude", cells)) !== null ? parseCoordinate(col("latitude", cells)) : club.latitude,
+        longitude: parseCoordinate(col("longitude", cells)) !== null ? parseCoordinate(col("longitude", cells)) : club.longitude,
         venue: override.venue || cleanCell(col("venue_name", cells)) || club.venue || "",
         hostName: displayHost || sanitizeHostDisplay(club.host || ""),
         time: override.time || formatTimeLabel(col("start_time", cells)) || club.time || "",
@@ -793,6 +922,8 @@
     var card = document.getElementById("city-card");
     var content = document.getElementById("map-card-content");
     if (!card || !content) return;
+    var displayCity = getDisplayCity(club);
+    var isOriginal = normCity(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
 
     content.className = "club-card map-club-card" +
       (club.isNight ? " night-edition" : "") +
@@ -813,9 +944,10 @@
     var verifiedBadge = createVerifiedBadge(club);
     if (verifiedBadge) titleRow.appendChild(verifiedBadge);
 
-    var cityEl = document.createElement("div");
+    var cityEl = document.createElement("span");
     cityEl.className = "city-name";
-    cityEl.textContent = club.displayCity || club.city;
+    if (isOriginal) cityEl.classList.add("original-bc");
+    cityEl.textContent = displayCity;
     titleRow.appendChild(cityEl);
 
     var titleBadges = createTitleBadges(club);
@@ -826,12 +958,10 @@
     var timetable = createTimetableModule(club);
     if (timetable) content.appendChild(timetable);
 
-    if (club.venue) {
-      var venueEl = document.createElement("div");
-      venueEl.className = "card-location";
-      venueEl.textContent = club.venue;
-      content.appendChild(venueEl);
-    }
+    var venueEl = document.createElement("div");
+    venueEl.className = "card-location";
+    venueEl.textContent = club.venue || "Location TBD";
+    content.appendChild(venueEl);
 
     if (club.host) {
       var hostEl = document.createElement("div");
@@ -854,6 +984,14 @@
     }
     if (subline.childNodes.length) content.appendChild(subline);
 
+    var confirmationNote = getClubConfirmationNote(club);
+    if (confirmationNote) {
+      var note = document.createElement("p");
+      note.className = "card-confirmation-note";
+      note.textContent = confirmationNote;
+      content.appendChild(note);
+    }
+
     var util = document.createElement("div");
     util.className = "card-utility";
 
@@ -861,13 +999,12 @@
       util.appendChild(renderLatestHappeningsButton(club));
     }
 
-    var mapsURL = club.mapsURL ||
-      "https://maps.google.com/?q=Breakfast+Club+" + encodeURIComponent(club.displayCity || club.city);
+    var mapsURL = buildPreciseMapsURL(club);
     var mapsBtn = renderMapIcon(mapsURL, club.venue ? "Open " + club.venue + " in Google Maps" : "Open in Google Maps");
     mapsBtn.addEventListener("click", function () {
       if (window.BKAnalytics) {
         window.BKAnalytics.track("map_open_in_maps", {
-          city: club.displayCity || club.city,
+          city: displayCity,
         });
       }
     });
@@ -895,7 +1032,7 @@
       util.appendChild(communityLink);
     }
 
-    content.appendChild(util);
+    if (util.children.length) content.appendChild(util);
 
     suppressMapClose = true;
     card.classList.add("open");
