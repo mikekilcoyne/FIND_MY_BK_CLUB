@@ -109,6 +109,20 @@ function getDisplayCity(club) {
   return club.displayCity || club.city;
 }
 
+function isAffirmative(value) {
+  const lowered = normalize(value);
+  return lowered === "yes" || lowered === "true" || lowered === "1";
+}
+
+function getClubConfirmationNote(club) {
+  if (!club) return "";
+  if (club.day && club.day !== "Every now and again" && compactText(club.time || club.eventTime)) {
+    return "";
+  }
+  if (club.isVerified) return "";
+  return "Time: typically once a month, but confirm with host.";
+}
+
 function createLocationNoteBody(noteLabel, noteDetail) {
   const noteBody = document.createElement("p");
   noteBody.className = "host-note-body";
@@ -310,10 +324,11 @@ function createTitleBadges(club) {
     wrap.append(featuredBadge);
   }
 
-  if (club && club.isNew) {
+  if (club && (club.statusBadge || club.isNew)) {
     const newBadge = document.createElement("span");
-    newBadge.className = "badge badge-new";
-    newBadge.textContent = "New";
+    const label = compactText(club.statusBadge) || "New";
+    newBadge.className = `badge ${label.toLowerCase() === "returning" ? "badge-returning" : "badge-new"}`;
+    newBadge.textContent = label;
     wrap.append(newBadge);
   }
 
@@ -737,7 +752,9 @@ function renderDayDetails(isoDate, monthEvents) {
       const card = document.createElement("article");
       card.className = "club-card";
       if (club.isNight) card.classList.add("night-edition");
+      if (club.isActive === false) card.classList.add("inactive-card");
       card.append(createClubUpdateTrigger(club));
+      const isOriginal = normalize(club.city).replace(/[\u2014\u2013]/g, "-") === "new york - williamsburg";
 
       // 1. City name
       const titleRow = document.createElement("div");
@@ -746,8 +763,9 @@ function renderDayDetails(isoDate, monthEvents) {
       const verifiedBadge = createVerifiedBadge(club);
       if (verifiedBadge) titleRow.append(verifiedBadge);
 
-      const cityEl = document.createElement("div");
+      const cityEl = document.createElement("span");
       cityEl.className = "city-name";
+      if (isOriginal) cityEl.classList.add("original-bc");
       cityEl.textContent = getDisplayCity(club);
       titleRow.append(cityEl);
 
@@ -780,12 +798,10 @@ function renderDayDetails(isoDate, monthEvents) {
 
       if (subline.childNodes.length) card.append(subline);
 
-      if (club.venue) {
-        const location = document.createElement("div");
-        location.className = "card-location";
-        location.textContent = club.venue;
-        card.append(location);
-      }
+      const location = document.createElement("div");
+      location.className = "card-location";
+      location.textContent = club.venue || "Location TBD";
+      card.append(location);
 
       if (club.locationNoteDetail && !club.locationNote) {
         noteBody = createLocationNoteBody(club.locationNote, club.locationNoteDetail);
@@ -797,6 +813,14 @@ function renderDayDetails(isoDate, monthEvents) {
 
       // 4. Host + contact
       appendContactLine(card, "Host", club.hostName);
+
+      const confirmationNote = getClubConfirmationNote(club);
+      if (confirmationNote) {
+        const note = document.createElement("p");
+        note.className = "card-confirmation-note";
+        note.textContent = confirmationNote;
+        card.append(note);
+      }
 
       // 5. Utility row
       const util = document.createElement("div");
@@ -968,6 +992,9 @@ async function loadClubs() {
         return {
           city,
           displayCity: override.displayCity || city,
+          isActive,
+          featured: override.featured ?? isAffirmative(col("featured", cells)),
+          isNew: override.isNew ?? isAffirmative(col("is_new", cells)),
           cadence,
           time,
           isNight: isNightClub(time, override.isNight),

@@ -669,9 +669,9 @@
     bottom: 20px;
     left: 20px;
     right: auto;
-    width: 300px;
+    width: min(340px, calc(100vw - 40px));
     border: 1px solid var(--line);
-    max-height: 340px;
+    max-height: 380px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   }
 
