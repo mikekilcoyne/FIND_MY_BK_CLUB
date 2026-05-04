@@ -1016,10 +1016,16 @@ async function loadClubs() {
       .filter((club) => club.city && !shouldHideClub(club.city));
 
     // Merge pop-up / one-off clubs not in the sheet
-    const staticEntries = (window.STATIC_CLUBS || []).map((s) => ({
-      ...s,
-      rule: { type: "unscheduled" },
-    })).filter((club) => !shouldHideClub(club.city));
+    const staticEntries = (window.STATIC_CLUBS || []).map((s) => {
+      const extraSocials = s.extraSocials || [];
+      const linkedinExtra = extraSocials.find((item) => item && item.type === "linkedin" && item.url);
+      return {
+        ...s,
+        instagramHandles: collectInstagramHandles("", s),
+        linkedinURL: s.linkedinURL || linkedinExtra?.url || "",
+        rule: { type: "unscheduled" },
+      };
+    }).filter((club) => !shouldHideClub(club.city));
     clubs = clubs.concat(staticEntries);
 
     statusText.textContent = usedLocalSnapshot

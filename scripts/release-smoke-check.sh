@@ -35,7 +35,7 @@ check "css/styles.css" '\.club-update-modal' "Club update modal styles exist"
 check "index.html" 'new-feature-badge' "Homepage keeps the NEW badge marker"
 check "index.html" 'id="club-update-modal"' "Homepage includes the club update modal"
 check "netlify/functions/weekly-host-reminder.js" 'mode === "correction"' "Weekly host reminder still supports correction mode"
-check "netlify/functions/send-test-email.mjs" 'TEST_MODE === "correction"' "Test mailer still supports correction mode"
+check "scripts/send-test-email.mjs" 'TEST_MODE === "correction"' "Test mailer still supports correction mode"
 check "netlify/functions/submit-club-update.js" 'subject: "Breakfast Club update request"' "Club update submission function exists"
 
 echo "All release smoke checks passed."

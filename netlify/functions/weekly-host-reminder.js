@@ -1,4 +1,10 @@
 import { getConfiguredStore } from "./lib/blob-store.js";
+import {
+  HOST_REMINDER_LINKS,
+  buildEmailBody,
+  buildEmailHTML,
+  buildSubject,
+} from "./lib/host-reminder-email-template.mjs";
 
 // Runs every Sunday at 16:30 UTC (12:30pm ET)
 // Fetches active host emails from the Google Sheet and sends a weekly reminder via SendGrid.
@@ -23,8 +29,8 @@ const FALLBACK_HOSTS = [
   { city: "Denver",                     hostName: "Kate Gagnon",                                   emails: ["Kate.gagnon@gmail.com"] },
   { city: "London",                     hostName: "Victoria Gates Fleming",                        emails: ["victoria.gatesfleming@gmail.com"] },
   { city: "Lugano",                     hostName: "Camilla Finocchiaro Aprile & Elettra Fiumi",   emails: ["camillandreaprile@gmail.com", "elettra.fiumi@gmail.com"] },
-  { city: "Melbourne — Fitzroy",        hostName: "Celeste Blewitt & Josh Gardiner",               emails: ["celeste@celesteblewitt.com", "josh@gardinercommunications.com"] },
-  { city: "Melbourne — Richmond",       hostName: "Steph Clarke",                                  emails: ["steph@28thursdays.com"] },
+  { city: "Melbourne - CBD",            hostName: "Celeste Blewitt & Josh Gardiner",               emails: ["celeste@celesteblewitt.com", "josh@gardinercommunications.com"] },
+  { city: "Melbourne - Richmond",       hostName: "Steph Clarke",                                  emails: ["steph@28thursdays.com"] },
   { city: "Mexico City",                hostName: "Steve Bryant",                                  emails: ["steev@thisisdelightful.com"] },
   { city: "Milano",                     hostName: "Charla Caponi, Moritz Gaudlitz & Giorgio Bartoli", emails: ["charlanoelcaponi@gmail.com", "giorgio@golabagency.com", "mg@cultureshifts.net"] },
   { city: "New York — Downtown Brooklyn", hostName: "Kat Popiel & Lynn Juang",                    emails: ["Kat.popiel@gmail.com"] },
@@ -55,10 +61,6 @@ const REMINDER_LOCK_STORE = "weekly-host-reminder";
 const REMINDER_RUN_KEY_PREFIX = "run-summary";
 const RECIPIENT_LOCK_KEY_PREFIX = "recipient-send";
 const SEND_CONCURRENCY = 8;
-
-const SHEET_LINK = "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/edit";
-const DRIVE_LINK = "https://drive.google.com/drive/folders/1RghGzP25aW2chs1aPGxAzE9fZgFHucRe";
-const LATEST_HAPPENINGS_URL = "https://breakfastclubbing.com/what-we-talked-about";
 
 // ── CSV parser ────────────────────────────────────────────────────────────────
 
@@ -100,10 +102,6 @@ function getUpcomingSunday(baseDate = new Date()) {
   return nextSunday;
 }
 
-function sanitizeCityForFlyer(city) {
-  return city.replace(/[^a-zA-Z]/g, "") || "City";
-}
-
 function dedupeRecipients(recipients) {
   const deduped = new Map();
 
@@ -134,26 +132,6 @@ function parseEmailList(value = "") {
       .map((item) => item.trim().toLowerCase())
       .filter(Boolean)
   );
-}
-
-function buildTopNotice(mode) {
-  if (mode !== "correction") {
-    return { text: "", html: "" };
-  }
-
-  return {
-    text: `Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
-
-What I meant to send below:
-`,
-    html: `
-  <p style="font-size: 15px; line-height: 1.6;">
-    Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
-    What I meant to send below:
-  </p>`,
-  };
 }
 
 function getReminderStore() {
@@ -217,154 +195,6 @@ async function recordReminderRun(store, mode, lockValue, summary) {
     createdAt: new Date().toISOString(),
     ...summary,
   });
-}
-
-// ── Email builder ─────────────────────────────────────────────────────────────
-
-function buildUpdateBlock(cities, targetSunday) {
-  const cycleDate = targetSunday.toISOString().split("T")[0];
-  const flyerExamples = cities.map(city => `${city}: ${sanitizeCityForFlyer(city)}_${cycleDate}.jpg`);
-
-  if (cities.length <= 1) {
-    const city = cities[0] || "your club";
-    return {
-      text: `For ${city}, here's where to update:
-
-→ Master Sheet (update your listing): ${SHEET_LINK}
-→ Flyer Folder (upload this week's flyer): ${DRIVE_LINK}
-
-Flyer naming: City_YYYY-MM-DD.jpg (e.g. ${sanitizeCityForFlyer(city)}_${cycleDate}.jpg)`,
-      html: `
-  <p style="font-size: 15px; line-height: 1.6;">
-    For <strong>${city}</strong>, here's where to update:
-  </p>
-  <p style="font-size: 15px; line-height: 1.8;">
-    → <a href="${SHEET_LINK}" style="color: #b07d3a;">Master Sheet</a> (update your listing)<br>
-    → <a href="${DRIVE_LINK}" style="color: #b07d3a;">Flyer Folder</a> (upload this week's flyer)
-  </p>
-  <p style="font-size: 13px; line-height: 1.6; color: #666;">
-    Flyer naming: City_YYYY-MM-DD.jpg (e.g. <code>${sanitizeCityForFlyer(city)}_${cycleDate}.jpg</code>)
-  </p>`,
-    };
-  }
-
-  return {
-    text: `For your clubs, here's where to update:
-
-Clubs on your list: ${cities.join(", ")}
-
-→ Master Sheet (update your listings): ${SHEET_LINK}
-→ Flyer Folder (upload this week's flyers): ${DRIVE_LINK}
-
-Flyer naming: City_YYYY-MM-DD.jpg
-${flyerExamples.map(example => `- ${example}`).join("\n")}`,
-    html: `
-  <p style="font-size: 15px; line-height: 1.6;">
-    For your clubs, here's where to update:
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    <strong>Clubs on your list:</strong> ${cities.join(", ")}
-  </p>
-  <p style="font-size: 15px; line-height: 1.8;">
-    → <a href="${SHEET_LINK}" style="color: #b07d3a;">Master Sheet</a> (update your listings)<br>
-    → <a href="${DRIVE_LINK}" style="color: #b07d3a;">Flyer Folder</a> (upload this week's flyers)
-  </p>
-  <p style="font-size: 13px; line-height: 1.6; color: #666;">
-    Flyer naming: City_YYYY-MM-DD.jpg<br>
-    ${flyerExamples.map(example => `<span style="display: block;">- <code>${example}</code></span>`).join("")}
-  </p>`,
-  };
-}
-
-function buildEmailBody(cities, targetSunday, mode = "scheduled") {
-  const { text: updateBlock } = buildUpdateBlock(cities, targetSunday);
-  const { text: topNotice } = buildTopNotice(mode);
-  const cityLead = cities.length <= 1
-    ? `For ${cities[0] || "your club"}, here's where to update:`
-    : "For your clubs, here's where to update:";
-
-  return `Hey hosts,
-
-${topNotice}
-
-BC just hit 100 newsletters.
-
-All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
-
-No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
-
-Thank you to all of you amazing hosts for turning this into a real, global community.
-
-On that same note: ${cityLead}
-
-──────────────────────────
-
-${updateBlock}
-
-If everything's good, you're good.
-
-— Ben Dietz
-
-Questions? ben@breakfastclubbing.com
-
-p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll make it happen. Big thanks to Kilcoyne for making this happen.
-
----
-Breakfast Club HQ · New York, NY
-You're receiving this because you host a Breakfast Club location.
-To stop receiving these emails, reply with "unsubscribe" and we'll remove you.`;
-}
-
-function buildEmailHTML(cities, targetSunday, mode = "scheduled") {
-  const { html: updateBlock } = buildUpdateBlock(cities, targetSunday);
-  const { html: topNotice } = buildTopNotice(mode);
-  const cityLead = cities.length <= 1
-    ? `For <strong>${cities[0] || "your club"}</strong>, here's where to update:`
-    : "For your clubs, here's where to update:";
-
-  return `
-<div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
-  <p style="font-size: 15px; line-height: 1.6;">Hey hosts,</p>
-  ${topNotice}
-  <p style="font-size: 15px; line-height: 1.6;">BC just hit 100 newsletters.</p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">
-    Thank you to all of you amazing hosts for turning this into a real, global community.
-  </p>
-  <p style="font-size: 15px; line-height: 1.6;">On that same note: ${cityLead}</p>
-  <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-  ${updateBlock}
-  <p style="font-size: 15px; line-height: 1.6;">If everything's good, you're good.</p>
-  <p style="font-size: 15px; line-height: 1.6;">— Ben Dietz</p>
-  <p style="font-size: 14px; line-height: 1.8; color: #666; margin-top: 32px;">
-    Questions? <a href="mailto:ben@breakfastclubbing.com" style="color: #b07d3a;">ben@breakfastclubbing.com</a>
-  </p>
-  <p style="font-size: 14px; line-height: 1.6; color: #666;">
-    p.s. — Any cool ideas for the site? Email <a href="mailto:mike@breakfastclubbing.com" style="color: #b07d3a;">mike@breakfastclubbing.com</a> and he'll make it happen. Big thanks to Kilcoyne for making this happen.
-  </p>
-  <p style="font-size: 12px; line-height: 1.6; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
-    Breakfast Club HQ &middot; New York, NY<br>
-    You're receiving this because you host a Breakfast Club location.<br>
-    To stop receiving these emails, reply with "unsubscribe" and we'll remove you.
-  </p>
-</div>`;
-}
-
-function buildSubject(cities, mode = "scheduled") {
-  if (mode === "correction") {
-    return "Sorry!";
-  }
-
-  if (cities.length <= 1) {
-    return `BC reminder - update your ${cities[0] || "club"} listing`;
-  }
-
-  return "BC reminder - update your club listings";
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -498,10 +328,10 @@ export async function handler(event) {
         "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
-      subject: buildSubject(cities, mode),
+      subject: buildSubject(cities, { mode }),
       content: [
-        { type: "text/plain", value: buildEmailBody(cities, targetSunday, mode) },
-        { type: "text/html",  value: buildEmailHTML(cities, targetSunday, mode) },
+        { type: "text/plain", value: buildEmailBody(cities, targetSunday, { mode, links: HOST_REMINDER_LINKS }) },
+        { type: "text/html",  value: buildEmailHTML(cities, targetSunday, { mode, links: HOST_REMINDER_LINKS }) },
       ],
     };
 

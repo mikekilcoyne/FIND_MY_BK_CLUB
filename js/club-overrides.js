@@ -249,18 +249,16 @@ window.CLUB_OVERRIDES = {
 
   // ── Australia ─────────────────────────────────────────────────────────────
   "melbourne - fitzroy":  {
-    displayCity: "Melbourne — Fitzroy, AU",
+    displayCity: "Melbourne - CBD, AU",
     featured: true,
     cadence: "Pop-Up",
     time: "Friday, 8:30am",
     eventTime: "8:30 AM",
-    venue: "Code Black, CBD",
+    venue: "Code Black Coffee, Flinders Lane",
     specificDates: ["2026-04-24"],
-    locationNote: "Host note",
-    locationNoteDetail: "Location details coming soon.",
   },
   "melbourne - richmond": {
-    displayCity: "Melbourne — Richmond, AU",
+    displayCity: "Melbourne - Richmond, AU",
     featured: true,
     cadence: "Second Friday",
     venue: "Pillar of Salt, Richmond",
@@ -303,11 +301,17 @@ window.STATIC_CLUBS = [
     time: "Friday, 8:30am",
     eventTime: "8:30 AM",
     venue: "Lamill Coffee, Silverlake",
-    hostDisplay: "Scott Donaton, Kirsten Ludwig & Anita Schillhorn van Veen",
+    hostDisplay: "Trevor Foley, Thea Raskin, Freddie Linder & Jasmine Abdel-Sayed",
+    extraSocials: [
+      {
+        type: "instagram",
+        url: "https://www.instagram.com/tfoleyracing/",
+        title: "Trevor Foley Instagram",
+      },
+    ],
     specificDates: ["2026-05-08"],
     flyerURL: "./assets/flyers/2026/LosAngelesSilverlake_2026-05-08.jpeg",
     isNight: false,
     isNew: true,
-    statusBadge: "Returning",
   },
 ];

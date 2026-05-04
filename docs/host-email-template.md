@@ -2,6 +2,10 @@
 
 Source of truth for the weekly host reminder / update email.
 
+Canonical implementation:
+- `netlify/functions/lib/host-reminder-email-template.mjs`
+- used by both `netlify/functions/weekly-host-reminder.js` and `scripts/send-test-email.mjs`
+
 Use this file to:
 - update the intro copy
 - swap in a new article
@@ -69,7 +73,7 @@ p.s. — Any cool ideas for the site? Email mike@breakfastclubbing.com and he'll
 - Test send template: `/Users/yellowsatinjacket/Desktop/#Active_Projects/FIND_MY_BK_CLUB/netlify/functions/send-test-email.mjs`
 - Public GIF asset: `/Users/yellowsatinjacket/Desktop/#Active_Projects/FIND_MY_BK_CLUB/assets/LATEST_HAPPENINS.gif`
 
-When this file changes, mirror those edits into the live and test email templates.
+When the latest Ben email needs to change, update the shared template module above first, then sync this doc if you want the written reference to match.
 
 ## Repeatable Test Send Workflow
 

@@ -1772,25 +1772,30 @@ async function loadClubs() {
 
     const staticEntries = (window.STATIC_CLUBS || [])
       .filter((s) => s.city && !shouldHideClub(s.city))
-      .map((s) => ({
-        ...s,
-        isActive: true,
-        featured: false,
-        isVerified: Boolean((s.specificDates || []).length),
-        scheduleLabel: s.cadence || "",
-        day: "",
-        locationNote: s.locationNote || "",
-        instagramURL: "",
-        instagramItems: [],
-        linkedinURL: "",
-        linkedInItems: [],
-        extraSocials: [],
-        upcoming_date: (s.specificDates || [])[0] || "",
-        eventTimeLabel: "",
-        communityLink: "",
-        locationNoteDetail: "",
-        isIncomplete: false,
-      }));
+      .map((s) => {
+        const extraSocials = s.extraSocials || [];
+        const instagramItems = buildInstagramSocialItems([], extraSocials);
+        const linkedInItems = buildLinkedInSocialItems([], extraSocials, s.linkedinURL || "", s.hostDisplay || "");
+        return {
+          ...s,
+          isActive: true,
+          featured: false,
+          isVerified: Boolean((s.specificDates || []).length),
+          scheduleLabel: s.cadence || "",
+          day: "",
+          locationNote: s.locationNote || "",
+          instagramURL: instagramItems[0]?.url || "",
+          instagramItems,
+          linkedinURL: linkedInItems[0]?.url || s.linkedinURL || "",
+          linkedInItems,
+          extraSocials: extraSocials.filter((item) => item && !["instagram", "linkedin"].includes(item.type)),
+          upcoming_date: (s.specificDates || [])[0] || "",
+          eventTimeLabel: "",
+          communityLink: "",
+          locationNoteDetail: "",
+          isIncomplete: false,
+        };
+      });
     clubs = clubs.concat(staticEntries);
 
     statusText.textContent = usedLocalSnapshot ? "(local sheet snapshot)" : "";
