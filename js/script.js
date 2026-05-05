@@ -11,6 +11,7 @@ const {
   extractInstagramURL: sharedExtractInstagramURL,
   extractLinkedInURL: sharedExtractLinkedInURL,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
+  loadLiveClubOverrides: sharedLoadLiveClubOverrides,
   loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
   clubHasLatestHappenings: sharedClubHasLatestHappenings,
   renderLatestHappeningsButton: sharedRenderLatestHappeningsButton,
@@ -1702,6 +1703,9 @@ function renderRegionFilter() {
 
 async function loadClubs() {
   try {
+    if (sharedLoadLiveClubOverrides) {
+      await sharedLoadLiveClubOverrides();
+    }
     await loadLatestHappeningsRegistry();
     const { rows, usedLocalSnapshot } = await fetchSheetRows();
     const { col } = createSheetAccess(rows);

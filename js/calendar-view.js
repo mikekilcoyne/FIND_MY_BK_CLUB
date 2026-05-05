@@ -12,6 +12,7 @@ const {
   extractEmail: sharedExtractEmail,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
   toISODate: sharedToISODate,
+  loadLiveClubOverrides: sharedLoadLiveClubOverrides,
   loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
   clubHasLatestHappenings: sharedClubHasLatestHappenings,
   renderLatestHappeningsButton: sharedRenderLatestHappeningsButton,
@@ -970,6 +971,9 @@ function renderCalendar() {
 
 async function loadClubs() {
   try {
+    if (sharedLoadLiveClubOverrides) {
+      await sharedLoadLiveClubOverrides();
+    }
     if (sharedLoadLatestHappeningsRegistry) {
       await sharedLoadLatestHappeningsRegistry();
     }

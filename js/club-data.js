@@ -2,6 +2,7 @@
   const SHEET_CSV_URL =
     "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
   const LOCAL_SHEET_CSV_URL = "./data/clubs-sheet-local.csv";
+  const LIVE_CLUB_OVERRIDES_URL = "/.netlify/functions/live-club-overrides";
   const LATEST_HAPPENINGS_MEDIA_URL = "./data/club-story-media.json";
   const LATEST_HAPPENINGS_CACHE_URL = "./data/wwta-substack-cache.json";
   const EXCLUDED_LATEST_HAPPENINGS_MEDIA = new Set([
@@ -14,6 +15,7 @@
   ]);
   let latestHappeningsLoadedPromise = null;
   let latestHappeningsCityKeys = new Set();
+  let liveClubOverridesPromise = null;
 
   function normalize(value) {
     return (value || "").toLowerCase().trim();
@@ -127,6 +129,106 @@
   function getOverrideForCity(city) {
     const overrides = window.CLUB_OVERRIDES || {};
     return overrides[normalizeCityKey(city)] || {};
+  }
+
+  function dedupeSocialItems(items) {
+    const seen = new Set();
+    return (items || []).filter((item) => {
+      if (!item || !item.type || !item.url) return false;
+      const key = `${String(item.type).toLowerCase()}|${String(item.url).replace(/\/$/, "")}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function mergeSocialItems(existing, incoming) {
+    const merged = [...(existing || [])];
+
+    (incoming || []).forEach((nextItem) => {
+      if (!nextItem || !nextItem.type || !nextItem.url) return;
+      const titleKey = String(nextItem.title || "").trim().toLowerCase();
+      if (titleKey) {
+        const titledIndex = merged.findIndex((item) =>
+          item &&
+          String(item.type || "").toLowerCase() === String(nextItem.type || "").toLowerCase() &&
+          String(item.title || "").trim().toLowerCase() === titleKey
+        );
+        if (titledIndex >= 0) {
+          merged[titledIndex] = nextItem;
+          return;
+        }
+      }
+      merged.push(nextItem);
+    });
+
+    return dedupeSocialItems(merged);
+  }
+
+  function mergeRuntimePatch(base, patch) {
+    const next = { ...(base || {}), ...(patch || {}) };
+    if ((base && base.extraSocials) || (patch && patch.extraSocials)) {
+      next.extraSocials = mergeSocialItems(
+        (base && base.extraSocials) || [],
+        (patch && patch.extraSocials) || [],
+      );
+    }
+    return next;
+  }
+
+  function patchMatchesClubLabel(clubLabel, overrideKey, overrideValue) {
+    const target = normalizeCityKey(clubLabel);
+    if (!target) return false;
+    return [
+      normalizeCityKey(overrideKey),
+      normalizeCityKey(overrideValue && overrideValue.displayCity),
+      normalizeCityKey(overrideValue && overrideValue.city),
+    ].includes(target);
+  }
+
+  function applyLiveOverrideItem(item) {
+    if (!item || !item.club || !item.patch) return;
+
+    const overrides = window.CLUB_OVERRIDES || (window.CLUB_OVERRIDES = {});
+    let matchedOverride = false;
+
+    Object.keys(overrides).forEach((overrideKey) => {
+      const current = overrides[overrideKey] || {};
+      if (!patchMatchesClubLabel(item.club, overrideKey, current)) return;
+      overrides[overrideKey] = mergeRuntimePatch(current, item.patch);
+      matchedOverride = true;
+    });
+
+    if (!matchedOverride) {
+      const fallbackKey = normalizeCityKey(item.club);
+      if (fallbackKey) {
+        overrides[fallbackKey] = mergeRuntimePatch(overrides[fallbackKey] || {}, item.patch);
+      }
+    }
+
+    if (Array.isArray(window.STATIC_CLUBS)) {
+      window.STATIC_CLUBS = window.STATIC_CLUBS.map((club) => {
+        if (!patchMatchesClubLabel(item.club, club && club.city, club)) return club;
+        return mergeRuntimePatch(club, item.patch);
+      });
+    }
+  }
+
+  async function loadLiveClubOverrides() {
+    if (liveClubOverridesPromise) return liveClubOverridesPromise;
+
+    liveClubOverridesPromise = fetch(LIVE_CLUB_OVERRIDES_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error(`live overrides HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((snapshot) => {
+        Object.values((snapshot && snapshot.items) || {}).forEach(applyLiveOverrideItem);
+        return snapshot;
+      })
+      .catch(() => ({ items: {} }));
+
+    return liveClubOverridesPromise;
   }
 
   function cleanLocationValue(value) {
@@ -369,6 +471,7 @@
     fetchSheetRows,
     createSheetAccess,
     getOverrideForCity,
+    loadLiveClubOverrides,
     cleanLocationValue,
     getVenue,
     normalizeFlyer,

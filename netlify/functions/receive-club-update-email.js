@@ -1,5 +1,6 @@
 import { buildTicket, TRUSTED_APPROVERS } from "./lib/club-update-intake.js";
 import { getConfiguredStore } from "./lib/blob-store.js";
+import { applyApprovedLiveUpdate } from "./lib/live-club-overrides.js";
 
 function json(statusCode, body) {
   return {
@@ -51,6 +52,20 @@ export async function handler(event) {
 
   if (!ticket.notes) {
     return json(400, { error: "Email body or notes are required." });
+  }
+
+  if (ticket.status === "approved") {
+    try {
+      const liveUpdate = await applyApprovedLiveUpdate(ticket);
+      if (liveUpdate) {
+        ticket.liveUpdate = liveUpdate;
+      }
+    } catch (error) {
+      ticket.liveUpdate = {
+        applied: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   await persistTicket(ticket);

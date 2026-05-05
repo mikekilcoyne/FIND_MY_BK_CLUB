@@ -37,5 +37,8 @@ check "index.html" 'id="club-update-modal"' "Homepage includes the club update m
 check "netlify/functions/weekly-host-reminder.js" 'mode === "correction"' "Weekly host reminder still supports correction mode"
 check "scripts/send-test-email.mjs" 'TEST_MODE === "correction"' "Test mailer still supports correction mode"
 check "netlify/functions/submit-club-update.js" 'subject: "Breakfast Club update request"' "Club update submission function exists"
+check "netlify/functions/receive-club-update-email.js" 'applyApprovedLiveUpdate' "Email intake can apply approved live updates"
+check "netlify/functions/live-club-overrides.js" 'Only GET and HEAD are supported' "Public live overrides endpoint exists"
+check "js/club-data.js" 'loadLiveClubOverrides' "Frontend can load live club overrides"
 
 echo "All release smoke checks passed."

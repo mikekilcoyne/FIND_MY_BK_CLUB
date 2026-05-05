@@ -127,11 +127,12 @@ Map data is a separate static file: `data/clubs-map.json`.
 
 **Concept:** Hosts email `set@breakfastclubbing.com` with freeform updates (new venue, new date, flyer, etc.) and it automatically creates a pending row in the Google Sheet for review before going live.
 
-**Current first-pass approval rule (2026-03-31):**
+**Current first-pass approval rule (updated 2026-05-05):**
 - New intake function: `netlify/functions/receive-club-update-email.js`
 - Trusted approvers: `mike@mikekilcoyne.com`, `mk@yellowsatinjacket.com`
-- Auto-approve when the message comes from a trusted approver directly, or when a trusted approver forwards an email whose subject starts with `APPROVE:`
-- Store status currently lands in Netlify Blobs (`approved/` or `pending/`) for safe testing before wiring into Google Sheets
+- Auto-approve when the message comes from a trusted approver directly with subject `SITE: ...`, or when a trusted approver uses the existing `APPROVE:` path
+- Approved structured `SITE:` emails can now write live runtime club overrides into Netlify Blobs for deploy-free site updates
+- Site reads those live overrides from `/.netlify/functions/live-club-overrides` before rendering cards
 
 **Approved approach:**
 - Review queue (not auto-publish) — updates land in a "Pending" tab, approved manually

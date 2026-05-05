@@ -1,9 +1,12 @@
+import { parseStructuredSiteUpdate } from "./live-club-overrides.js";
+
 const TRUSTED_APPROVERS = [
   "mike@mikekilcoyne.com",
   "mk@yellowsatinjacket.com",
 ];
 
 const APPROVAL_SUBJECT_PREFIX = "approve:";
+const SITE_SUBJECT_PREFIX = "site:";
 const APPROVAL_BODY_TOKEN = "approve";
 
 function normalizeEmail(value = "") {
@@ -17,6 +20,10 @@ function normalizeSubject(value = "") {
 
 function hasApprovalPrefix(subject = "") {
   return normalizeSubject(subject).startsWith(APPROVAL_SUBJECT_PREFIX);
+}
+
+function hasSitePrefix(subject = "") {
+  return normalizeSubject(subject).startsWith(SITE_SUBJECT_PREFIX);
 }
 
 function hasApprovalBodyToken(value = "") {
@@ -57,8 +64,16 @@ function classifyApproval(payload = {}) {
     reasons.push("trusted-from-with-approve-subject");
   }
 
+  if (!reasons.length && TRUSTED_APPROVERS.includes(fromEmail) && hasSitePrefix(subject)) {
+    reasons.push("trusted-from-with-site-subject");
+  }
+
   if (!reasons.length && TRUSTED_APPROVERS.includes(replyToEmail) && hasApprovalPrefix(subject)) {
     reasons.push("trusted-reply-to-with-approve-subject");
+  }
+
+  if (!reasons.length && TRUSTED_APPROVERS.includes(replyToEmail) && hasSitePrefix(subject)) {
+    reasons.push("trusted-reply-to-with-site-subject");
   }
 
   if (!reasons.length && trustedForwarder && hasApprovalPrefix(subject)) {
@@ -94,7 +109,6 @@ function classifyApproval(payload = {}) {
 function buildTicket(payload = {}) {
   const approval = classifyApproval(payload);
   const submittedAt = String(payload.receivedAt || payload.submittedAt || new Date().toISOString());
-  const club = String(payload.club || payload.city || payload.displayCity || payload.subject || "Unknown club").trim();
   const notes = String(
     payload.notes ||
       payload.text ||
@@ -102,6 +116,13 @@ function buildTicket(payload = {}) {
       payload.htmlText ||
       ""
   ).trim();
+  const siteUpdate = parseStructuredSiteUpdate({
+    subject: String(payload.subject || "").trim(),
+    text: notes,
+    forwardedSubject: approval.forwarded.forwardedSubject || "",
+    clubHint: String(payload.club || payload.city || payload.displayCity || "").trim(),
+  });
+  const club = String(siteUpdate?.club || payload.club || payload.city || payload.displayCity || payload.subject || "Unknown club").trim();
 
   return {
     id: String(payload.id || `club-update-${Date.now()}`),
@@ -115,6 +136,7 @@ function buildTicket(payload = {}) {
     status: approval.approved ? "approved" : "pending",
     approvalReasons: approval.reasons,
     forwarded: approval.forwarded,
+    siteUpdate,
     raw: {
       from: String(payload.from || ""),
       replyTo: String(payload.replyTo || ""),
@@ -127,11 +149,13 @@ function buildTicket(payload = {}) {
 export {
   APPROVAL_SUBJECT_PREFIX,
   APPROVAL_BODY_TOKEN,
+  SITE_SUBJECT_PREFIX,
   TRUSTED_APPROVERS,
   buildTicket,
   classifyApproval,
   hasApprovalBodyToken,
   hasApprovalPrefix,
+  hasSitePrefix,
   normalizeEmail,
   parseForwardedMessage,
 };

@@ -38,6 +38,14 @@ Toronto should now run every other Wednesday at 8am.`,
       text: "APPROVE\n\nLooks good to me.",
     },
   },
+  {
+    name: "Trusted SITE update auto-approves and parses live patch",
+    payload: {
+      from: "mike@mikekilcoyne.com",
+      subject: "SITE: LA East",
+      text: "https://www.instagram.com/trevorfoley/ for Trevor Foley (on-site)",
+    },
+  },
 ];
 
 for (const scenario of scenarios) {

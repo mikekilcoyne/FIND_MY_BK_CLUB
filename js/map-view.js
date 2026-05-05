@@ -3,6 +3,7 @@
 
   var BKClubData = window.BKClubData || {};
   var fetchSheetRows = BKClubData.fetchSheetRows;
+  var loadLiveClubOverrides = BKClubData.loadLiveClubOverrides;
   var loadLatestHappeningsRegistry = BKClubData.loadLatestHappeningsRegistry;
   var clubHasLatestHappenings = BKClubData.clubHasLatestHappenings;
   var renderLatestHappeningsButton = BKClubData.renderLatestHappeningsButton;
@@ -1410,6 +1411,7 @@
       }),
       fetchSheetRows().then(function (result) { return result.rows; }),
       loadLatestHappeningsRegistry ? loadLatestHappeningsRegistry() : Promise.resolve(),
+      loadLiveClubOverrides ? loadLiveClubOverrides() : Promise.resolve(),
     ])
       .then(function (results) {
         var clubs = mergeCSV(results[0], results[1]).filter(function (club) {
