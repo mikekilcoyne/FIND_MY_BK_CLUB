@@ -888,7 +888,17 @@ function openFlyerCollection(items, selectedItem = null) {
   openFlyerLightbox(target.url, target.city, { items: nextItems });
 }
 
-function renderHostText(text) {
+function renderHostText(text, instagramURL, linkedinURL) {
+  const url = instagramURL || linkedinURL;
+  if (url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noreferrer";
+    a.className = "card-host-link";
+    a.textContent = text || "";
+    return a;
+  }
   return document.createTextNode(text || "");
 }
 
@@ -1220,7 +1230,7 @@ function createClubCard(club) {
     const host = document.createElement("div");
     host.className = "card-host";
     host.append(document.createTextNode("Host: "));
-    host.append(renderHostText(club.hostDisplay));
+    host.append(renderHostText(club.hostDisplay, club.instagramURL, club.linkedinURL));
     card.append(host);
   }
 
@@ -2278,17 +2288,18 @@ if (calendarViewLink) {
     addField("When", dateTime);
     addField("Where", item.venue, item.mapsURL || null);
     if (!item.venue && item.city) addField("City", item.city);
-    if (item.host) addField("Hosted by", item.host);
+    if (item.host) addField("Hosted by", item.host, item.hostInstagramURL || null);
 
     const desc = document.getElementById("popup-drawer-description");
     if (item.description) { desc.textContent = item.description; desc.hidden = false; }
     else desc.hidden = true;
 
     const rsvp = document.getElementById("popup-drawer-rsvp");
-    if (item.communityLink) {
-      rsvp.href = item.communityLink;
+    if (item.flyerURL) {
+      rsvp.onclick = () => openFlyerLightbox(item.flyerURL, item.headline || item.city || "Pop-Up");
       rsvp.hidden = false;
     } else {
+      rsvp.onclick = null;
       rsvp.hidden = true;
     }
 

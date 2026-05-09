@@ -608,6 +608,25 @@
   color: #dce4f3;
 }
 
+.card-host-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(95, 86, 76, 0.4);
+  text-underline-offset: 2px;
+}
+
+.card-host-link:hover {
+  text-decoration-color: currentColor;
+}
+
+.club-card.night-edition .card-host-link {
+  text-decoration-color: rgba(220, 228, 243, 0.4);
+}
+
+.club-card.night-edition .card-host-link:hover {
+  text-decoration-color: currentColor;
+}
+
 .card-confirmation-note {
   margin: -1px 0 0;
   font-size: 12px;

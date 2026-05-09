@@ -221,6 +221,7 @@ export async function handler(event) {
   const dryRun = params.dry === "1";
   const mode = params.mode === "correction" ? "correction" : "scheduled";
   const excludedEmails = parseEmailList(params.exclude);
+  const testTo = params.test_to ? params.test_to.split(",").map(e => e.trim()).filter(Boolean) : null;
   const targetSunday = getUpcomingSunday();
   const cycleDate = targetSunday.toISOString().split("T")[0];
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
@@ -239,6 +240,37 @@ export async function handler(event) {
   }
   if (emailConfig.draft?.signoff?.trim()) activeCopy.signoff = emailConfig.draft.signoff;
   if (emailConfig.draft?.questionsEmail?.trim()) activeCopy.questionsEmail = emailConfig.draft.questionsEmail;
+
+  // Test mode — send only to specified addresses, skip all locking logic
+  if (testTo) {
+    const testRecipients = testTo.map(email => ({ email: email.toLowerCase(), cities: [], hostName: "" }));
+    console.log(`Test send to: ${testTo.join(", ")}`);
+    let sent = 0, failed = 0;
+    for (const recipient of testRecipients) {
+      const payload = {
+        personalizations: [{ to: [{ email: recipient.email }] }],
+        from: { email: FROM_EMAIL, name: FROM_NAME },
+        reply_to: { email: REPLY_TO },
+        subject: `[TEST] ${buildSubject([], { mode, copy: activeCopy })}`,
+        content: [
+          { type: "text/plain", value: buildEmailBody([], targetSunday, { mode, links: activeLinks, copy: activeCopy }) },
+          { type: "text/html",  value: buildEmailHTML([], targetSunday, { mode, links: activeLinks, copy: activeCopy }) },
+        ],
+      };
+      try {
+        const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.status === 202) { sent++; console.log(`✓ Test sent to ${recipient.email}`); }
+        else { const body = await res.text(); console.error(`✗ Test failed for ${recipient.email}: ${res.status} ${body}`); failed++; }
+      } catch (err) {
+        console.error(`✗ Test error for ${recipient.email}:`, err.message); failed++;
+      }
+    }
+    return { statusCode: 200, body: JSON.stringify({ test: true, sent, failed }) };
+  }
 
   // 1. Build recipient list — admin blob list takes priority, then sheet, then hardcoded fallback.
   let recipients;

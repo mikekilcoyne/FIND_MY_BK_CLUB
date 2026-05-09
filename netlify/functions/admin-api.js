@@ -306,7 +306,7 @@ export async function handler(event) {
 
     if (action === "save_popup") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
-      const { id, headline, subheadline, date, time, city, venue, mapsURL, host, description, communityLink, flyerURL, status } = payload;
+      const { id, headline, subheadline, date, time, city, venue, mapsURL, host, hostInstagramURL, description, communityLink, flyerURL, status } = payload;
       if (!headline?.trim()) return json(400, { error: "headline is required." });
       if (!date) return json(400, { error: "date is required." });
 
@@ -329,6 +329,7 @@ export async function handler(event) {
           venue: clean(venue),
           mapsURL: clean(mapsURL),
           host: clean(host),
+          hostInstagramURL: clean(hostInstagramURL),
           description: clean(description),
           communityLink: clean(communityLink),
           flyerURL: clean(flyerURL),
@@ -350,6 +351,7 @@ export async function handler(event) {
         venue: clean(venue),
         mapsURL: clean(mapsURL),
         host: clean(host),
+        hostInstagramURL: clean(hostInstagramURL),
         description: clean(description),
         communityLink: clean(communityLink),
         flyerURL: clean(flyerURL),
@@ -410,6 +412,22 @@ export async function handler(event) {
         return json(200, { ok: true, sent: result.sent || 0, failed: result.failed || 0, skipped: result.skipped || 0 });
       } catch (err) {
         return json(500, { error: `Send failed: ${err.message}` });
+      }
+    }
+
+    if (action === "send_test_email") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
+      if (!siteUrl) return json(500, { error: "Site URL not configured (URL env var missing)." });
+      const MASTER_EMAIL = "mk@yellowsatinjacket.com";
+      const extra = (payload.extraTo || "").trim().toLowerCase();
+      const recipients = [MASTER_EMAIL, ...(extra ? [extra] : [])].join(",");
+      try {
+        const res = await fetch(`${siteUrl}/.netlify/functions/weekly-host-reminder?force=1&test_to=${encodeURIComponent(recipients)}`);
+        const result = await res.json();
+        return json(200, { ok: true, sent: result.sent || 0, failed: result.failed || 0 });
+      } catch (err) {
+        return json(500, { error: `Test send failed: ${err.message}` });
       }
     }
 

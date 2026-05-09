@@ -559,6 +559,10 @@
           <label for="popup-host">Host</label>
           <input type="text" id="popup-host" placeholder="Ben Dietz">
         </div>
+        <div class="form-group">
+          <label for="popup-host-ig">Host Instagram URL <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input type="url" id="popup-host-ig" placeholder="https://instagram.com/breakfast_clubbing">
+        </div>
       </div>
 
       <div class="form-group">
@@ -664,6 +668,16 @@
       </div>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">Auto-sends every Sunday at 12 PM ET</p>
       <div id="em-send-status" class="status-msg"></div>
+
+      <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+        <p style="font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin:0 0 10px">Send Test</p>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Always sends to mk@yellowsatinjacket.com. Add another address below if you'd like.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="email" id="em-test-extra" placeholder="another@email.com (optional)" style="flex:1;min-width:180px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text)">
+          <button type="button" id="em-test-btn" class="btn-save" style="background:#4a4035;white-space:nowrap" onclick="sendTestEmail()">Send Test</button>
+        </div>
+        <div id="em-test-status" class="status-msg"></div>
+      </div>
     </section>
 
     <!-- ── Flyer Dump (all users) ───────────────────────────────────── -->
@@ -1227,6 +1241,7 @@
     document.getElementById('popup-venue').value = item.venue || '';
     document.getElementById('popup-maps-url').value = item.mapsURL || '';
     document.getElementById('popup-description').value = item.description || '';
+    document.getElementById('popup-host-ig').value = item.hostInstagramURL || '';
     document.getElementById('popup-community-link').value = item.communityLink || '';
     document.getElementById('popup-flyer-url').value = item.flyerURL || '';
     document.querySelector(`input[name="popup-status"][value="${item.status}"]`).checked = true;
@@ -1238,7 +1253,7 @@
   function cancelPopupEdit() {
     document.getElementById('popup-edit-id').value = '';
     ['popup-headline','popup-subheadline','popup-date','popup-time','popup-city',
-     'popup-host','popup-venue','popup-maps-url','popup-description',
+     'popup-host','popup-host-ig','popup-venue','popup-maps-url','popup-description',
      'popup-community-link','popup-flyer-url'].forEach(id => {
       document.getElementById(id).value = '';
     });
@@ -1264,6 +1279,7 @@
       time: document.getElementById('popup-time').value.trim(),
       city: document.getElementById('popup-city').value.trim(),
       host: document.getElementById('popup-host').value.trim(),
+      hostInstagramURL: document.getElementById('popup-host-ig').value.trim(),
       venue: document.getElementById('popup-venue').value.trim(),
       mapsURL: document.getElementById('popup-maps-url').value.trim(),
       description: document.getElementById('popup-description').value.trim(),
@@ -1528,6 +1544,25 @@
       if (res.ok) { S.emailConfig.draft = draft; S.emailConfig.links = links; setStatus('email-standard-status', 'Saved.', 'success'); }
       else setStatus('email-standard-status', res.error || 'Error.', 'error');
     } catch (_) { setStatus('email-standard-status', 'Network error.', 'error'); }
+  }
+
+  async function sendTestEmail() {
+    const draft = getDraft();
+    await apiFetch({ method: 'POST', body: { action: 'save_email_config', draft } });
+    S.emailConfig.draft = draft;
+    const btn = document.getElementById('em-test-btn');
+    const extraTo = document.getElementById('em-test-extra').value.trim();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Sending…';
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'send_test_email', extraTo } });
+      if (res.ok) {
+        const to = extraTo ? `mk@yellowsatinjacket.com + ${extraTo}` : 'mk@yellowsatinjacket.com';
+        setStatus('em-test-status', `Test sent to ${to}.`, 'success');
+      } else setStatus('em-test-status', res.error || 'Test send failed.', 'error');
+    } catch (_) { setStatus('em-test-status', 'Network error.', 'error'); }
+    btn.disabled = false;
+    btn.textContent = 'Send Test';
   }
 
   async function sendToAll() {
