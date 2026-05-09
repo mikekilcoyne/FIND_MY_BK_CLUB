@@ -231,6 +231,15 @@ export async function handler(event) {
   const activeCopy = { ...HOST_REMINDER_COPY, ...(emailConfig.copy || {}) };
   const activeLinks = { ...HOST_REMINDER_LINKS, ...(emailConfig.links || {}) };
 
+  // Apply draft body text if set in admin
+  if (emailConfig.draft?.bodyText?.trim()) {
+    activeCopy.introParagraphs = emailConfig.draft.bodyText.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+    activeCopy.introLinkedParagraph = "";
+    activeCopy.introLinkURL = "";
+  }
+  if (emailConfig.draft?.signoff?.trim()) activeCopy.signoff = emailConfig.draft.signoff;
+  if (emailConfig.draft?.questionsEmail?.trim()) activeCopy.questionsEmail = emailConfig.draft.questionsEmail;
+
   // 1. Build recipient list — admin blob list takes priority, then sheet, then hardcoded fallback.
   let recipients;
   if (emailConfig.recipients?.length) {

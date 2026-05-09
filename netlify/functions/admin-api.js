@@ -90,12 +90,7 @@ async function getSession(authHeader) {
   const pin = raw.slice(colonIdx + 1).trim();
   if (!email || !pin) return null;
 
-  const masterEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
-  const masterPin = process.env.ADMIN_PIN || "";
-  if (masterEmail && masterPin && email === masterEmail && pin === masterPin) {
-    return { type: "master", name: "Admin", clubs: null, email: null, fromEnv: true };
-  }
-
+  // hosts.json takes precedence — allows master to update their own PIN via UI
   try {
     const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
     const hosts = (await store.get("hosts.json", { type: "json" })) || {};
@@ -105,6 +100,13 @@ async function getSession(authHeader) {
       return { type, name: entry.name, clubs: entry.master ? null : entry.clubs, email, fromEnv: false };
     }
   } catch (_) {}
+
+  // Fall back to env-var master credentials
+  const masterEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
+  const masterPin = process.env.ADMIN_PIN || "";
+  if (masterEmail && masterPin && email === masterEmail && pin === masterPin) {
+    return { type: "master", name: "Admin", clubs: null, email: masterEmail, fromEnv: true };
+  }
 
   return null;
 }
@@ -162,6 +164,15 @@ export async function handler(event) {
       const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
       const config = (await store.get("config.json", { type: "json" })) || {};
       return json(200, { config });
+    }
+
+    if (action === "flyers") {
+      const store = getConfiguredStore("bk-flyers", { consistency: "strong" });
+      const index = (await store.get("index.json", { type: "json" })) || { items: [] };
+      const items = session.type === "master"
+        ? index.items
+        : index.items.filter(f => canWrite(session, f.club));
+      return json(200, { items });
     }
 
     if (action === "sheet_hosts") {
@@ -372,6 +383,7 @@ export async function handler(event) {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
       const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
       const current = (await store.get("config.json", { type: "json" })) || {};
+      if (payload.draft !== undefined) current.draft = payload.draft;
       if (payload.copy !== undefined) current.copy = payload.copy;
       if (payload.links !== undefined) current.links = payload.links;
       if (payload.recipients !== undefined) current.recipients = payload.recipients;
@@ -380,15 +392,70 @@ export async function handler(event) {
       return json(200, { ok: true });
     }
 
+    if (action === "send_host_reminder") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
+      if (!siteUrl) return json(500, { error: "Site URL not configured (URL env var missing)." });
+      try {
+        const res = await fetch(`${siteUrl}/.netlify/functions/weekly-host-reminder?force=1`);
+        const result = await res.json();
+        const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
+        const config = (await store.get("config.json", { type: "json" })) || {};
+        config.lastSent = {
+          at: new Date().toISOString(),
+          bodyText: config.draft?.bodyText || "",
+          result: { sent: result.sent || 0, failed: result.failed || 0, skipped: result.skipped || 0 },
+        };
+        await store.setJSON("config.json", config);
+        return json(200, { ok: true, sent: result.sent || 0, failed: result.failed || 0, skipped: result.skipped || 0 });
+      } catch (err) {
+        return json(500, { error: `Send failed: ${err.message}` });
+      }
+    }
+
+    if (action === "upload_flyer") {
+      const { club, dataURL } = payload;
+      if (!club) return json(400, { error: "club is required." });
+      if (!dataURL) return json(400, { error: "dataURL is required." });
+      if (!canWrite(session, normalizeKey(club))) return json(403, { error: "Not authorized for this club." });
+
+      const match = dataURL.match(/^data:(image\/[a-z+]+);base64,(.+)$/);
+      if (!match) return json(400, { error: "Invalid image data." });
+      const [, mimeType, base64Data] = match;
+      const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+      const safeClub = normalizeKey(club).replace(/[^a-z0-9-]/g, "-");
+      const key = `${safeClub}-${Date.now()}.${ext}`;
+
+      const store = getConfiguredStore("bk-flyers", { consistency: "strong" });
+      await store.set(key, Buffer.from(base64Data, "base64"), { metadata: { mimeType, club, uploadedAt: new Date().toISOString() } });
+
+      const flyerURL = `/.netlify/functions/get-flyer?key=${encodeURIComponent(key)}`;
+
+      // Maintain listing index
+      try {
+        const index = (await store.get("index.json", { type: "json" })) || { items: [] };
+        index.items.unshift({ key, club, mimeType, uploadedAt: new Date().toISOString(), uploadedBy: session.name || session.email });
+        if (index.items.length > 500) index.items = index.items.slice(0, 500);
+        await store.setJSON("index.json", index);
+      } catch (_) {}
+
+      return json(200, { ok: true, flyerURL, key });
+    }
+
     if (action === "update_pin") {
       const { newPin } = payload;
       if (!/^\d{4}$/.test(newPin)) return json(400, { error: "PIN must be exactly 4 digits." });
-      if (session.fromEnv) return json(400, { error: "Master PIN is managed via Netlify environment variables." });
       if (!session.email) return json(400, { error: "No email on this session." });
       const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
       const hosts = (await store.get("hosts.json", { type: "json" })) || {};
-      if (!hosts[session.email]) return json(404, { error: "Host record not found." });
-      hosts[session.email].pin = newPin;
+      if (session.fromEnv && !hosts[session.email]) {
+        // First-time PIN change: seed master record into hosts.json
+        hosts[session.email] = { name: "Admin", email: session.email, pin: newPin, master: true };
+      } else if (hosts[session.email]) {
+        hosts[session.email].pin = newPin;
+      } else {
+        return json(404, { error: "Host record not found." });
+      }
       await store.setJSON("hosts.json", hosts);
       return json(200, { ok: true });
     }
