@@ -2295,13 +2295,8 @@ if (calendarViewLink) {
     else desc.hidden = true;
 
     const rsvp = document.getElementById("popup-drawer-rsvp");
-    if (item.hostInstagramURL) {
-      rsvp.href = item.hostInstagramURL;
-      rsvp.hidden = false;
-    } else {
-      rsvp.href = "#";
-      rsvp.hidden = true;
-    }
+    rsvp.href = item.hostInstagramURL || "https://www.instagram.com/themichaelkilcoyne/";
+    rsvp.hidden = false;
 
     drawer.hidden = false;
     requestAnimationFrame(() => {
