@@ -1,0 +1,375 @@
+/* ── Popup Strip ───────────────────────────────────────────────────────────── */
+
+:root {
+  --lime: #C0FF00;
+  --lime-dark: #8ab800;
+  --lime-ink: #1a2200;
+}
+
+#popup-strip {
+  margin-bottom: 36px;
+}
+
+.popup-strip-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.popup-strip-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lime-dark);
+}
+
+.popup-strip-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(28px, 3.8vw, 46px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0;
+  color: var(--ink, #1c1710);
+  position: relative;
+  display: inline-block;
+}
+
+/* Lime underline on the title */
+.popup-strip-title::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--lime);
+  border-radius: 2px;
+}
+
+.popup-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ── Popup Card ────────────────────────────────────────────────────────────── */
+
+.popup-card {
+  position: relative;
+  background: linear-gradient(160deg, #fffef5 0%, #fefbe0 100%);
+  border: 1px solid rgba(160, 170, 0, 0.2);
+  border-radius: 18px;
+  padding: 28px 18px 18px;
+  cursor: pointer;
+  box-shadow:
+    0 14px 30px rgba(61, 42, 17, 0.08),
+    0 3px 8px rgba(61, 42, 17, 0.05);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.popup-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 22px 40px rgba(61, 42, 17, 0.13),
+    0 4px 12px rgba(61, 42, 17, 0.07);
+}
+
+.popup-card:active {
+  transform: translateY(-1px);
+}
+
+/* The lime sticker — replaces the tape-strip ::before from club-card */
+.popup-card::before {
+  content: "POP-UP!";
+  position: absolute;
+  top: -11px;
+  left: 18px;
+  background: var(--lime);
+  color: var(--lime-ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px 3px;
+  border-radius: 3px;
+  transform: rotate(-2.5deg);
+  box-shadow:
+    1px 2px 5px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 180, 0, 0.08);
+  /* Reset any inherited club-card::before sizing */
+  width: auto;
+  height: auto;
+  border: none;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.popup-card-headline {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  color: var(--ink, #1c1710);
+  margin-bottom: 3px;
+}
+
+.popup-card-subheadline {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a7030;
+  margin-bottom: 14px;
+}
+
+.popup-card-meta {
+  font-size: 13px;
+  color: #5a4a2e;
+  line-height: 1.6;
+}
+
+.popup-card-date {
+  font-weight: 600;
+}
+
+.popup-card-venue {
+  font-size: 12px;
+  color: #7a6848;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popup-card-cta {
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8ab800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Drawer backdrop ────────────────────────────────────────────────────────── */
+
+#popup-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 24, 36, 0.5);
+  z-index: 1100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#popup-drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Drawer panel ───────────────────────────────────────────────────────────── */
+
+#popup-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(460px, 100vw);
+  height: 100dvh;
+  background: #fffdf7;
+  z-index: 1101;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: -6px 0 32px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+}
+
+#popup-drawer.open {
+  transform: translateX(0);
+}
+
+@media (max-width: 600px) {
+  #popup-drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 88dvh;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+    box-shadow: 0 -6px 32px rgba(0, 0, 0, 0.16);
+  }
+
+  #popup-drawer.open {
+    transform: translateY(0);
+  }
+}
+
+.popup-drawer-close-bar {
+  position: sticky;
+  top: 0;
+  padding: 14px 18px 0;
+  display: flex;
+  justify-content: flex-end;
+  background: #fffdf7;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+/* Mobile drag handle */
+@media (max-width: 600px) {
+  .popup-drawer-close-bar::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: #d8cfc4;
+    border-radius: 99px;
+  }
+}
+
+.popup-drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a7a64;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1;
+  font-size: 18px;
+}
+
+.popup-drawer-close-btn:hover {
+  border-color: var(--lime-dark);
+  color: var(--lime-dark);
+}
+
+.popup-drawer-body {
+  padding: 12px 24px 48px;
+  flex: 1;
+}
+
+/* Lime sticker inside the drawer */
+.popup-drawer-sticker {
+  display: inline-block;
+  background: var(--lime);
+  color: var(--lime-ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px 3px;
+  border-radius: 3px;
+  transform: rotate(-1.5deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.popup-drawer-headline {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(30px, 6vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1.0;
+  color: #1c1710;
+  margin: 0 0 4px;
+}
+
+.popup-drawer-subheadline {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a7030;
+  margin-bottom: 22px;
+}
+
+.popup-drawer-hr {
+  border: none;
+  border-top: 1px solid #e8ddd0;
+  margin: 18px 0;
+}
+
+.popup-drawer-field {
+  margin-bottom: 14px;
+}
+
+.popup-drawer-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8ab800;
+  margin-bottom: 3px;
+}
+
+.popup-drawer-value {
+  font-size: 15px;
+  color: #1c1710;
+  line-height: 1.5;
+}
+
+.popup-drawer-value a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.popup-drawer-description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3d3020;
+}
+
+.popup-drawer-rsvp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  background: #1c1710;
+  color: var(--lime);
+  text-decoration: none;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 12px;
+  margin-top: 28px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.popup-drawer-rsvp:hover {
+  background: #2d2518;
+  color: #d4ff00;
+}

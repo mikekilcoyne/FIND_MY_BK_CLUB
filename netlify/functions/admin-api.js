@@ -1,0 +1,319 @@
+import { upsertLiveClubOverride, getLiveOverridesSnapshot } from "./lib/live-club-overrides.js";
+import { getConfiguredStore } from "./lib/blob-store.js";
+
+const CREDS_STORE = "admin-credentials";
+const WWTA_STORE = "wwta-admin-topics";
+const POPUP_STORE = "bk-popups";
+const FROM_EMAIL = "set@breakfastclubbing.com";
+const FROM_NAME = "Breakfast Club Admin";
+
+async function sendConfirmEmail({ subject, text }) {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return;
+  const to = process.env.ADMIN_NOTIFY_EMAIL || process.env.TEST_EMAIL_TO || "mk@yellowsatinjacket.com";
+  try {
+    await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: FROM_EMAIL, name: FROM_NAME },
+        subject,
+        content: [{ type: "text/plain", value: text }],
+      }),
+    });
+  } catch (_) {}
+}
+
+function json(statusCode, body) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    body: JSON.stringify(body),
+  };
+}
+
+function normalizeKey(value = "") {
+  return String(value)
+    .toLowerCase()
+    .replace(/[—–]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\s*-\s*/g, " - ")
+    .trim();
+}
+
+async function getSession(authHeader) {
+  const token = String(authHeader || "").replace(/^Bearer\s+/i, "").trim();
+  if (!token) return null;
+
+  const master = process.env.ADMIN_SECRET;
+  if (master && token === master) {
+    return { type: "master", name: "Admin", clubs: null };
+  }
+
+  try {
+    const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+    const tokens = (await store.get("tokens.json", { type: "json" })) || {};
+    if (tokens[token]) {
+      const entry = tokens[token];
+      // Tokens flagged master:true get full access identical to ADMIN_SECRET
+      const type = entry.master ? "master" : "host";
+      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs, emails: entry.emails };
+    }
+  } catch (_) {}
+
+  return null;
+}
+
+function canWrite(session, clubKey) {
+  if (!session) return false;
+  if (session.type === "master") return true;
+  return (session.clubs || []).map(normalizeKey).includes(normalizeKey(clubKey));
+}
+
+export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" }, body: "" };
+  }
+
+  const session = await getSession(event.headers?.authorization || event.headers?.Authorization);
+  if (!session) return json(401, { error: "Unauthorized." });
+
+  // ── GET ──────────────────────────────────────────────────────────────────
+  if (event.httpMethod === "GET") {
+    const action = event.queryStringParameters?.action || "session";
+
+    if (action === "session") {
+      const overrides = await getLiveOverridesSnapshot();
+      return json(200, {
+        session: { type: session.type, name: session.name, clubs: session.clubs },
+        overrides: overrides.items || {},
+      });
+    }
+
+    if (action === "credentials") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
+      return json(200, { tokens });
+    }
+
+    if (action === "wwta") {
+      const store = getConfiguredStore(WWTA_STORE, { consistency: "strong" });
+      const data = (await store.get("entries.json", { type: "json" })) || { entries: [] };
+      const entries = session.type === "master"
+        ? data.entries
+        : data.entries.filter((e) => canWrite(session, e.clubKey));
+      return json(200, { entries });
+    }
+
+    if (action === "list_popups") {
+      const store = getConfiguredStore(POPUP_STORE, { consistency: "strong" });
+      const data = (await store.get("items.json", { type: "json" })) || { items: [] };
+      return json(200, { items: data.items || [] });
+    }
+
+    return json(400, { error: "Unknown action." });
+  }
+
+  // ── POST ─────────────────────────────────────────────────────────────────
+  if (event.httpMethod === "POST") {
+    let payload;
+    try { payload = JSON.parse(event.body || "{}"); }
+    catch (_) { return json(400, { error: "Invalid JSON." }); }
+
+    const { action } = payload;
+
+    if (action === "update_club") {
+      const { club, patch } = payload;
+      if (!club) return json(400, { error: "club is required." });
+      if (!patch || !Object.keys(patch).length) return json(400, { error: "patch is required." });
+      if (!canWrite(session, normalizeKey(club))) return json(403, { error: "Not authorized for this club." });
+
+      const record = await upsertLiveClubOverride({
+        club,
+        patch,
+        email: session.name || "admin-ui",
+        subject: "admin-ui",
+        source: "admin_ui",
+      });
+
+      const fields = Object.entries(patch)
+        .map(([k, v]) => `  ${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+        .join("\n");
+      sendConfirmEmail({
+        subject: `Admin update: ${club}`,
+        text: `${session.name || "Admin"} updated ${club} via the admin panel.\n\nFields changed:\n${fields}\n\nUpdated at: ${new Date().toISOString()}`,
+      });
+
+      return json(200, { ok: true, record });
+    }
+
+    if (action === "add_wwta") {
+      const { club, date, topics, photoURL } = payload;
+      if (!club) return json(400, { error: "club is required." });
+      if (!date) return json(400, { error: "date is required." });
+      if (!topics?.length) return json(400, { error: "topics are required." });
+      const clubKey = normalizeKey(club);
+      if (!canWrite(session, clubKey)) return json(403, { error: "Not authorized for this club." });
+
+      const store = getConfiguredStore(WWTA_STORE, { consistency: "strong" });
+      const data = (await store.get("entries.json", { type: "json" })) || { entries: [] };
+      const now = new Date().toISOString();
+
+      const entry = {
+        id: `${clubKey.replace(/[^a-z0-9]/g, "-")}-${date}-${Date.now()}`,
+        club,
+        clubKey,
+        date,
+        topics: Array.isArray(topics) ? topics.map((t) => String(t).trim()).filter(Boolean) : [],
+        photoURL: String(photoURL || "").trim(),
+        addedAt: now,
+        addedBy: session.name || "admin",
+      };
+
+      data.entries.unshift(entry);
+      data.updatedAt = now;
+      await store.setJSON("entries.json", data);
+
+      sendConfirmEmail({
+        subject: `WWTA added: ${club} — ${date}`,
+        text: `${session.name || "Admin"} added a "What We Talked About" entry.\n\nClub: ${club}\nDate: ${date}\nTopics: ${entry.topics.join(", ")}${entry.photoURL ? `\nPhoto: ${entry.photoURL}` : ""}\n\nAdded at: ${now}`,
+      });
+
+      return json(200, { ok: true, entry });
+    }
+
+    if (action === "delete_wwta") {
+      const { id } = payload;
+      if (!id) return json(400, { error: "id required." });
+      const store = getConfiguredStore(WWTA_STORE, { consistency: "strong" });
+      const data = (await store.get("entries.json", { type: "json" })) || { entries: [] };
+      const entry = data.entries.find((e) => e.id === id);
+      if (!entry) return json(404, { error: "Not found." });
+      if (!canWrite(session, entry.clubKey)) return json(403, { error: "Not authorized." });
+      data.entries = data.entries.filter((e) => e.id !== id);
+      await store.setJSON("entries.json", data);
+      return json(200, { ok: true });
+    }
+
+    if (action === "add_host") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { token, name, clubs } = payload;
+      if (!token || !name || !clubs?.length) return json(400, { error: "token, name, and clubs are required." });
+      if (token === process.env.ADMIN_SECRET) return json(400, { error: "Token cannot match the master secret." });
+
+      const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
+      const entry = { name, clubs: Array.isArray(clubs) ? clubs : [clubs] };
+      if (payload.master) entry.master = true;
+      if (payload.emails?.length) entry.emails = Array.isArray(payload.emails) ? payload.emails : [payload.emails];
+      tokens[token] = entry;
+      await store.setJSON("tokens.json", tokens);
+      return json(200, { ok: true });
+    }
+
+    if (action === "remove_host") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { token } = payload;
+      if (!token) return json(400, { error: "token required." });
+      const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
+      delete tokens[token];
+      await store.setJSON("tokens.json", tokens);
+      return json(200, { ok: true });
+    }
+
+    if (action === "save_popup") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { id, headline, subheadline, date, time, city, venue, mapsURL, host, description, communityLink, flyerURL, status } = payload;
+      if (!headline?.trim()) return json(400, { error: "headline is required." });
+      if (!date) return json(400, { error: "date is required." });
+
+      const store = getConfiguredStore(POPUP_STORE, { consistency: "strong" });
+      const data = (await store.get("items.json", { type: "json" })) || { items: [] };
+      const now = new Date().toISOString();
+
+      const clean = (v) => String(v || "").trim();
+
+      if (id) {
+        const idx = data.items.findIndex((p) => p.id === id);
+        if (idx === -1) return json(404, { error: "Pop-up not found." });
+        data.items[idx] = {
+          ...data.items[idx],
+          headline: clean(headline),
+          subheadline: clean(subheadline),
+          date,
+          time: clean(time),
+          city: clean(city),
+          venue: clean(venue),
+          mapsURL: clean(mapsURL),
+          host: clean(host),
+          description: clean(description),
+          communityLink: clean(communityLink),
+          flyerURL: clean(flyerURL),
+          status: status === "draft" ? "draft" : "active",
+          updatedAt: now,
+        };
+        data.updatedAt = now;
+        await store.setJSON("items.json", data);
+        return json(200, { ok: true, item: data.items[idx] });
+      }
+
+      const item = {
+        id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+        headline: clean(headline),
+        subheadline: clean(subheadline),
+        date,
+        time: clean(time),
+        city: clean(city),
+        venue: clean(venue),
+        mapsURL: clean(mapsURL),
+        host: clean(host),
+        description: clean(description),
+        communityLink: clean(communityLink),
+        flyerURL: clean(flyerURL),
+        status: status === "draft" ? "draft" : "active",
+        createdAt: now,
+        createdBy: session.name || "admin",
+        updatedAt: now,
+      };
+      data.items.unshift(item);
+      data.updatedAt = now;
+      await store.setJSON("items.json", data);
+      return json(200, { ok: true, item });
+    }
+
+    if (action === "toggle_popup_status") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { id } = payload;
+      if (!id) return json(400, { error: "id required." });
+      const store = getConfiguredStore(POPUP_STORE, { consistency: "strong" });
+      const data = (await store.get("items.json", { type: "json" })) || { items: [] };
+      const idx = data.items.findIndex((p) => p.id === id);
+      if (idx === -1) return json(404, { error: "Pop-up not found." });
+      data.items[idx].status = data.items[idx].status === "draft" ? "active" : "draft";
+      data.items[idx].updatedAt = new Date().toISOString();
+      data.updatedAt = data.items[idx].updatedAt;
+      await store.setJSON("items.json", data);
+      return json(200, { ok: true, item: data.items[idx] });
+    }
+
+    if (action === "delete_popup") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { id } = payload;
+      if (!id) return json(400, { error: "id required." });
+      const store = getConfiguredStore(POPUP_STORE, { consistency: "strong" });
+      const data = (await store.get("items.json", { type: "json" })) || { items: [] };
+      if (!data.items.find((p) => p.id === id)) return json(404, { error: "Pop-up not found." });
+      data.items = data.items.filter((p) => p.id !== id);
+      data.updatedAt = new Date().toISOString();
+      await store.setJSON("items.json", data);
+      return json(200, { ok: true });
+    }
+
+    return json(400, { error: "Unknown action." });
+  }
+
+  return json(405, { error: "Method not allowed." });
+}

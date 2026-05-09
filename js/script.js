@@ -2157,3 +2157,175 @@ if (calendarViewLink) {
     }
   });
 }
+
+// ── Pop-Up Strip ──────────────────────────────────────────────────────────────
+
+(function () {
+  const strip = document.getElementById("popup-strip");
+  const grid = document.getElementById("popup-strip-cards");
+  const backdrop = document.getElementById("popup-drawer-backdrop");
+  const drawer = document.getElementById("popup-drawer");
+  const drawerClose = document.getElementById("popup-drawer-close");
+
+  if (!strip || !grid || !backdrop || !drawer) return;
+
+  // ── Fetch ──────────────────────────────────────────────────────────────────
+
+  async function loadPopups() {
+    try {
+      const res = await fetch("/.netlify/functions/get-popups");
+      if (!res.ok) return;
+      const data = await res.json();
+      const items = (data.items || []);
+      if (!items.length) return;
+      renderStrip(items);
+    } catch (_) {}
+  }
+
+  // ── Render strip ──────────────────────────────────────────────────────────
+
+  function renderStrip(items) {
+    grid.innerHTML = "";
+    items.forEach((item) => grid.append(createPopupCard(item)));
+    strip.hidden = false;
+  }
+
+  function createPopupCard(item) {
+    const card = document.createElement("article");
+    card.className = "popup-card";
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `View details: ${item.headline}`);
+
+    const headline = document.createElement("div");
+    headline.className = "popup-card-headline";
+    headline.textContent = item.headline;
+    card.append(headline);
+
+    if (item.subheadline) {
+      const sub = document.createElement("div");
+      sub.className = "popup-card-subheadline";
+      sub.textContent = item.subheadline;
+      card.append(sub);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "popup-card-meta";
+    const parts = [];
+    if (item.date) {
+      const dateSpan = document.createElement("span");
+      dateSpan.className = "popup-card-date";
+      dateSpan.textContent = formatPopupDate(item.date);
+      meta.append(dateSpan);
+      if (item.time) meta.append(document.createTextNode(" · " + item.time));
+    }
+    card.append(meta);
+
+    if (item.venue) {
+      const venue = document.createElement("div");
+      venue.className = "popup-card-venue";
+      venue.textContent = item.venue;
+      card.append(venue);
+    }
+
+    const cta = document.createElement("div");
+    cta.className = "popup-card-cta";
+    cta.textContent = "View details →";
+    card.append(cta);
+
+    card.addEventListener("click", () => openDrawer(item));
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDrawer(item); }
+    });
+
+    return card;
+  }
+
+  // ── Drawer ────────────────────────────────────────────────────────────────
+
+  function openDrawer(item) {
+    document.getElementById("popup-drawer-headline").textContent = item.headline;
+
+    const sub = document.getElementById("popup-drawer-subheadline");
+    if (item.subheadline) { sub.textContent = item.subheadline; sub.hidden = false; }
+    else sub.hidden = true;
+
+    const fields = document.getElementById("popup-drawer-fields");
+    fields.innerHTML = "";
+
+    const addField = (label, value, href) => {
+      if (!value) return;
+      const wrap = document.createElement("div");
+      wrap.className = "popup-drawer-field";
+      const lbl = document.createElement("div");
+      lbl.className = "popup-drawer-label";
+      lbl.textContent = label;
+      const val = document.createElement("div");
+      val.className = "popup-drawer-value";
+      if (href) {
+        const a = document.createElement("a");
+        a.href = href; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = value;
+        val.append(a);
+      } else {
+        val.textContent = value;
+      }
+      wrap.append(lbl, val);
+      fields.append(wrap);
+    };
+
+    const dateTime = [item.date ? formatPopupDate(item.date) : null, item.time].filter(Boolean).join(" · ");
+    addField("When", dateTime);
+    addField("Where", item.venue, item.mapsURL || null);
+    if (!item.venue && item.city) addField("City", item.city);
+    if (item.host) addField("Hosted by", item.host);
+
+    const desc = document.getElementById("popup-drawer-description");
+    if (item.description) { desc.textContent = item.description; desc.hidden = false; }
+    else desc.hidden = true;
+
+    const rsvp = document.getElementById("popup-drawer-rsvp");
+    if (item.communityLink) {
+      rsvp.href = item.communityLink;
+      rsvp.hidden = false;
+    } else {
+      rsvp.hidden = true;
+    }
+
+    drawer.hidden = false;
+    requestAnimationFrame(() => {
+      backdrop.classList.add("open");
+      drawer.classList.add("open");
+    });
+    drawer.focus();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDrawer() {
+    backdrop.classList.remove("open");
+    drawer.classList.remove("open");
+    drawer.addEventListener("transitionend", () => {
+      drawer.hidden = true;
+      document.body.style.overflow = "";
+    }, { once: true });
+  }
+
+  drawerClose.addEventListener("click", closeDrawer);
+  backdrop.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function formatPopupDate(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric",
+    });
+  }
+
+  // kick it off
+  loadPopups();
+})();

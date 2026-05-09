@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="./css/club-card.css" />
     <link rel="stylesheet" href="./css/flyer-lightbox.css" />
     <link rel="stylesheet" href="./css/word-cloud.css" />
+    <link rel="stylesheet" href="./css/popup.css" />
   </head>
   <body>
     <div class="site-shell">
@@ -146,6 +147,14 @@
           </button>
         </section>
 
+        <section id="popup-strip" hidden>
+          <div class="popup-strip-header">
+            <span class="popup-strip-eyebrow">One-time events</span>
+            <h2 class="popup-strip-title">Pop-Ups</h2>
+          </div>
+          <div id="popup-strip-cards" class="popup-strip-grid"></div>
+        </section>
+
         <section>
           <h2 id="region-headline">Coming up this week around the world</h2>
           <nav id="region-filter" class="region-filter-nav" aria-label="Filter by region"></nav>
@@ -153,6 +162,25 @@
           <div id="clubs-list" class="clubs-grid"></div>
         </section>
       </main>
+    </div>
+
+    <!-- Popup drawer — injected once, reused for all pop-up cards -->
+    <div id="popup-drawer-backdrop" aria-hidden="true"></div>
+    <div id="popup-drawer" role="dialog" aria-modal="true" aria-label="Pop-up details" hidden>
+      <div class="popup-drawer-close-bar">
+        <button class="popup-drawer-close-btn" id="popup-drawer-close" aria-label="Close">×</button>
+      </div>
+      <div class="popup-drawer-body">
+        <div class="popup-drawer-sticker">Pop-Up!</div>
+        <h2 class="popup-drawer-headline" id="popup-drawer-headline"></h2>
+        <p class="popup-drawer-subheadline" id="popup-drawer-subheadline" hidden></p>
+        <hr class="popup-drawer-hr">
+        <div id="popup-drawer-fields"></div>
+        <p class="popup-drawer-description" id="popup-drawer-description" hidden></p>
+        <a class="popup-drawer-rsvp" id="popup-drawer-rsvp" href="#" target="_blank" rel="noopener" hidden>
+          RSVP / Join the group
+        </a>
+      </div>
     </div>
 
     <footer class="site-footer">

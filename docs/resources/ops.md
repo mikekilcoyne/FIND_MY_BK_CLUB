@@ -98,3 +98,36 @@ For a fresh Netlify/Namecheap setup:
 ## 7. Security
 - Sensitive exports (host contacts, raw snapshots) stay in `private/` only.
 - Never commit local sensitive files.
+
+## 8. Admin Panel (`/admin.html`)
+
+A password-protected dashboard for updating clubs and logging What We Talked About entries live — no code changes required.
+
+### Required Netlify env vars
+
+| Variable | Description |
+|---|---|
+| `ADMIN_SECRET` | Master admin password (Mike only). Use a strong random string, 32+ chars. |
+| `ADMIN_NOTIFY_EMAIL` | Email address to receive confirmation emails after every save. Defaults to `mk@yellowsatinjacket.com`. |
+| `SENDGRID_API_KEY` | Already set — used for confirmation emails on save. |
+
+Set these in Netlify → Site settings → Environment variables.
+
+### Host access
+
+Once logged in as master admin, use the **Manage Access** tab to create host tokens:
+
+1. Enter the host's name and select their club(s).
+2. Click **Generate Token & Save** — a 48-char token is created.
+3. Copy the token and send it to the host (text or email).
+4. The host visits `breakfastclubbing.com/admin` and enters the token as their password.
+5. They can only see and update their own club(s).
+
+Tokens are stored in Netlify Blobs (`admin-credentials/tokens.json`) and can be revoked from the Manage Access tab at any time.
+
+### What hosts can do
+
+- Update venue, upcoming dates, event time, community link, flyer URL, location note.
+- Add "What We Talked About" topic entries with date and optional photo URL.
+
+Every save triggers a plain-text confirmation email to `ADMIN_NOTIFY_EMAIL`.
