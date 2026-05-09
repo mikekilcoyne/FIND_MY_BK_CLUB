@@ -43,22 +43,28 @@ function normalizeKey(value = "") {
 }
 
 async function getSession(authHeader) {
-  const token = String(authHeader || "").replace(/^Bearer\s+/i, "").trim();
-  if (!token) return null;
+  const raw = String(authHeader || "").replace(/^Bearer\s+/i, "").trim();
+  if (!raw) return null;
 
-  const master = process.env.ADMIN_SECRET;
-  if (master && token === master) {
+  const colonIdx = raw.lastIndexOf(":");
+  if (colonIdx === -1) return null;
+  const email = raw.slice(0, colonIdx).trim().toLowerCase();
+  const pin = raw.slice(colonIdx + 1).trim();
+  if (!email || !pin) return null;
+
+  const masterEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
+  const masterPin = process.env.ADMIN_PIN || "";
+  if (masterEmail && masterPin && email === masterEmail && pin === masterPin) {
     return { type: "master", name: "Admin", clubs: null };
   }
 
   try {
     const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
-    const tokens = (await store.get("tokens.json", { type: "json" })) || {};
-    if (tokens[token]) {
-      const entry = tokens[token];
-      // Tokens flagged master:true get full access identical to ADMIN_SECRET
+    const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+    const entry = hosts[email];
+    if (entry && entry.pin === pin) {
       const type = entry.master ? "master" : "host";
-      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs, emails: entry.emails };
+      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs };
     }
   } catch (_) {}
 
@@ -94,8 +100,8 @@ export async function handler(event) {
     if (action === "credentials") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
       const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
-      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
-      return json(200, { tokens });
+      const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+      return json(200, { hosts });
     }
 
     if (action === "wwta") {
@@ -199,28 +205,31 @@ export async function handler(event) {
 
     if (action === "add_host") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
-      const { token, name, clubs } = payload;
-      if (!token || !name || !clubs?.length) return json(400, { error: "token, name, and clubs are required." });
-      if (token === process.env.ADMIN_SECRET) return json(400, { error: "Token cannot match the master secret." });
+      const { email, pin, name, clubs } = payload;
+      if (!email || !pin || !name) return json(400, { error: "email, pin, and name are required." });
+      if (!/^\d{4}$/.test(pin)) return json(400, { error: "PIN must be exactly 4 digits." });
+      const emailKey = email.trim().toLowerCase();
+      if (emailKey === (process.env.ADMIN_EMAIL || "").toLowerCase()) {
+        return json(400, { error: "Cannot override master credentials." });
+      }
 
       const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
-      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
-      const entry = { name, clubs: Array.isArray(clubs) ? clubs : [clubs] };
+      const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+      const entry = { name, email: emailKey, pin, clubs: Array.isArray(clubs) ? clubs : (clubs ? [clubs] : []) };
       if (payload.master) entry.master = true;
-      if (payload.emails?.length) entry.emails = Array.isArray(payload.emails) ? payload.emails : [payload.emails];
-      tokens[token] = entry;
-      await store.setJSON("tokens.json", tokens);
+      hosts[emailKey] = entry;
+      await store.setJSON("hosts.json", hosts);
       return json(200, { ok: true });
     }
 
     if (action === "remove_host") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
-      const { token } = payload;
-      if (!token) return json(400, { error: "token required." });
+      const { email } = payload;
+      if (!email) return json(400, { error: "email required." });
       const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
-      const tokens = (await store.get("tokens.json", { type: "json" })) || {};
-      delete tokens[token];
-      await store.setJSON("tokens.json", tokens);
+      const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+      delete hosts[email.trim().toLowerCase()];
+      await store.setJSON("hosts.json", hosts);
       return json(200, { ok: true });
     }
 

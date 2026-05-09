@@ -9,11 +9,12 @@ export const HOST_REMINDER_COPY = {
   correctionIntro: "Kilcoyne's working out some kinks. Sends his apologies for the annoying email spam yesterday.",
   correctionLeadIn: "What I meant to send below:",
   introParagraphs: [
-    "BC just hit 100 newsletters.",
-    "All I have to say to celebrate is this: From the beginning it's always been about creating maximum value with minimum effort. Show up at the same restaurant, same day, same hour, and commune with whoever walks in.",
-    "No RSVPs means nobody to keep track of; no theme means the shape is dynamic; no cost of entry means nobody has to worry about ticket sales; and no pitches means no complaining after the fact.",
-    "Thank you to all of you amazing hosts for turning this into a real, global community.",
+    'Been thinking a lot lately about the value of "bridging" social capital, and really how finding the right communities can not only change our perspective, but maybe even the world around us, too.',
+    "Let's continue building out this amazing, open, everyone's-invited kind of community.",
   ],
+  introLinkedParagraph:
+    'Watch this interview with Robert Putnam, creator of "Bowling Alone," to hear his perspective on the importance of communities (shared around 5:30).',
+  introLinkURL: "https://www.youtube.com/watch?v=FOP_G2eiLo0",
   closing: "If everything's good, you're good.",
   signoff: "— Ben Dietz",
   questionsEmail: "ben@breakfastclubbing.com",
@@ -35,6 +36,14 @@ function escapeHtml(value = "") {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function buildIntroText() {
+  const parts = [...HOST_REMINDER_COPY.introParagraphs];
+  if (HOST_REMINDER_COPY.introLinkedParagraph && HOST_REMINDER_COPY.introLinkURL) {
+    parts.splice(1, 0, `${HOST_REMINDER_COPY.introLinkedParagraph} ${HOST_REMINDER_COPY.introLinkURL}`);
+  }
+  return parts;
 }
 
 export function sanitizeCityForFlyer(city = "") {
@@ -135,7 +144,7 @@ export function buildEmailBody(
   return [
     HOST_REMINDER_COPY.greeting,
     topNotice.trim(),
-    HOST_REMINDER_COPY.introParagraphs.join("\n\n"),
+    buildIntroText().join("\n\n"),
     `On that same note: ${cityLead}`,
     "──────────────────────────",
     updateBlock,
@@ -163,7 +172,11 @@ export function buildEmailHTML(
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
   <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.greeting)}</p>
   ${topNotice}
-  ${HOST_REMINDER_COPY.introParagraphs.map((paragraph) => `<p style="font-size: 15px; line-height: 1.6;">${escapeHtml(paragraph)}</p>`).join("\n  ")}
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.introParagraphs[0] || "")}</p>
+  <p style="font-size: 15px; line-height: 1.6;">
+    <a href="${escapeHtml(HOST_REMINDER_COPY.introLinkURL)}" style="color: #b07d3a;">${escapeHtml(HOST_REMINDER_COPY.introLinkedParagraph)}</a>
+  </p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.introParagraphs[1] || "")}</p>
   <p style="font-size: 15px; line-height: 1.6;">On that same note: ${cityLead}</p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   ${updateBlock}

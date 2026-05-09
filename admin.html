@@ -46,11 +46,14 @@
     }
     .login-card h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 28px; }
     .login-card label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
-    .login-card input[type="password"] {
+    .login-card input[type="email"],
+    .login-card input[type="text"] {
       width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
       border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.15s;
     }
-    .login-card input[type="password"]:focus { border-color: var(--gold); }
+    .login-card input[type="email"]:focus,
+    .login-card input[type="text"]:focus { border-color: var(--gold); }
+    #login-pin { letter-spacing: 0.35em; font-size: 20px; text-align: center; }
     .btn-primary {
       width: 100%; margin-top: 14px; padding: 13px;
       background: var(--gold); color: #fff; font-size: 15px; font-weight: 600;
@@ -314,8 +317,12 @@
     <h1>Club Admin</h1>
     <form id="login-form">
       <div class="form-group">
-        <label for="token-input">Password or host token</label>
-        <input id="token-input" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="you@email.com" autocomplete="email" required>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label for="login-pin">4-Digit PIN</label>
+        <input id="login-pin" type="text" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="••••" autocomplete="current-password" required>
       </div>
       <div class="remember-row">
         <input type="checkbox" id="remember-me">
@@ -576,9 +583,17 @@
         <input type="text" id="new-host-name" placeholder="Ben Dietz">
       </div>
       <div class="form-group">
-        <label for="new-host-emails">Email address(es) <span style="font-weight:400;text-transform:none;letter-spacing:0">(for your reference)</span></label>
-        <input type="text" id="new-host-emails" placeholder="host@email.com, alternate@email.com">
-        <p class="form-hint">Comma-separated. Not used for login — just for your records.</p>
+        <label for="new-host-email">Login email</label>
+        <input type="email" id="new-host-email" placeholder="host@email.com">
+        <p class="form-hint">This is the email they'll type to sign in.</p>
+      </div>
+      <div class="form-group">
+        <label for="new-host-pin">4-Digit PIN</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="new-host-pin" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="e.g. 4827" style="width:120px;letter-spacing:0.2em;font-size:18px;text-align:center;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;outline:none;font-family:var(--font)">
+          <button type="button" onclick="generatePin()" style="padding:10px 14px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--gold);cursor:pointer">Generate</button>
+        </div>
+        <p class="form-hint">Share this PIN directly with the host.</p>
       </div>
       <div class="form-group">
         <div class="toggle-row">
@@ -590,13 +605,8 @@
         <label>Club(s) they can update</label>
         <div class="clubs-checklist" id="new-host-clubs-list"></div>
       </div>
-      <div id="generated-token-section" style="display:none">
-        <p style="font-size:12px;color:var(--muted);margin-bottom:6px">Share this token with the host — it won't be shown again:</p>
-        <div class="token-box" id="generated-token-box"></div>
-        <button type="button" class="copy-token-btn" onclick="copyToken()">Copy token</button>
-      </div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-        <button type="button" class="btn-save" onclick="generateAndSaveHost()">Generate Token &amp; Save</button>
+        <button type="button" class="btn-save" onclick="addHost()">Add Host</button>
       </div>
       <div id="access-status" class="status-msg"></div>
     </section>
@@ -649,11 +659,12 @@
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const token = document.getElementById('token-input').value.trim();
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const pin = document.getElementById('login-pin').value.trim();
+    if (!email || pin.length !== 4) return;
     const remember = document.getElementById('remember-me').checked;
-    if (!token) return;
     setLoginLoading(true);
-    storeToken(token, remember);
+    storeToken(`${email}:${pin}`, remember);
     await tryLogin();
   });
 
@@ -669,7 +680,7 @@
       if (data.error) {
         sessionStorage.removeItem('adminToken');
         localStorage.removeItem('adminToken');
-        showLoginError(data.error === 'Unauthorized.' ? 'Incorrect password or token.' : data.error);
+        showLoginError(data.error === 'Unauthorized.' ? 'Incorrect email or PIN.' : data.error);
         setLoginLoading(false);
         return;
       }
@@ -1201,7 +1212,7 @@
   async function loadHostCredentials() {
     try {
       const data = await apiFetch({ action: 'credentials' });
-      S.hostTokens = data.tokens || {};
+      S.hostTokens = data.hosts || {};
       renderHosts();
       populateNewHostClubs();
     } catch (_) {}
@@ -1214,22 +1225,21 @@
       listEl.innerHTML = '<div class="empty-state" style="margin-bottom:16px">No host accounts yet.</div>';
       return;
     }
-    listEl.innerHTML = entries.map(([token, info]) => {
+    listEl.innerHTML = entries.map(([email, info]) => {
       const clubLine = info.master ? 'All clubs' : (info.clubs || []).join(', ');
-      const emailLine = info.emails?.length ? `<div class="host-clubs" style="opacity:0.7">${info.emails.join(', ')}</div>` : '';
       const badge = info.master ? '<span class="badge-master">Master</span>' : '';
+      const maskedPin = info.pin ? info.pin[0] + '•••' : '••••';
       return `
         <div class="host-card">
           <div class="host-info">
             <div class="host-name">${info.name}${badge}</div>
+            <div class="host-clubs">${email}</div>
             <div class="host-clubs">${clubLine}</div>
-            ${emailLine}
             <div class="host-token-row">
-              <span class="host-token">${token.slice(0, 8)}…${token.slice(-4)}</span>
-              <button class="btn-copy" onclick="copyText('${token}')">Copy full token</button>
+              <span class="host-token">PIN: ${maskedPin}</span>
             </div>
           </div>
-          <button class="btn-danger" onclick="removeHost('${token}')">Remove</button>
+          <button class="btn-danger" onclick="removeHost('${email}')">Remove</button>
         </div>
       `;
     }).join('');
@@ -1251,31 +1261,34 @@
     document.getElementById('new-host-clubs-wrap').style.display = isMaster ? 'none' : 'block';
   }
 
-  async function generateAndSaveHost() {
+  function generatePin() {
+    const pin = String(Math.floor(Math.random() * 9000) + 1000);
+    document.getElementById('new-host-pin').value = pin;
+  }
+
+  async function addHost() {
     const name = document.getElementById('new-host-name').value.trim();
+    const email = document.getElementById('new-host-email').value.trim().toLowerCase();
+    const pin = document.getElementById('new-host-pin').value.trim();
     const isMaster = document.getElementById('new-host-master').checked;
     const checked = [...document.querySelectorAll('#new-host-clubs-list input:checked')].map(i => i.value);
-    const emailsRaw = document.getElementById('new-host-emails').value.trim();
-    const emails = emailsRaw ? emailsRaw.split(',').map(e => e.trim()).filter(Boolean) : [];
 
     if (!name) return setStatus('access-status', 'Enter a name for the host.', 'error');
+    if (!email) return setStatus('access-status', 'Enter the host\'s login email.', 'error');
+    if (!/^\d{4}$/.test(pin)) return setStatus('access-status', 'PIN must be exactly 4 digits.', 'error');
     if (!isMaster && !checked.length) return setStatus('access-status', 'Select at least one club, or enable Master Access.', 'error');
 
-    const token = generateToken();
-    S.newHostToken = token;
-
     try {
-      const res = await apiFetch({ method: 'POST', body: { action: 'add_host', token, name, clubs: isMaster ? [] : checked, master: isMaster, emails } });
+      const res = await apiFetch({ method: 'POST', body: { action: 'add_host', email, pin, name, clubs: isMaster ? [] : checked, master: isMaster } });
       if (res.ok) {
-        document.getElementById('generated-token-box').textContent = token;
-        document.getElementById('generated-token-section').style.display = 'block';
         document.getElementById('new-host-name').value = '';
-        document.getElementById('new-host-emails').value = '';
+        document.getElementById('new-host-email').value = '';
+        document.getElementById('new-host-pin').value = '';
         document.getElementById('new-host-master').checked = false;
         toggleHostClubList();
         document.querySelectorAll('#new-host-clubs-list input:checked').forEach(i => i.checked = false);
         await loadHostCredentials();
-        setStatus('access-status', `${isMaster ? 'Master' : 'Host'} "${name}" added. Share the token above.`, 'success');
+        setStatus('access-status', `${isMaster ? 'Master' : 'Host'} "${name}" added.`, 'success');
       } else {
         setStatus('access-status', res.error || 'Something went wrong.', 'error');
       }
@@ -1284,29 +1297,22 @@
     }
   }
 
-  async function removeHost(token) {
-    if (!confirm('Remove this host's access?')) return;
+  async function removeHost(email) {
+    if (!confirm('Remove this host\'s access?')) return;
     try {
-      const res = await apiFetch({ method: 'POST', body: { action: 'remove_host', token } });
+      const res = await apiFetch({ method: 'POST', body: { action: 'remove_host', email } });
       if (res.ok) {
-        delete S.hostTokens[token];
+        delete S.hostTokens[email];
         renderHosts();
       }
     } catch (_) {}
   }
 
-  function copyToken() { copyText(S.newHostToken); }
   function copyText(text) {
     navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert(text));
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
-
-  function generateToken() {
-    const arr = new Uint8Array(24);
-    crypto.getRandomValues(arr);
-    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
-  }
 
   function setStatus(id, msg, type) {
     const el = document.getElementById(id);
