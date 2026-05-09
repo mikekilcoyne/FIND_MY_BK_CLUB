@@ -1,6 +1,7 @@
 import { getConfiguredStore } from "./lib/blob-store.js";
 import {
   HOST_REMINDER_LINKS,
+  HOST_REMINDER_COPY,
   buildEmailBody,
   buildEmailHTML,
   buildSubject,
@@ -138,6 +139,15 @@ function getReminderStore() {
   return getConfiguredStore(REMINDER_LOCK_STORE, { consistency: "strong" });
 }
 
+async function loadEmailConfig() {
+  try {
+    const store = getConfiguredStore("host-email-config", { consistency: "strong" });
+    return (await store.get("config.json", { type: "json" })) || {};
+  } catch (_) {
+    return {};
+  }
+}
+
 function buildRecipientLockKey(mode, lockValue, email) {
   const safeEmail = Buffer.from(String(email).trim().toLowerCase()).toString("base64url");
   return `${RECIPIENT_LOCK_KEY_PREFIX}/${mode}/${lockValue}/${safeEmail}.json`;
@@ -216,32 +226,46 @@ export async function handler(event) {
   const correctionDate = params.correctionDate || new Date().toISOString().split("T")[0];
   const lockValue = mode === "correction" ? correctionDate : cycleDate;
 
-  // 1. Fetch sheet (fall back to hardcoded list on any error)
+  // Load admin-managed email config (copy overrides + links overrides + optional recipient list)
+  const emailConfig = await loadEmailConfig();
+  const activeCopy = { ...HOST_REMINDER_COPY, ...(emailConfig.copy || {}) };
+  const activeLinks = { ...HOST_REMINDER_LINKS, ...(emailConfig.links || {}) };
+
+  // 1. Build recipient list — admin blob list takes priority, then sheet, then hardcoded fallback.
   let recipients;
-  try {
-    const res = await fetch(SHEET_CSV_URL);
-    if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
-    const csv = await res.text();
-    const rows = parseCSV(csv);
-    recipients = rows
-      .filter(row => row.Active !== "No" && row.Emails)
-      .flatMap(row => {
-        const city     = row.City || "";
-        const hostName = row.Host_Name || "";
-        return row.Emails.split(";").map(email => ({
-          email: email.trim().toLowerCase(),
-          city,
-          hostName,
-        }));
-      })
-      .filter(r => r.email && r.email.includes("@"));
-    console.log(`Sheet fetched — ${recipients.length} recipients`);
-  } catch (err) {
-    console.error("Failed to fetch sheet, using fallback list:", err.message);
-    recipients = FALLBACK_HOSTS.flatMap(({ city, hostName, emails }) =>
-      emails.map(email => ({ email: email.trim().toLowerCase(), city, hostName }))
-    );
-    console.log(`Fallback list — ${recipients.length} recipients`);
+  if (emailConfig.recipients?.length) {
+    recipients = emailConfig.recipients.map(r => ({
+      email: String(r.email).trim().toLowerCase(),
+      city: r.city || "",
+      hostName: r.name || "",
+    })).filter(r => r.email.includes("@"));
+    console.log(`Admin recipients list — ${recipients.length} recipients`);
+  } else {
+    try {
+      const res = await fetch(SHEET_CSV_URL);
+      if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
+      const csv = await res.text();
+      const rows = parseCSV(csv);
+      recipients = rows
+        .filter(row => row.Active !== "No" && row.Emails)
+        .flatMap(row => {
+          const city     = row.City || "";
+          const hostName = row.Host_Name || "";
+          return row.Emails.split(";").map(email => ({
+            email: email.trim().toLowerCase(),
+            city,
+            hostName,
+          }));
+        })
+        .filter(r => r.email && r.email.includes("@"));
+      console.log(`Sheet fetched — ${recipients.length} recipients`);
+    } catch (err) {
+      console.error("Failed to fetch sheet, using fallback list:", err.message);
+      recipients = FALLBACK_HOSTS.flatMap(({ city, hostName, emails }) =>
+        emails.map(email => ({ email: email.trim().toLowerCase(), city, hostName }))
+      );
+      console.log(`Fallback list — ${recipients.length} recipients`);
+    }
   }
 
   if (!recipients.length) {
@@ -328,10 +352,10 @@ export async function handler(event) {
         "List-Unsubscribe": `<mailto:ben@breakfastclubbing.com?subject=unsubscribe>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
-      subject: buildSubject(cities, { mode }),
+      subject: buildSubject(cities, { mode, copy: activeCopy }),
       content: [
-        { type: "text/plain", value: buildEmailBody(cities, targetSunday, { mode, links: HOST_REMINDER_LINKS }) },
-        { type: "text/html",  value: buildEmailHTML(cities, targetSunday, { mode, links: HOST_REMINDER_LINKS }) },
+        { type: "text/plain", value: buildEmailBody(cities, targetSunday, { mode, links: activeLinks, copy: activeCopy }) },
+        { type: "text/html",  value: buildEmailHTML(cities, targetSunday, { mode, links: activeLinks, copy: activeCopy }) },
       ],
     };
 

@@ -38,10 +38,10 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#39;");
 }
 
-function buildIntroText() {
-  const parts = [...HOST_REMINDER_COPY.introParagraphs];
-  if (HOST_REMINDER_COPY.introLinkedParagraph && HOST_REMINDER_COPY.introLinkURL) {
-    parts.splice(1, 0, `${HOST_REMINDER_COPY.introLinkedParagraph} ${HOST_REMINDER_COPY.introLinkURL}`);
+function buildIntroText(copy) {
+  const parts = [...(copy.introParagraphs || [])];
+  if (copy.introLinkedParagraph && copy.introLinkURL) {
+    parts.splice(1, 0, `${copy.introLinkedParagraph} ${copy.introLinkURL}`);
   }
   return parts;
 }
@@ -50,22 +50,23 @@ export function sanitizeCityForFlyer(city = "") {
   return String(city).replace(/[^a-zA-Z]/g, "") || "City";
 }
 
-export function buildTopNotice(mode) {
+export function buildTopNotice(mode, copy) {
+  const C = copy || HOST_REMINDER_COPY;
   if (mode !== "correction") {
     return { text: "", html: "" };
   }
 
   return {
-    text: `${HOST_REMINDER_COPY.correctionIntro}
+    text: `${C.correctionIntro}
 
-${HOST_REMINDER_COPY.correctionLeadIn}
+${C.correctionLeadIn}
 `,
     html: `
   <p style="font-size: 15px; line-height: 1.6;">
-    ${escapeHtml(HOST_REMINDER_COPY.correctionIntro)}
+    ${escapeHtml(C.correctionIntro)}
   </p>
   <p style="font-size: 15px; line-height: 1.6; font-weight: 600;">
-    ${escapeHtml(HOST_REMINDER_COPY.correctionLeadIn)}
+    ${escapeHtml(C.correctionLeadIn)}
   </p>`,
   };
 }
@@ -133,63 +134,67 @@ ${flyerExamples.map((example) => `- ${example}`).join("\n")}`,
 export function buildEmailBody(
   cities,
   targetSunday,
-  { mode = "scheduled", links = HOST_REMINDER_LINKS } = {},
+  { mode = "scheduled", links = HOST_REMINDER_LINKS, copy: copyOverride = {} } = {},
 ) {
-  const { text: updateBlock } = buildUpdateBlock(cities, targetSunday, links);
-  const { text: topNotice } = buildTopNotice(mode);
+  const copy = { ...HOST_REMINDER_COPY, ...copyOverride };
+  const activeLinks = { ...HOST_REMINDER_LINKS, ...links };
+  const { text: updateBlock } = buildUpdateBlock(cities, targetSunday, activeLinks);
+  const { text: topNotice } = buildTopNotice(mode, copy);
   const cityLead = cities.length <= 1
     ? `For ${cities[0] || "your club"}, here's where to update:`
     : "For your clubs, here's where to update:";
 
   return [
-    HOST_REMINDER_COPY.greeting,
+    copy.greeting,
     topNotice.trim(),
-    buildIntroText().join("\n\n"),
+    buildIntroText(copy).join("\n\n"),
     `On that same note: ${cityLead}`,
     "──────────────────────────",
     updateBlock,
-    HOST_REMINDER_COPY.closing,
-    HOST_REMINDER_COPY.signoff,
-    `Questions? ${HOST_REMINDER_COPY.questionsEmail}`,
-    HOST_REMINDER_COPY.postscript,
+    copy.closing,
+    copy.signoff,
+    `Questions? ${copy.questionsEmail}`,
+    copy.postscript,
     "---",
-    HOST_REMINDER_COPY.footerLines.join("\n"),
+    (copy.footerLines || HOST_REMINDER_COPY.footerLines).join("\n"),
   ].filter(Boolean).join("\n\n");
 }
 
 export function buildEmailHTML(
   cities,
   targetSunday,
-  { mode = "scheduled", links = HOST_REMINDER_LINKS } = {},
+  { mode = "scheduled", links = HOST_REMINDER_LINKS, copy: copyOverride = {} } = {},
 ) {
-  const { html: updateBlock } = buildUpdateBlock(cities, targetSunday, links);
-  const { html: topNotice } = buildTopNotice(mode);
+  const copy = { ...HOST_REMINDER_COPY, ...copyOverride };
+  const activeLinks = { ...HOST_REMINDER_LINKS, ...links };
+  const { html: updateBlock } = buildUpdateBlock(cities, targetSunday, activeLinks);
+  const { html: topNotice } = buildTopNotice(mode, copy);
   const cityLead = cities.length <= 1
     ? `For <strong>${escapeHtml(cities[0] || "your club")}</strong>, here's where to update:`
     : "For your clubs, here's where to update:";
 
   return `
 <div style="font-family: Georgia, serif; max-width: 540px; margin: 0 auto; color: #1a1a1a; padding: 32px 24px;">
-  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.greeting)}</p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(copy.greeting)}</p>
   ${topNotice}
-  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.introParagraphs[0] || "")}</p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(copy.introParagraphs[0] || "")}</p>
   <p style="font-size: 15px; line-height: 1.6;">
-    <a href="${escapeHtml(HOST_REMINDER_COPY.introLinkURL)}" style="color: #b07d3a;">${escapeHtml(HOST_REMINDER_COPY.introLinkedParagraph)}</a>
+    <a href="${escapeHtml(copy.introLinkURL)}" style="color: #b07d3a;">${escapeHtml(copy.introLinkedParagraph)}</a>
   </p>
-  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.introParagraphs[1] || "")}</p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(copy.introParagraphs[1] || "")}</p>
   <p style="font-size: 15px; line-height: 1.6;">On that same note: ${cityLead}</p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   ${updateBlock}
-  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.closing)}</p>
-  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(HOST_REMINDER_COPY.signoff)}</p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(copy.closing)}</p>
+  <p style="font-size: 15px; line-height: 1.6;">${escapeHtml(copy.signoff)}</p>
   <p style="font-size: 14px; line-height: 1.8; color: #666; margin-top: 32px;">
-    Questions? <a href="mailto:${escapeHtml(HOST_REMINDER_COPY.questionsEmail)}" style="color: #b07d3a;">${escapeHtml(HOST_REMINDER_COPY.questionsEmail)}</a>
+    Questions? <a href="mailto:${escapeHtml(copy.questionsEmail)}" style="color: #b07d3a;">${escapeHtml(copy.questionsEmail)}</a>
   </p>
   <p style="font-size: 14px; line-height: 1.6; color: #666;">
-    p.s. — Any cool ideas for the site? Email <a href="mailto:mike@breakfastclubbing.com" style="color: #b07d3a;">mike@breakfastclubbing.com</a> and he'll make it happen. Big thanks to Kilcoyne for making this happen.
+    ${escapeHtml(copy.postscript)}
   </p>
   <p style="font-size: 12px; line-height: 1.6; color: #999; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
-    ${HOST_REMINDER_COPY.footerLines.map(escapeHtml).join("<br>\n    ")}
+    ${(copy.footerLines || HOST_REMINDER_COPY.footerLines).map(escapeHtml).join("<br>\n    ")}
   </p>
 </div>`;
 }
@@ -199,16 +204,18 @@ export function buildSubject(
   {
     mode = "scheduled",
     singleClubSubject,
-    multiClubSubject = HOST_REMINDER_COPY.multiClubSubject,
+    multiClubSubject,
+    copy: copyOverride = {},
   } = {},
 ) {
+  const copy = { ...HOST_REMINDER_COPY, ...copyOverride };
   if (mode === "correction") {
-    return HOST_REMINDER_COPY.correctionSubject;
+    return copy.correctionSubject;
   }
 
   if (cities.length <= 1) {
     return singleClubSubject || `BC reminder - update your ${cities[0] || "club"} listing`;
   }
 
-  return multiClubSubject;
+  return multiClubSubject || copy.multiClubSubject;
 }

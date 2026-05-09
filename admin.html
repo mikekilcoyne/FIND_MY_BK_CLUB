@@ -347,9 +347,11 @@
   <nav id="tab-nav">
     <button class="tab-btn active" onclick="showTab('update')">Update Club</button>
     <button class="tab-btn" onclick="showTab('wwta')">What We Talked About</button>
+    <button class="tab-btn" onclick="showTab('mypin')">Update PIN</button>
     <button class="tab-btn master-only" onclick="showTab('popups')" style="display:none">Pop-Ups</button>
     <button class="tab-btn master-only" onclick="showTab('overrides')" style="display:none">View Overrides</button>
     <button class="tab-btn master-only" onclick="showTab('access')" style="display:none">Manage Access</button>
+    <button class="tab-btn master-only" onclick="showTab('hostemail')" style="display:none">Host Email</button>
   </nav>
 
   <main>
@@ -563,6 +565,120 @@
       <div id="popup-status" class="status-msg"></div>
     </section>
 
+    <!-- ── Update PIN (all users) ───────────────────────────────────── -->
+    <section id="tab-mypin" class="tab-panel">
+      <p class="section-title">Update PIN</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Change your 4-digit login PIN. You'll use the new PIN next time you sign in.</p>
+      <div class="form-group">
+        <label for="mypin-new">New PIN</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="mypin-new" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="••••" style="width:120px;letter-spacing:0.2em;font-size:18px;text-align:center;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;outline:none;font-family:var(--font)">
+          <button type="button" onclick="generateMyPin()" style="padding:10px 14px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--gold);cursor:pointer">Generate</button>
+        </div>
+      </div>
+      <button type="button" class="btn-save" onclick="saveMyPin()">Save New PIN</button>
+      <div id="mypin-status" class="status-msg"></div>
+    </section>
+
+    <!-- ── Host Email (master only) ──────────────────────────────────── -->
+    <section id="tab-hostemail" class="tab-panel">
+      <p class="section-title">Host Email</p>
+
+      <!-- Body copy -->
+      <p style="font-size:14px;font-weight:700;margin-bottom:14px">Email Body</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="em-greeting">Greeting</label>
+          <input type="text" id="em-greeting" placeholder="Hey hosts,">
+        </div>
+        <div class="form-group">
+          <label for="em-subject">Subject line (multi-club)</label>
+          <input type="text" id="em-subject" placeholder="BC reminder - update your club listings">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="em-para1">Intro paragraph 1</label>
+        <textarea id="em-para1" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="em-linked-para">Linked paragraph text</label>
+        <input type="text" id="em-linked-para" placeholder="Watch this interview with...">
+      </div>
+      <div class="form-group">
+        <label for="em-link-url">Link URL</label>
+        <input type="url" id="em-link-url" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label for="em-para2">Intro paragraph 2</label>
+        <textarea id="em-para2" rows="3"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="em-closing">Closing line</label>
+          <input type="text" id="em-closing" placeholder="If everything's good, you're good.">
+        </div>
+        <div class="form-group">
+          <label for="em-signoff">Sign-off</label>
+          <input type="text" id="em-signoff" placeholder="— Ben Dietz">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="em-questions-email">Questions email</label>
+          <input type="email" id="em-questions-email" placeholder="ben@breakfastclubbing.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="em-postscript">Postscript</label>
+        <textarea id="em-postscript" rows="2"></textarea>
+      </div>
+      <button type="button" class="btn-save" onclick="saveEmailCopy()">Save Email Copy</button>
+      <div id="email-copy-status" class="status-msg"></div>
+
+      <hr class="divider">
+
+      <!-- CTA Links -->
+      <p style="font-size:14px;font-weight:700;margin-bottom:14px">Update Links (CTAs)</p>
+      <div class="form-group">
+        <label for="em-sheet-url">Master Sheet URL</label>
+        <input type="url" id="em-sheet-url" placeholder="https://docs.google.com/spreadsheets/...">
+      </div>
+      <div class="form-group">
+        <label for="em-drive-url">Flyer Drive Folder URL</label>
+        <input type="url" id="em-drive-url" placeholder="https://drive.google.com/...">
+      </div>
+      <button type="button" class="btn-save" onclick="saveEmailLinks()">Save Links</button>
+      <div id="email-links-status" class="status-msg"></div>
+
+      <hr class="divider">
+
+      <!-- Recipients -->
+      <p style="font-size:14px;font-weight:700;margin-bottom:6px">Recipients</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">When this list has entries, it replaces the Google Sheet as the send list. Leave empty to keep using the sheet.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+        <button type="button" class="btn-save" onclick="seedRecipientsFromSheet()">Import from Sheet</button>
+        <p id="seed-status-inline" style="font-size:12px;color:var(--muted);line-height:1;align-self:center;margin:0"></p>
+      </div>
+      <div id="email-recipients-list" style="margin-bottom:16px"></div>
+      <p style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted)">Add recipient</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="new-recipient-name">Name</label>
+          <input type="text" id="new-recipient-name" placeholder="Ben Dietz">
+        </div>
+        <div class="form-group">
+          <label for="new-recipient-email">Email</label>
+          <input type="email" id="new-recipient-email" placeholder="ben@example.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="new-recipient-city">City</label>
+        <input type="text" id="new-recipient-city" placeholder="New York — Williamsburg">
+      </div>
+      <button type="button" class="btn-save" onclick="addEmailRecipient()">Add Recipient</button>
+      <div id="email-recipients-status" class="status-msg"></div>
+    </section>
+
     <!-- ── Overrides (master only) ──────────────────────────────────── -->
     <section id="tab-overrides" class="tab-panel">
       <p class="section-title">Active Overrides</p>
@@ -624,8 +740,8 @@
     currentWwtaClub: null,
     wwtaEntries: [],
     hostTokens: {},
-    newHostToken: '',
     popupItems: [],
+    emailConfig: {},
   };
 
   // ── Auth ────────────────────────────────────────────────────────────────
@@ -765,6 +881,8 @@
     event.currentTarget.classList.add('active');
     if (name === 'access' && S.session.type === 'master') loadHostCredentials();
     if (name === 'popups' && S.session.type === 'master') loadPopups();
+    if (name === 'hostemail' && S.session.type === 'master') loadEmailConfig();
+    if (name === 'mypin') document.getElementById('mypin-new').focus();
   }
 
   // ── Update Club ─────────────────────────────────────────────────────────
@@ -1310,6 +1428,189 @@
 
   function copyText(text) {
     navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert(text));
+  }
+
+  // ── Update PIN ──────────────────────────────────────────────────────────
+
+  function generateMyPin() {
+    document.getElementById('mypin-new').value = String(Math.floor(Math.random() * 9000) + 1000);
+  }
+
+  async function saveMyPin() {
+    const newPin = document.getElementById('mypin-new').value.trim();
+    if (!/^\d{4}$/.test(newPin)) return setStatus('mypin-status', 'PIN must be exactly 4 digits.', 'error');
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'update_pin', newPin } });
+      if (res.ok) {
+        // Update stored token with new PIN
+        const stored = getToken();
+        if (stored) {
+          const colonIdx = stored.lastIndexOf(':');
+          if (colonIdx !== -1) {
+            const email = stored.slice(0, colonIdx);
+            const newToken = `${email}:${newPin}`;
+            const inLocal = !!localStorage.getItem('adminToken');
+            storeToken(newToken, inLocal);
+          }
+        }
+        setStatus('mypin-status', 'PIN updated. Use it next time you sign in.', 'success');
+        document.getElementById('mypin-new').value = '';
+      } else {
+        setStatus('mypin-status', res.error || 'Something went wrong.', 'error');
+      }
+    } catch (_) {
+      setStatus('mypin-status', 'Network error. Try again.', 'error');
+    }
+  }
+
+  // ── Host Email ──────────────────────────────────────────────────────────
+
+  async function loadEmailConfig() {
+    try {
+      const data = await apiFetch({ action: 'email_config' });
+      S.emailConfig = data.config || {};
+      renderEmailConfigForm();
+    } catch (_) {}
+  }
+
+  function renderEmailConfigForm() {
+    const C = S.emailConfig.copy || {};
+    const L = S.emailConfig.links || {};
+    const paras = C.introParagraphs || [];
+    document.getElementById('em-greeting').value = C.greeting || '';
+    document.getElementById('em-subject').value = C.multiClubSubject || '';
+    document.getElementById('em-para1').value = paras[0] || '';
+    document.getElementById('em-linked-para').value = C.introLinkedParagraph || '';
+    document.getElementById('em-link-url').value = C.introLinkURL || '';
+    document.getElementById('em-para2').value = paras[1] || '';
+    document.getElementById('em-closing').value = C.closing || '';
+    document.getElementById('em-signoff').value = C.signoff || '';
+    document.getElementById('em-questions-email').value = C.questionsEmail || '';
+    document.getElementById('em-postscript').value = C.postscript || '';
+    document.getElementById('em-sheet-url').value = L.sheet || '';
+    document.getElementById('em-drive-url').value = L.drive || '';
+    renderEmailRecipients();
+  }
+
+  async function saveEmailCopy() {
+    const copy = {
+      greeting: document.getElementById('em-greeting').value.trim(),
+      multiClubSubject: document.getElementById('em-subject').value.trim(),
+      introParagraphs: [
+        document.getElementById('em-para1').value.trim(),
+        document.getElementById('em-para2').value.trim(),
+      ].filter(Boolean),
+      introLinkedParagraph: document.getElementById('em-linked-para').value.trim(),
+      introLinkURL: document.getElementById('em-link-url').value.trim(),
+      closing: document.getElementById('em-closing').value.trim(),
+      signoff: document.getElementById('em-signoff').value.trim(),
+      questionsEmail: document.getElementById('em-questions-email').value.trim(),
+      postscript: document.getElementById('em-postscript').value.trim(),
+    };
+    // Strip empty strings so defaults apply
+    Object.keys(copy).forEach(k => { if (!copy[k] || (Array.isArray(copy[k]) && !copy[k].length)) delete copy[k]; });
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'save_email_config', copy } });
+      if (res.ok) {
+        S.emailConfig.copy = copy;
+        setStatus('email-copy-status', 'Email copy saved.', 'success');
+      } else {
+        setStatus('email-copy-status', res.error || 'Something went wrong.', 'error');
+      }
+    } catch (_) {
+      setStatus('email-copy-status', 'Network error.', 'error');
+    }
+  }
+
+  async function saveEmailLinks() {
+    const links = {
+      sheet: document.getElementById('em-sheet-url').value.trim(),
+      drive: document.getElementById('em-drive-url').value.trim(),
+    };
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'save_email_config', links } });
+      if (res.ok) {
+        S.emailConfig.links = links;
+        setStatus('email-links-status', 'Links saved.', 'success');
+      } else {
+        setStatus('email-links-status', res.error || 'Something went wrong.', 'error');
+      }
+    } catch (_) {
+      setStatus('email-links-status', 'Network error.', 'error');
+    }
+  }
+
+  function renderEmailRecipients() {
+    const recipients = S.emailConfig.recipients || [];
+    const listEl = document.getElementById('email-recipients-list');
+    if (!recipients.length) {
+      listEl.innerHTML = '<div class="empty-state" style="margin-bottom:0">No custom recipients — using Google Sheet.</div>';
+      return;
+    }
+    listEl.innerHTML = recipients.map((r, i) => `
+      <div class="host-card">
+        <div class="host-info">
+          <div class="host-name">${r.name}</div>
+          <div class="host-clubs">${r.email}${r.city ? ` · ${r.city}` : ''}</div>
+        </div>
+        <button class="btn-danger" onclick="removeEmailRecipient(${i})">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  async function seedRecipientsFromSheet() {
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.textContent = 'Importing…';
+    document.getElementById('seed-status-inline').textContent = '';
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'seed_from_sheet' } });
+      if (res.ok) {
+        document.getElementById('seed-status-inline').textContent = `${res.added} added (${res.total} total in sheet)`;
+        await loadEmailConfig();
+      } else {
+        document.getElementById('seed-status-inline').textContent = res.error || 'Failed.';
+      }
+    } catch (_) {
+      document.getElementById('seed-status-inline').textContent = 'Network error.';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Import from Sheet';
+  }
+
+  async function addEmailRecipient() {
+    const name = document.getElementById('new-recipient-name').value.trim();
+    const email = document.getElementById('new-recipient-email').value.trim().toLowerCase();
+    const city = document.getElementById('new-recipient-city').value.trim();
+    if (!name || !email) return setStatus('email-recipients-status', 'Name and email are required.', 'error');
+    const recipients = [...(S.emailConfig.recipients || []), { name, email, city }];
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'save_email_config', recipients } });
+      if (res.ok) {
+        S.emailConfig.recipients = recipients;
+        document.getElementById('new-recipient-name').value = '';
+        document.getElementById('new-recipient-email').value = '';
+        document.getElementById('new-recipient-city').value = '';
+        renderEmailRecipients();
+        setStatus('email-recipients-status', 'Recipient added.', 'success');
+      } else {
+        setStatus('email-recipients-status', res.error || 'Something went wrong.', 'error');
+      }
+    } catch (_) {
+      setStatus('email-recipients-status', 'Network error.', 'error');
+    }
+  }
+
+  async function removeEmailRecipient(idx) {
+    if (!confirm('Remove this recipient?')) return;
+    const recipients = (S.emailConfig.recipients || []).filter((_, i) => i !== idx);
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'save_email_config', recipients } });
+      if (res.ok) {
+        S.emailConfig.recipients = recipients;
+        renderEmailRecipients();
+      }
+    } catch (_) {}
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────

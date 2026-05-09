@@ -4,6 +4,7 @@ import { getConfiguredStore } from "./lib/blob-store.js";
 const CREDS_STORE = "admin-credentials";
 const WWTA_STORE = "wwta-admin-topics";
 const POPUP_STORE = "bk-popups";
+const EMAIL_CONFIG_STORE = "host-email-config";
 const FROM_EMAIL = "set@breakfastclubbing.com";
 const FROM_NAME = "Breakfast Club Admin";
 
@@ -33,6 +34,43 @@ function json(statusCode, body) {
   };
 }
 
+function parseCSVLine(line) {
+  const out = [];
+  let value = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') { value += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+      continue;
+    }
+    if (char === "," && !inQuotes) { out.push(value.trim()); value = ""; continue; }
+    value += char;
+  }
+  out.push(value.trim());
+  return out;
+}
+
+function parseSheetHostsCSV(text) {
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
+  const [headerLine, ...dataLines] = lines;
+  const headers = parseCSVLine(headerLine).map(h => h.trim());
+  const hosts = [];
+  for (const line of dataLines) {
+    const cells = parseCSVLine(line);
+    const row = {};
+    headers.forEach((h, i) => { row[h] = (cells[i] || "").trim(); });
+    if (row.Active === "No" || !row.Emails) continue;
+    const city = row.City || "";
+    const name = row.Host_Name || city;
+    for (const email of row.Emails.split(";").map(e => e.trim().toLowerCase()).filter(Boolean)) {
+      if (email.includes("@")) hosts.push({ name, email, city });
+    }
+  }
+  return hosts;
+}
+
 function normalizeKey(value = "") {
   return String(value)
     .toLowerCase()
@@ -55,7 +93,7 @@ async function getSession(authHeader) {
   const masterEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
   const masterPin = process.env.ADMIN_PIN || "";
   if (masterEmail && masterPin && email === masterEmail && pin === masterPin) {
-    return { type: "master", name: "Admin", clubs: null };
+    return { type: "master", name: "Admin", clubs: null, email: null, fromEnv: true };
   }
 
   try {
@@ -64,7 +102,7 @@ async function getSession(authHeader) {
     const entry = hosts[email];
     if (entry && entry.pin === pin) {
       const type = entry.master ? "master" : "host";
-      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs };
+      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs, email, fromEnv: false };
     }
   } catch (_) {}
 
@@ -117,6 +155,28 @@ export async function handler(event) {
       const store = getConfiguredStore(POPUP_STORE, { consistency: "strong" });
       const data = (await store.get("items.json", { type: "json" })) || { items: [] };
       return json(200, { items: data.items || [] });
+    }
+
+    if (action === "email_config") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
+      const config = (await store.get("config.json", { type: "json" })) || {};
+      return json(200, { config });
+    }
+
+    if (action === "sheet_hosts") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const sheetUrl = process.env.SHEET_CSV_URL;
+      if (!sheetUrl) return json(400, { error: "SHEET_CSV_URL not configured." });
+      try {
+        const res = await fetch(sheetUrl);
+        if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
+        const csv = await res.text();
+        const hosts = parseSheetHostsCSV(csv);
+        return json(200, { hosts });
+      } catch (err) {
+        return json(500, { error: `Could not fetch sheet: ${err.message}` });
+      }
     }
 
     return json(400, { error: "Unknown action." });
@@ -306,6 +366,57 @@ export async function handler(event) {
       data.updatedAt = data.items[idx].updatedAt;
       await store.setJSON("items.json", data);
       return json(200, { ok: true, item: data.items[idx] });
+    }
+
+    if (action === "save_email_config") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
+      const current = (await store.get("config.json", { type: "json" })) || {};
+      if (payload.copy !== undefined) current.copy = payload.copy;
+      if (payload.links !== undefined) current.links = payload.links;
+      if (payload.recipients !== undefined) current.recipients = payload.recipients;
+      current.updatedAt = new Date().toISOString();
+      await store.setJSON("config.json", current);
+      return json(200, { ok: true });
+    }
+
+    if (action === "update_pin") {
+      const { newPin } = payload;
+      if (!/^\d{4}$/.test(newPin)) return json(400, { error: "PIN must be exactly 4 digits." });
+      if (session.fromEnv) return json(400, { error: "Master PIN is managed via Netlify environment variables." });
+      if (!session.email) return json(400, { error: "No email on this session." });
+      const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+      const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+      if (!hosts[session.email]) return json(404, { error: "Host record not found." });
+      hosts[session.email].pin = newPin;
+      await store.setJSON("hosts.json", hosts);
+      return json(200, { ok: true });
+    }
+
+    if (action === "seed_from_sheet") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const sheetUrl = process.env.SHEET_CSV_URL;
+      if (!sheetUrl) return json(400, { error: "SHEET_CSV_URL not configured." });
+      try {
+        const res = await fetch(sheetUrl);
+        if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
+        const csv = await res.text();
+        const sheetHosts = parseSheetHostsCSV(csv);
+        const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+        const hosts = (await store.get("hosts.json", { type: "json" })) || {};
+        let added = 0;
+        for (const { name, email, city } of sheetHosts) {
+          const key = email.toLowerCase();
+          if (!hosts[key]) {
+            hosts[key] = { name, email: key, pin: "7391", clubs: city ? [city] : [] };
+            added++;
+          }
+        }
+        await store.setJSON("hosts.json", hosts);
+        return json(200, { ok: true, added, total: sheetHosts.length });
+      } catch (err) {
+        return json(500, { error: `Seed failed: ${err.message}` });
+      }
     }
 
     if (action === "delete_popup") {
