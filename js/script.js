@@ -2295,11 +2295,11 @@ if (calendarViewLink) {
     else desc.hidden = true;
 
     const rsvp = document.getElementById("popup-drawer-rsvp");
-    if (item.flyerURL) {
-      rsvp.onclick = () => openFlyerLightbox(item.flyerURL, item.headline || item.city || "Pop-Up");
+    if (item.hostInstagramURL) {
+      rsvp.href = item.hostInstagramURL;
       rsvp.hidden = false;
     } else {
-      rsvp.onclick = null;
+      rsvp.href = "#";
       rsvp.hidden = true;
     }
 
