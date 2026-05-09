@@ -701,7 +701,10 @@
       <div id="flyer-dump-queue" style="margin-top:12px"></div>
 
       <hr class="divider">
-      <p style="font-size:14px;font-weight:700;margin-bottom:14px">Uploaded Flyers</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <p style="font-size:14px;font-weight:700;margin:0">Uploaded Flyers</p>
+        <button type="button" id="flyer-week-dl-btn" class="btn-copy" style="font-size:12px" onclick="downloadWeekFlyers()">⬇ Download This Week's</button>
+      </div>
       <div id="flyer-gallery" class="flyer-gallery"></div>
     </section>
 
@@ -1652,13 +1655,33 @@
     loadFlyerGallery();
   }
 
+  function dedupeAdjacentFlyers(items) {
+    const result = [...items];
+    for (let i = 0; i < result.length - 1; i++) {
+      if (result[i].club === result[i + 1].club) {
+        for (let j = i + 2; j < result.length; j++) {
+          if (result[j].club !== result[i].club) {
+            [result[i + 1], result[j]] = [result[j], result[i + 1]];
+            break;
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   async function loadFlyerGallery() {
     const gallery = document.getElementById('flyer-gallery');
     gallery.innerHTML = '<div class="empty-state">Loading…</div>';
     try {
       const data = await apiFetch({ action: 'flyers' });
-      const items = data.items || [];
-      if (!items.length) { gallery.innerHTML = '<div class="empty-state">No flyers uploaded yet.</div>'; return; }
+      const raw = data.items || [];
+      if (!raw.length) { gallery.innerHTML = '<div class="empty-state">No flyers uploaded yet.</div>'; return; }
+
+      // Newest first, then spread same-club flyers so they aren't adjacent
+      const sorted = [...raw].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
+      const items = dedupeAdjacentFlyers(sorted);
+
       gallery.innerHTML = items.map(f => {
         const url = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
         const dlUrl = url + '&download=1';
@@ -1676,6 +1699,42 @@
       }).join('');
     } catch (_) {
       gallery.innerHTML = '<div class="empty-state">Could not load flyers.</div>';
+    }
+  }
+
+  async function downloadWeekFlyers() {
+    const btn = document.getElementById('flyer-week-dl-btn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing…';
+    try {
+      const data = await apiFetch({ action: 'flyers' });
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const thisWeek = (data.items || []).filter(f => f.uploadedAt && new Date(f.uploadedAt).getTime() >= cutoff);
+      if (!thisWeek.length) { alert('No flyers uploaded in the last 7 days.'); return; }
+
+      const JSZip = window.JSZip;
+      if (!JSZip) { alert('ZIP library not loaded — try refreshing.'); return; }
+      const zip = new JSZip();
+
+      await Promise.all(thisWeek.map(async f => {
+        const url = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
+        const res = await fetch(url);
+        const buf = await res.arrayBuffer();
+        zip.file(f.key, buf);
+      }));
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const label = new Date().toISOString().split('T')[0];
+      a.download = `bk-flyers-${label}.zip`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert('Download failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⬇ Download This Week\'s';
     }
   }
 
@@ -1782,5 +1841,6 @@
   })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </body>
 </html>
