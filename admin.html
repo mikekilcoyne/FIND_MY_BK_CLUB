@@ -322,6 +322,8 @@
     .flyer-tile-date { font-size: 10px; color: var(--muted); margin-top: 1px; }
     .flyer-tile-actions { display: flex; gap: 6px; padding: 0 9px 8px; }
 
+    .scan-drop-zone { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px dashed var(--border); border-radius: 8px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; }
+    .scan-drop-zone:hover, .scan-drop-zone.drag-over { border-color: var(--gold); background: var(--gold-bg); }
     .dump-queue-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
     .dump-queue-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
     .dump-queue-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -379,7 +381,7 @@
     <button class="tab-btn master-only" onclick="showTab('popups')" style="display:none">Pop-Ups</button>
     <button class="tab-btn master-only" onclick="showTab('overrides')" style="display:none">View Overrides</button>
     <button class="tab-btn master-only" onclick="showTab('access')" style="display:none">Manage Access</button>
-    <button class="tab-btn master-only" onclick="showTab('hostemail')" style="display:none">Host Email</button>
+    <button class="tab-btn master-only" onclick="showTab('hostemail')" style="display:none">Update Weekly Host Email</button>
   </nav>
 
   <main>
@@ -485,6 +487,18 @@
       </div>
 
       <div id="wwta-form-body" style="display:none">
+        <div class="form-group">
+          <label>Auto-fill from screenshot or PDF <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="scan-drop-zone" id="wwta-scan-zone"
+               ondragover="scanDragOver(event,'wwta-scan-zone')" ondragleave="scanDragLeave(event,'wwta-scan-zone')" ondrop="scanDrop(event,'wwta')"
+               onclick="document.getElementById('wwta-scan-input').click()">
+            <input type="file" id="wwta-scan-input" accept="image/*,.pdf" style="display:none" onchange="scanFileSelected(event,'wwta')">
+            <span style="font-size:20px">📄</span>
+            <span style="font-size:13px;color:var(--muted)">Drop a screenshot or PDF — topics auto-fill</span>
+          </div>
+          <div id="wwta-scan-status" class="status-msg"></div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="wwta-date">Date of this session</label>
@@ -525,6 +539,18 @@
       <p id="popup-form-heading" style="font-size:16px;font-weight:700;margin-bottom:16px">Create a Pop-Up</p>
 
       <input type="hidden" id="popup-edit-id">
+
+      <div class="form-group" style="padding:12px 14px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:4px">
+        <label style="color:var(--gold)">Auto-fill from flyer <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(optional — drop image or PDF)</span></label>
+        <div class="scan-drop-zone" id="popup-scan-zone"
+             ondragover="scanDragOver(event,'popup-scan-zone')" ondragleave="scanDragLeave(event,'popup-scan-zone')" ondrop="scanDrop(event,'popup')"
+             onclick="document.getElementById('popup-scan-input').click()">
+          <input type="file" id="popup-scan-input" accept="image/*,.pdf" style="display:none" onchange="scanFileSelected(event,'popup')">
+          <span style="font-size:20px">🖼</span>
+          <span style="font-size:13px;color:var(--muted)">Drop a flyer to auto-fill the form below</span>
+        </div>
+        <div id="popup-scan-status" class="status-msg"></div>
+      </div>
 
       <div class="form-row">
         <div class="form-group" style="grid-column:1/-1">
@@ -627,7 +653,7 @@
 
     <!-- ── Host Email (master only) ──────────────────────────────────── -->
     <section id="tab-hostemail" class="tab-panel">
-      <p class="section-title">Host Email</p>
+      <p class="section-title">Update Weekly Host Email</p>
 
       <div class="form-group">
         <label for="em-body">Edit Body</label>
@@ -688,6 +714,7 @@
         <label for="flyer-dump-club">Club</label>
         <select id="flyer-dump-club">
           <option value="">— Select a club —</option>
+          <option value="__all__">All Clubs (auto-detect city from flyer)</option>
         </select>
       </div>
 
@@ -1754,41 +1781,88 @@
     e.target.value = '';
   }
 
+  async function analyzeImage(dataURL, mode) {
+    return apiFetch({ method: 'POST', body: { action: 'analyze_image', dataURL, mode } });
+  }
+
+  function scanDragOver(e, zoneId) { e.preventDefault(); document.getElementById(zoneId).classList.add('drag-over'); }
+  function scanDragLeave(e, zoneId) { document.getElementById(zoneId).classList.remove('drag-over'); }
+  function scanDrop(e, mode) {
+    e.preventDefault();
+    const zoneId = mode === 'popup' ? 'popup-scan-zone' : 'wwta-scan-zone';
+    document.getElementById(zoneId).classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processScan(file, mode);
+  }
+  function scanFileSelected(e, mode) {
+    const file = e.target.files[0];
+    if (file) processScan(file, mode);
+    e.target.value = '';
+  }
+
+  async function processScan(file, mode) {
+    const statusId = mode === 'popup' ? 'popup-scan-status' : 'wwta-scan-status';
+    setStatus(statusId, 'Analyzing…', '');
+    try {
+      const dataURL = await fileToDataURL(file);
+      const analyzeMode = mode === 'popup' ? 'popup_details' : 'wwta_topics';
+      const res = await analyzeImage(dataURL, analyzeMode);
+      if (!res.ok) { setStatus(statusId, res.error || 'Analysis failed.', 'error'); return; }
+      const d = res.data || {};
+      if (mode === 'popup') {
+        if (d.headline) document.getElementById('popup-headline').value = d.headline;
+        if (d.subheadline) document.getElementById('popup-subheadline').value = d.subheadline;
+        if (d.date) document.getElementById('popup-date').value = d.date;
+        if (d.time) document.getElementById('popup-time').value = d.time;
+        if (d.venue) document.getElementById('popup-venue').value = d.venue;
+        if (d.city) document.getElementById('popup-city').value = d.city;
+        if (d.host) document.getElementById('popup-host').value = d.host;
+        if (d.description) document.getElementById('popup-description').value = d.description;
+        setStatus(statusId, 'Form filled — review and adjust below.', 'success');
+      } else {
+        if (d.date) document.getElementById('wwta-date').value = d.date;
+        if (d.topics?.length) { S.wwtaTags = []; d.topics.forEach(t => addTag(t)); }
+        setStatus(statusId, `Found ${(d.topics || []).length} topic(s) — review below.`, 'success');
+      }
+    } catch (err) {
+      setStatus(statusId, 'Error: ' + err.message, 'error');
+    }
+  }
+
   async function processDumpFiles(files) {
     const club = document.getElementById('flyer-dump-club').value;
     if (!club) { alert('Select a club first.'); return; }
+    const autoDetect = club === '__all__';
 
     const queue = document.getElementById('flyer-dump-queue');
-    // Build queue rows
-    const rows = files.map((file, i) => {
-      const thumb = URL.createObjectURL(file);
-      return { file, thumb, id: `dq-${i}` };
-    });
+    const rows = files.map((file, i) => ({ file, thumb: URL.createObjectURL(file), id: `dq-${Date.now()}-${i}` }));
     queue.innerHTML = rows.map(r => `
       <div class="dump-queue-item" id="${r.id}">
         <img src="${r.thumb}" class="dump-queue-thumb" alt="">
         <span class="dump-queue-name">${r.file.name}</span>
+        <span class="dump-queue-city" style="font-size:11px;color:var(--gold);font-weight:700;margin-left:auto;white-space:nowrap"></span>
         <span class="dump-queue-status pending">Queued…</span>
       </div>`).join('');
 
     let uploaded = 0;
     for (const row of rows) {
       const statusEl = document.querySelector(`#${row.id} .dump-queue-status`);
-      statusEl.textContent = 'Uploading…';
+      const cityEl = document.querySelector(`#${row.id} .dump-queue-city`);
       try {
         const dataURL = await fileToDataURL(row.file);
-        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club, dataURL } });
-        if (res.ok) {
-          statusEl.textContent = '✓ Live';
-          statusEl.className = 'dump-queue-status ok';
-          uploaded++;
-        } else {
-          statusEl.textContent = res.error || 'Failed';
-          statusEl.className = 'dump-queue-status err';
+        let targetClub = club;
+        if (autoDetect) {
+          statusEl.textContent = 'Detecting…';
+          const r = await analyzeImage(dataURL, 'flyer_city');
+          targetClub = r.data?.city || 'Unknown';
+          cityEl.textContent = targetClub;
         }
+        statusEl.textContent = 'Uploading…';
+        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club: targetClub, dataURL } });
+        if (res.ok) { statusEl.textContent = '✓ Live'; statusEl.className = 'dump-queue-status ok'; uploaded++; }
+        else { statusEl.textContent = res.error || 'Failed'; statusEl.className = 'dump-queue-status err'; }
       } catch (_) {
-        statusEl.textContent = 'Error';
-        statusEl.className = 'dump-queue-status err';
+        statusEl.textContent = 'Error'; statusEl.className = 'dump-queue-status err';
       }
       URL.revokeObjectURL(row.thumb);
     }

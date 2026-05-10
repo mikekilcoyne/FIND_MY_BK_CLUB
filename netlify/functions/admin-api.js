@@ -460,6 +460,43 @@ export async function handler(event) {
       return json(200, { ok: true, flyerURL, key });
     }
 
+    if (action === "analyze_image") {
+      const { dataURL, mode } = payload;
+      if (!dataURL) return json(400, { error: "dataURL required." });
+      const PROMPTS = {
+        flyer_city: `What city or location is this event flyer for? Return ONLY valid JSON: {"city":"City Name"}. Use your best guess from any visible text, logos, or landmarks.`,
+        popup_details: `Extract event details from this flyer. Return ONLY valid JSON (null for anything not found):\n{"headline":"EVENT TITLE","subheadline":null,"date":"YYYY-MM-DD","time":"8:00 AM","venue":"Venue Name and Address","city":"City, Country","host":"Host Name","description":"1-2 sentence description"}`,
+        wwta_topics: `Look at this image (meeting notes, screenshot, whiteboard, chat, etc.) and extract topics or subjects discussed. Return ONLY valid JSON:\n{"topics":["topic 1","topic 2"],"date":"YYYY-MM-DD"}\nUse null for date if not visible. Keep topics concise (2-5 words).`
+      };
+      const prompt = PROMPTS[mode];
+      if (!prompt) return json(400, { error: "Invalid mode." });
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return json(500, { error: "ANTHROPIC_API_KEY not configured." });
+      const [header, base64Data] = dataURL.split(",");
+      const mediaType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
+      const imageContent = mediaType === "application/pdf"
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64Data } }
+        : { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } };
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 512,
+            messages: [{ role: "user", content: [imageContent, { type: "text", text: prompt }] }],
+          }),
+        });
+        const result = await res.json();
+        const text = result.content?.[0]?.text?.trim() || "{}";
+        const match = text.match(/\{[\s\S]*\}/);
+        const data = match ? JSON.parse(match[0]) : {};
+        return json(200, { ok: true, data });
+      } catch (err) {
+        return json(500, { error: `Analysis failed: ${err.message}` });
+      }
+    }
+
     if (action === "update_pin") {
       const { newPin } = payload;
       if (!/^\d{4}$/.test(newPin)) return json(400, { error: "PIN must be exactly 4 digits." });
