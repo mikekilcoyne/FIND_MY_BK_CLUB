@@ -470,25 +470,29 @@ export async function handler(event) {
       };
       const prompt = PROMPTS[mode];
       if (!prompt) return json(400, { error: "Invalid mode." });
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) return json(500, { error: "ANTHROPIC_API_KEY not configured." });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) return json(500, { error: "GEMINI_API_KEY not configured." });
       const [header, base64Data] = dataURL.split(",");
       const mediaType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
-      const imageContent = mediaType === "application/pdf"
-        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64Data } }
-        : { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } };
       try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-          body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
-            max_tokens: 512,
-            messages: [{ role: "user", content: [imageContent, { type: "text", text: prompt }] }],
-          }),
-        });
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { inline_data: { mime_type: mediaType, data: base64Data } },
+                  { text: prompt },
+                ],
+              }],
+              generationConfig: { maxOutputTokens: 512, temperature: 0.1 },
+            }),
+          }
+        );
         const result = await res.json();
-        const text = result.content?.[0]?.text?.trim() || "{}";
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
         const match = text.match(/\{[\s\S]*\}/);
         const data = match ? JSON.parse(match[0]) : {};
         return json(200, { ok: true, data });
