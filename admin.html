@@ -745,10 +745,18 @@
     <!-- ── Manage Access (master only) ─────────────────────────────── -->
     <section id="tab-access" class="tab-panel">
       <p class="section-title">Manage Host Access</p>
+
+      <div style="padding:14px 16px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;margin-bottom:20px">
+        <p style="font-size:13px;font-weight:700;margin-bottom:6px">Pull from Google Sheet</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Seeds all active hosts from the master sheet with default PIN <strong>7391</strong>. Existing hosts are not overwritten.</p>
+        <button type="button" class="btn-save" id="seed-btn" onclick="seedFromSheet()">Pull All Hosts from Sheet</button>
+        <div id="seed-status" class="status-msg"></div>
+      </div>
+
       <div id="hosts-list"></div>
 
       <hr class="divider">
-      <p style="font-size:16px;font-weight:700;margin-bottom:16px">Add a host</p>
+      <p style="font-size:16px;font-weight:700;margin-bottom:16px">Add a host manually</p>
 
       <div class="form-group">
         <label for="new-host-name">Host name</label>
@@ -1472,6 +1480,25 @@
     } catch (_) {
       setStatus('access-status', 'Network error.', 'error');
     }
+  }
+
+  async function seedFromSheet() {
+    const btn = document.getElementById('seed-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Pulling…';
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'seed_from_sheet' } });
+      if (res.ok) {
+        await loadHostCredentials();
+        setStatus('seed-status', `Done — ${res.seeded || 0} added, ${res.skipped || 0} already existed.`, 'success');
+      } else {
+        setStatus('seed-status', res.error || 'Seed failed.', 'error');
+      }
+    } catch (_) {
+      setStatus('seed-status', 'Network error.', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Pull All Hosts from Sheet';
   }
 
   async function removeHost(email) {
