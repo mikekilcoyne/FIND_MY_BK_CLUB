@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "deploy": "netlify deploy --prod --skip-functions-cache",
     "check:release": "bash scripts/release-smoke-check.sh",
     "import:whatsapp": "node scripts/import-whatsapp-export.mjs",
     "sync:whatsapp-media": "node scripts/sync-whatsapp-media.mjs",
