@@ -397,38 +397,29 @@ export async function handler(event) {
     if (action === "send_host_reminder") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
       const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
-      if (!siteUrl) return json(500, { error: "Site URL not configured (URL env var missing)." });
+      if (!siteUrl) return json(500, { error: "URL env var not set." });
       try {
-        const res = await fetch(`${siteUrl}/.netlify/functions/weekly-host-reminder?force=1`);
-        const result = await res.json();
-        const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
-        const config = (await store.get("config.json", { type: "json" })) || {};
-        config.lastSent = {
-          at: new Date().toISOString(),
-          bodyText: config.draft?.bodyText || "",
-          result: { sent: result.sent || 0, failed: result.failed || 0, skipped: result.skipped || 0 },
-        };
-        await store.setJSON("config.json", config);
-        return json(200, { ok: true, sent: result.sent || 0, failed: result.failed || 0, skipped: result.skipped || 0 });
-      } catch (err) {
-        return json(500, { error: `Send failed: ${err.message}` });
-      }
+        await fetch(`${siteUrl}/.netlify/functions/send-host-reminder-background`, { method: "POST" });
+      } catch (_) {}
+      // Mark as sending in blob immediately — background function updates it when done
+      const store = getConfiguredStore(EMAIL_CONFIG_STORE, { consistency: "strong" });
+      const config = (await store.get("config.json", { type: "json" })) || {};
+      config.lastSent = { at: new Date().toISOString(), bodyText: config.draft?.bodyText || "", result: { status: "sending" } };
+      await store.setJSON("config.json", config);
+      return json(200, { ok: true, status: "sending" });
     }
 
     if (action === "send_test_email") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
       const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
-      if (!siteUrl) return json(500, { error: "Site URL not configured (URL env var missing)." });
+      if (!siteUrl) return json(500, { error: "URL env var not set." });
       const MASTER_EMAIL = "mk@yellowsatinjacket.com";
       const extra = (payload.extraTo || "").trim().toLowerCase();
-      const recipients = [MASTER_EMAIL, ...(extra ? [extra] : [])].join(",");
+      const testTo = [MASTER_EMAIL, ...(extra ? [extra] : [])].join(",");
       try {
-        const res = await fetch(`${siteUrl}/.netlify/functions/weekly-host-reminder?force=1&test_to=${encodeURIComponent(recipients)}`);
-        const result = await res.json();
-        return json(200, { ok: true, sent: result.sent || 0, failed: result.failed || 0 });
-      } catch (err) {
-        return json(500, { error: `Test send failed: ${err.message}` });
-      }
+        await fetch(`${siteUrl}/.netlify/functions/send-host-reminder-background?test_to=${encodeURIComponent(testTo)}`, { method: "POST" });
+      } catch (_) {}
+      return json(200, { ok: true, status: "sending" });
     }
 
     if (action === "upload_flyer") {

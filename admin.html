@@ -1615,7 +1615,7 @@
       const res = await apiFetch({ method: 'POST', body: { action: 'send_test_email', extraTo } });
       if (res.ok) {
         const to = extraTo ? `mk@yellowsatinjacket.com + ${extraTo}` : 'mk@yellowsatinjacket.com';
-        setStatus('em-test-status', `Test sent to ${to}.`, 'success');
+        setStatus('em-test-status', `Test on its way to ${to}.`, 'success');
       } else setStatus('em-test-status', res.error || 'Test send failed.', 'error');
     } catch (_) { setStatus('em-test-status', 'Network error.', 'error'); }
     btn.disabled = false;
@@ -1629,13 +1629,13 @@
     S.emailConfig.draft = draft;
     const btn = document.getElementById('em-send-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Sending…';
+    btn.innerHTML = '<span class="spinner"></span>Queuing…';
     try {
       const res = await apiFetch({ method: 'POST', body: { action: 'send_host_reminder' } });
       if (res.ok) {
-        S.emailConfig.lastSent = { at: new Date().toISOString(), bodyText: draft.bodyText, result: { sent: res.sent, failed: res.failed } };
+        setStatus('em-send-status', 'Sending in background — check back in a minute to see results.', 'success');
+        S.emailConfig.lastSent = { at: new Date().toISOString(), bodyText: draft.bodyText, result: { status: 'sending' } };
         renderLastSent();
-        setStatus('em-send-status', `Sent to ${res.sent} host${res.sent !== 1 ? 's' : ''}${res.failed ? `, ${res.failed} failed` : ''}.`, 'success');
       } else setStatus('em-send-status', res.error || 'Send failed.', 'error');
     } catch (_) { setStatus('em-send-status', 'Network error.', 'error'); }
     btn.disabled = false;
