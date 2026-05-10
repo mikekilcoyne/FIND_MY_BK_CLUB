@@ -470,8 +470,8 @@ export async function handler(event) {
       };
       const prompt = PROMPTS[mode];
       if (!prompt) return json(400, { error: "Invalid mode." });
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) return json(500, { error: "GEMINI_API_KEY not configured." });
+      const apiKey = process.env.GEM_KEY;
+      if (!apiKey) return json(500, { error: "GEM_KEY not configured." });
       const [header, base64Data] = dataURL.split(",");
       const mediaType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
       try {
