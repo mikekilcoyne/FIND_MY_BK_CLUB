@@ -1045,7 +1045,7 @@ function createFlyerCallout(club) {
 
 async function fetchBlobFlyerItems() {
   try {
-    const res = await fetch("/.netlify/functions/get-public-flyers?limit=60");
+    const res = await fetch("/.netlify/functions/get-public-flyers?limit=60&excludeSubstack=1");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return (data.items || [])
@@ -1079,7 +1079,7 @@ async function renderFlyerFeature(items) {
   flyerFeatureText.hidden = true;
   flyerFeatureButton.textContent = "View Fly-er Wall";
   flyerFeatureButton.onclick = () => {
-    window.location.href = "./flyers.html";
+    window.location.href = getFlyerPageHref(featuredFlyer ? featuredFlyer.city : "");
   };
   flyerFeature.hidden = false;
 }

@@ -17,10 +17,22 @@
 
   // ── Single poster ─────────────────────────────────────────────────────────
 
+  const SIZE_THUMB_W = {
+    "flyer-poster--hero": 900,
+    "flyer-poster--wide": 900,
+    "flyer-poster--tall": 700,
+    "flyer-poster--micro": 500,
+  };
+
   function createPoster(f, galleryItems, index) {
+    const sizeClass = sizePattern[index % sizePattern.length];
+    const thumbW = SIZE_THUMB_W[sizeClass] || 480;
+    const fullUrl = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
+    const thumbUrl = `${fullUrl}&w=${thumbW}`;
+
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = ["flyer-poster", sizePattern[index % sizePattern.length]].join(" ");
+    btn.className = ["flyer-poster", sizeClass].join(" ");
     btn.style.setProperty("--poster-tilt", `${TILTS[index % TILTS.length]}deg`);
     btn.setAttribute("aria-label", `View flyer for ${f.club}`);
 
@@ -28,7 +40,8 @@
     img.className = "flyer-poster__image";
     img.loading = "lazy";
     img.alt = `${f.club} flyer`;
-    img.src = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}&w=280`;
+    img.src = thumbUrl;
+    img.srcset = `${thumbUrl} 1x, ${fullUrl}&w=${Math.min(thumbW * 2, 1600)} 2x`;
     img.addEventListener("error", function () { btn.style.display = "none"; });
 
     const label = document.createElement("span");
@@ -39,7 +52,7 @@
     btn.append(img, label);
     btn.addEventListener("click", function () {
       if (typeof window.openFlyerLightbox === "function") {
-        window.openFlyerLightbox(img.src, f.club, { items: galleryItems });
+        window.openFlyerLightbox(fullUrl, f.club, { items: galleryItems });
       }
     });
 
@@ -119,9 +132,7 @@
 
   // ── Infinite scroll — append next page of the interleaved list ───────────
 
-  function attachSentinel(interleaved, pageSize) {
-    let offset = interleaved.length; // we've shown all of them once; next loop restarts
-
+  function attachSentinel(interleaved, pageSize, offset) {
     const sentinel = document.createElement("div");
     sentinel.className = "flyer-loop-sentinel";
     wall.append(sentinel);
@@ -131,20 +142,16 @@
       obs.disconnect();
       sentinel.remove();
 
-      // Loop back through interleaved list from the start
-      if (offset >= interleaved.length) offset = 0;
-      const page = interleaved.slice(offset, offset + pageSize);
-      offset += pageSize;
-
+      const loopOffset = offset >= interleaved.length ? 0 : offset;
+      const page = interleaved.slice(loopOffset, loopOffset + pageSize);
       const block = createBlock(page, buildGalleryItems(interleaved), wall.querySelectorAll(".flyer-poster").length);
-      // Re-wire error handlers on cloned images
       block.querySelectorAll("img").forEach(function (img) {
         img.addEventListener("error", function () { img.closest(".flyer-poster").style.display = "none"; });
       });
       wall.append(block);
 
       revealPosters();
-      attachSentinel(interleaved, pageSize);
+      attachSentinel(interleaved, pageSize, loopOffset + pageSize);
     }, { rootMargin: "600px" });
 
     obs.observe(sentinel);
@@ -172,14 +179,30 @@
       return;
     }
 
-    // Sort newest first within each city (interleave handles cross-city mixing)
+    // Sort newest first overall
     flyers.sort(function (a, b) {
       const da = a.flyerDate || a.uploadedAt || "0";
       const db = b.flyerDate || b.uploadedAt || "0";
       return db.localeCompare(da);
     });
 
-    const interleaved = interleave(flyers);
+    // Group into ~weekly buckets, interleave cities within each bucket
+    const buckets = new Map();
+    flyers.forEach(function (f) {
+      const d = new Date(f.flyerDate || f.uploadedAt || 0);
+      const week = isNaN(d) ? "0000-W00" : (function () {
+        const jan1 = new Date(d.getFullYear(), 0, 1);
+        const w = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+        return d.getFullYear() + "-W" + String(w).padStart(2, "0");
+      })();
+      if (!buckets.has(week)) buckets.set(week, []);
+      buckets.get(week).push(f);
+    });
+
+    const weeksSorted = Array.from(buckets.keys()).sort().reverse();
+    const interleaved = weeksSorted.flatMap(function (w) {
+      return interleave(buckets.get(w));
+    });
     const galleryItems = buildGalleryItems(interleaved);
 
     if (typeof window.setFlyerGalleryItems === "function") {
@@ -199,7 +222,7 @@
     if (jumpLink) jumpLink.textContent = `${flyers.length} flyers`;
 
     revealPosters();
-    attachSentinel(interleaved, PAGE);
+    attachSentinel(interleaved, PAGE, PAGE);
   }
 
   // ── Fetch & init ──────────────────────────────────────────────────────────
@@ -209,7 +232,13 @@
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      renderWall((data.items || []).filter(function (f) { return f.key; }));
+      const seen = new Set();
+      const deduped = (data.items || []).filter(function (f) {
+        if (!f.key || seen.has(f.key)) return false;
+        seen.add(f.key);
+        return true;
+      });
+      renderWall(deduped);
     } catch (_) {
       status.textContent = "Could not load flyers right now";
     }

@@ -19,10 +19,10 @@ export async function handler(event) {
     const buf = Buffer.from(data);
 
     // Thumbnail mode: resize to requested width, serve as JPEG
-    if (w > 0 && w <= 800) {
+    if (w > 0 && w <= 1600) {
       const thumb = await sharp(buf)
         .resize(w, null, { withoutEnlargement: true })
-        .jpeg({ quality: 72, progressive: true, mozjpeg: true })
+        .jpeg({ quality: 90, progressive: true, mozjpeg: true })
         .toBuffer();
       return {
         statusCode: 200,

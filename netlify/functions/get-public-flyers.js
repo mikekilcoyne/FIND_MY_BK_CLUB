@@ -9,12 +9,19 @@ export async function handler(event) {
     const index = (await store.get("index.json", { type: "json" })) || { items: [] };
 
     const params = event.queryStringParameters || {};
-    const limit  = Math.min(parseInt(params.limit  || "200"), 500);
-    const offset = Math.max(parseInt(params.offset || "0"),   0);
+    const limit       = Math.min(parseInt(params.limit  || "200"), 500);
+    const offset      = Math.max(parseInt(params.offset || "0"),   0);
+    const excludeSubs = params.excludeSubstack === "1";
 
-    const all = (index.items || []).filter(f =>
-      f.key && f.club && f.club !== "Unknown" && f.uploadedBy !== "substack-import"
-    );
+    // Dedupe by key, filter unknowns and optionally substack imports
+    const seen = new Set();
+    const all = (index.items || []).filter(f => {
+      if (!f.key || !f.club || f.club === "Unknown") return false;
+      if (excludeSubs && f.uploadedBy === "substack-import") return false;
+      if (seen.has(f.key)) return false;
+      seen.add(f.key);
+      return true;
+    });
     const page = all.slice(offset, offset + limit);
 
     const items = page.map(f => ({
