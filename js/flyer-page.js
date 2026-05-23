@@ -1,19 +1,11 @@
 (function () {
-  const BKClubData = window.BKClubData || {};
-  const wall = document.querySelector("#flyer-wall");
-  const status = document.querySelector("#flyer-wall-status");
+  const wall     = document.querySelector("#flyer-wall");
+  const status   = document.querySelector("#flyer-wall-status");
   const jumpLink = document.querySelector(".flyer-page-jump");
-  const FLYER_MANIFEST_URL = "./data/flyer-wall.json";
+  const API_URL  = "/.netlify/functions/get-public-flyers?limit=500";
 
   if (!wall || !status) return;
 
-  const preferredOrder = [
-    "Austin",
-    "Mexico City",
-    "New York - Upper West",
-    "San Francisco",
-    "Washington DC",
-  ];
   const sizePattern = [
     "flyer-poster--hero",
     "flyer-poster--micro",
@@ -21,167 +13,207 @@
     "flyer-poster--tall",
     "flyer-poster--micro",
   ];
-  const stripRepeatCount = 5;
+  const TILTS = [-2.8, 1.6, -1.1, 2.3, -1.9, 0.9, -2.2, 1.4];
 
-  function normalize(value) {
-    if (BKClubData.normalize) return BKClubData.normalize(value);
-    return (value || "").toLowerCase().trim();
-  }
+  // ── Single poster ─────────────────────────────────────────────────────────
 
-  function compactText(value) {
-    return (value || "").replace(/\s+/g, " ").trim();
-  }
+  function createPoster(f, galleryItems, index) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = ["flyer-poster", sizePattern[index % sizePattern.length]].join(" ");
+    btn.style.setProperty("--poster-tilt", `${TILTS[index % TILTS.length]}deg`);
+    btn.setAttribute("aria-label", `View flyer for ${f.club}`);
 
-  function getPosterItems(withFlyers) {
-    const byCity = new Map();
-    withFlyers.forEach(function (club) {
-      byCity.set(normalize(club.city), club);
-    });
+    const img = document.createElement("img");
+    img.className = "flyer-poster__image";
+    img.loading = "lazy";
+    img.alt = `${f.club} flyer`;
+    img.src = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}&w=280`;
+    img.addEventListener("error", function () { btn.style.display = "none"; });
 
-    const ordered = [];
-    preferredOrder.forEach(function (cityName) {
-      const match = byCity.get(normalize(cityName));
-      if (match && !ordered.includes(match)) ordered.push(match);
-    });
+    const label = document.createElement("span");
+    label.className = "flyer-poster__button";
+    label.setAttribute("aria-hidden", "true");
+    label.textContent = "Full-screen";
 
-    withFlyers.forEach(function (club) {
-      if (!ordered.includes(club)) ordered.push(club);
-    });
-
-    return ordered;
-  }
-
-  function getDateLabel(club) {
-    const nextDate = (club.specificDates || [])[0];
-    if (!nextDate) return club.scheduleLabel || "";
-    const date = new Date(nextDate + "T12:00:00");
-    if (Number.isNaN(date.getTime())) return club.scheduleLabel || nextDate;
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  }
-
-  function buildGalleryItems(items) {
-    return items.map(function (club) {
-      return {
-        city: club.displayCity,
-        url: club.flyerURL,
-        venue: club.venue,
-        scheduleLabel: getDateLabel(club),
-        eventTime: club.eventTime,
-      };
-    });
-  }
-
-  function createPoster(club, galleryItems, index) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = ["flyer-poster", sizePattern[index % sizePattern.length]].join(" ");
-    button.style.setProperty("--poster-tilt", `${index % 2 === 0 ? -2.2 : 1.8}deg`);
-    button.setAttribute("aria-label", `View flyer for ${club.displayCity}`);
-
-    const image = document.createElement("img");
-    image.className = "flyer-poster__image";
-    image.src = club.flyerURL;
-    image.alt = `${club.displayCity} flyer`;
-
-    const lightboxBtn = document.createElement("span");
-    lightboxBtn.className = "flyer-poster__button";
-    lightboxBtn.setAttribute("aria-hidden", "true");
-    lightboxBtn.textContent = "Full-screen";
-
-    button.append(image, lightboxBtn);
-    button.addEventListener("click", function () {
+    btn.append(img, label);
+    btn.addEventListener("click", function () {
       if (typeof window.openFlyerLightbox === "function") {
-        window.openFlyerLightbox(club.flyerURL, club.displayCity, { items: galleryItems });
+        window.openFlyerLightbox(img.src, f.club, { items: galleryItems });
       }
     });
 
-    return button;
+    return btn;
   }
 
-  function createStrip(stripClub, items, galleryItems, stripIndex) {
+  // ── Interleave flyers across cities so no city runs back-to-back ──────────
+
+  function interleave(flyers) {
+    // Group by city, sort each city newest-first
+    const buckets = new Map();
+    flyers.forEach(function (f) {
+      const city = (f.club || "Unknown").trim();
+      if (!buckets.has(city)) buckets.set(city, []);
+      buckets.get(city).push(f);
+    });
+
+    // Unknown last; named cities alphabetical
+    const named = [];
+    let unknownBucket = null;
+    buckets.forEach(function (items, city) {
+      if (city.toLowerCase() === "unknown") unknownBucket = items;
+      else named.push(items);
+    });
+    named.sort((a, b) => (a[0].club || "").localeCompare(b[0].club || ""));
+    const allBuckets = unknownBucket ? named.concat([unknownBucket]) : named;
+
+    // Round-robin across buckets
+    const result = [];
+    const ptrs = allBuckets.map(function () { return 0; });
+    let remaining = true;
+    while (remaining) {
+      remaining = false;
+      allBuckets.forEach(function (bucket, i) {
+        if (ptrs[i] < bucket.length) {
+          result.push(bucket[ptrs[i]++]);
+          remaining = true;
+        }
+      });
+    }
+    return result;
+  }
+
+  // ── Render a block of posters into a strip grid ───────────────────────────
+
+  function createBlock(flyers, galleryItems, indexOffset) {
     const section = document.createElement("section");
     section.className = "flyer-strip";
 
     const grid = document.createElement("div");
     grid.className = "flyer-strip__grid";
 
-    for (let repeat = 0; repeat < stripRepeatCount; repeat += 1) {
-      items.forEach(function (club, itemIndex) {
-        const renderIndex = stripIndex * (items.length * stripRepeatCount) + repeat * items.length + itemIndex;
-        grid.append(createPoster(club, galleryItems, renderIndex));
-      });
-    }
+    flyers.forEach(function (f, i) {
+      grid.append(createPoster(f, galleryItems, indexOffset + i));
+    });
 
     const floor = document.createElement("div");
     floor.className = "flyer-strip__floor";
-
     section.append(grid, floor);
     return section;
   }
 
-  function revealPosters() {
-    const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.16 },
-    );
+  // ── Reveal animation ──────────────────────────────────────────────────────
 
-    wall.querySelectorAll(".flyer-poster").forEach(function (poster) {
-      observer.observe(poster);
+  function revealPosters() {
+    const obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-visible");
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.06 });
+    wall.querySelectorAll(".flyer-poster:not(.is-visible)").forEach(function (p) {
+      obs.observe(p);
     });
   }
 
-  async function frequentFlyErs() {
-    try {
-      const response = await fetch(FLYER_MANIFEST_URL);
-      if (!response.ok) throw new Error("manifest unavailable");
-      const manifest = await response.json();
-      const flyers = (manifest.items || []).map(function (item) {
-        return {
-          city: item.city || "",
-          displayCity: item.city || "",
-          flyerURL: item.url || "",
-          venue: "",
-          specificDates: [],
-          scheduleLabel: "",
-          eventTime: "",
-          sourceFile: item.sourceFile || "",
-        };
-      }).filter(function (item) {
-        return item.flyerURL;
+  // ── Infinite scroll — append next page of the interleaved list ───────────
+
+  function attachSentinel(interleaved, pageSize) {
+    let offset = interleaved.length; // we've shown all of them once; next loop restarts
+
+    const sentinel = document.createElement("div");
+    sentinel.className = "flyer-loop-sentinel";
+    wall.append(sentinel);
+
+    const obs = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      obs.disconnect();
+      sentinel.remove();
+
+      // Loop back through interleaved list from the start
+      if (offset >= interleaved.length) offset = 0;
+      const page = interleaved.slice(offset, offset + pageSize);
+      offset += pageSize;
+
+      const block = createBlock(page, buildGalleryItems(interleaved), wall.querySelectorAll(".flyer-poster").length);
+      // Re-wire error handlers on cloned images
+      block.querySelectorAll("img").forEach(function (img) {
+        img.addEventListener("error", function () { img.closest(".flyer-poster").style.display = "none"; });
       });
-
-      const items = getPosterItems(flyers);
-      const galleryItems = buildGalleryItems(items);
-
-      wall.innerHTML = "";
-      items.forEach(function (club, stripIndex) {
-        wall.append(createStrip(club, items, galleryItems, stripIndex));
-      });
-
-      if (typeof window.setFlyerGalleryItems === "function") {
-        window.setFlyerGalleryItems(galleryItems);
-      }
-
-      status.textContent = "BC Flyers 2026";
-
-      if (jumpLink) {
-        jumpLink.textContent = `${items.length} flyers`;
-      }
+      wall.append(block);
 
       revealPosters();
-    } catch (_error) {
+      attachSentinel(interleaved, pageSize);
+    }, { rootMargin: "600px" });
+
+    obs.observe(sentinel);
+  }
+
+  function buildGalleryItems(flyers) {
+    return flyers.map(function (f) {
+      return {
+        city: f.club,
+        url: `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`,
+        venue: "",
+        scheduleLabel: f.flyerDate || "",
+        eventTime: "",
+      };
+    });
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  function renderWall(flyers) {
+    wall.innerHTML = "";
+
+    if (!flyers.length) {
+      status.textContent = "No flyers yet";
+      return;
+    }
+
+    // Sort newest first within each city (interleave handles cross-city mixing)
+    flyers.sort(function (a, b) {
+      const da = a.flyerDate || a.uploadedAt || "0";
+      const db = b.flyerDate || b.uploadedAt || "0";
+      return db.localeCompare(da);
+    });
+
+    const interleaved = interleave(flyers);
+    const galleryItems = buildGalleryItems(interleaved);
+
+    if (typeof window.setFlyerGalleryItems === "function") {
+      window.setFlyerGalleryItems(galleryItems);
+    }
+
+    // First page: 60 posters
+    const PAGE = 60;
+    const first = createBlock(interleaved.slice(0, PAGE), galleryItems, 0);
+    wall.append(first);
+
+    const named = new Set(flyers.map(function (f) {
+      const c = (f.club || "").trim().toLowerCase();
+      return c && c !== "unknown" ? c : null;
+    }).filter(Boolean));
+    status.textContent = `${flyers.length} flyers · ${named.size} cities`;
+    if (jumpLink) jumpLink.textContent = `${flyers.length} flyers`;
+
+    revealPosters();
+    attachSentinel(interleaved, PAGE);
+  }
+
+  // ── Fetch & init ──────────────────────────────────────────────────────────
+
+  async function init() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      renderWall((data.items || []).filter(function (f) { return f.key; }));
+    } catch (_) {
       status.textContent = "Could not load flyers right now";
     }
   }
 
-  frequentFlyErs();
+  init();
 })();

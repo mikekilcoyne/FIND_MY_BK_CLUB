@@ -869,8 +869,20 @@
   }
 
   function navigateOverlayPhoto(delta) {
-    if (!overlayPhotos || overlayPhotos.length <= 1) return;
-    transitionOverlayPhoto(overlayPhotoIdx + delta);
+    if (!overlayPhotos || overlayPhotos.length <= 1) {
+      // Single photo — still auto-advance club on forward swipe
+      if (delta > 0 && overlayClubButtons.length > 1) {
+        navigateOverlay(+1);
+      }
+      return;
+    }
+    const newIdx = overlayPhotoIdx + delta;
+    // At last photo going forward → advance to next club
+    if (delta > 0 && newIdx >= overlayPhotos.length && overlayClubButtons.length > 1) {
+      navigateOverlay(+1);
+      return;
+    }
+    transitionOverlayPhoto(newIdx);
   }
 
   // ── Topic building ─────────────────────────────────────────────────────────
@@ -1434,6 +1446,7 @@
     stage.classList.remove("wc-overlay-stage--zones");
     overlay.removeAttribute("hidden");
     overlay.classList.remove("wc-overlay--closing");
+    if (typeof window._wwtaSyncNewBadge === "function") window._wwtaSyncNewBadge(cityKey);
     syncOverlayCitySizing();
     syncOverlayFrameCenter();
     requestAnimationFrame(function () {
@@ -1681,6 +1694,7 @@
   };
   window.openWordCloudOverlay = openOverlay;
   window.closeWordCloudOverlay = closeOverlay;
+  window.navigateOverlayRandom = navigateOverlayRandom;
 
   // ── Live topics from Substack ───────────────────────────────────────────────
 

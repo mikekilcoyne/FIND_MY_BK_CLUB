@@ -665,6 +665,8 @@
       var club = entry.club;
       var title = formatPhotoRollTitle(club, titleCounts);
       var scheduleLabel = formatSchedule(club.schedule, club);
+      var heroPhoto = (entry.spotlight && entry.spotlight.photos && entry.spotlight.photos[0]) ||
+                      (entry.spotlight && entry.spotlight.photo) || "";
       button.type = "button";
       button.className = "wc-topics-btn";
       button.dataset.city = club.city;
@@ -673,11 +675,195 @@
       button.dataset.eventTime = club.eventTimeLabel || club.eventTime || "";
       button.dataset.upcomingDate = resolveUpcomingDate(club);
       button.dataset.venue = stripVenue(club.venue || "");
+      button.dataset.region = club.region || "";
+      button.dataset.heroPhoto = heroPhoto;
       button.textContent = title;
       container.appendChild(button);
     });
 
-    return Array.from(container.querySelectorAll(".wc-topics-btn"));
+    var buttons = Array.from(container.querySelectorAll(".wc-topics-btn"));
+    buildPickerPanels(filtered, titleCounts);
+    return buttons;
+  }
+
+  var REGION_ORDER = [
+    "Northeast US", "Southeast US", "West Coast",
+    "UK", "Europe", "Australia", "Other",
+  ];
+
+  function buildPickerPanels(filtered, titleCounts) {
+    buildListPicker(filtered, titleCounts);
+    buildGridPicker(filtered, titleCounts);
+  }
+
+  function buildListPicker(filtered, titleCounts) {
+    var container = document.getElementById("lh-list-picker-content");
+    if (!container) return;
+    container.innerHTML = "";
+
+    // Group by region
+    var grouped = {};
+    filtered.forEach(function (entry) {
+      var region = entry.club.region || "Other";
+      if (!grouped[region]) grouped[region] = [];
+      grouped[region].push(entry);
+    });
+
+    var orderedRegions = REGION_ORDER.filter(function (r) { return grouped[r]; })
+      .concat(Object.keys(grouped).filter(function (r) { return REGION_ORDER.indexOf(r) === -1; }));
+
+    orderedRegions.forEach(function (region) {
+      var entries = grouped[region];
+      var section = document.createElement("div");
+      section.className = "lh-list-region";
+
+      var row = document.createElement("div");
+      row.className = "lh-list-row";
+
+      var label = document.createElement("span");
+      label.className = "lh-list-region-label";
+      label.textContent = region;
+      row.appendChild(label);
+
+      var cities = document.createElement("div");
+      cities.className = "lh-list-cities";
+
+      entries.forEach(function (entry) {
+        var title = formatPhotoRollTitle(entry.club, titleCounts);
+        var btn = document.createElement("button");
+        btn.className = "lh-list-city-btn";
+        btn.dataset.city = entry.club.city;
+
+        var nameSpan = document.createElement("span");
+        nameSpan.textContent = title;
+        btn.appendChild(nameSpan);
+
+        cities.appendChild(btn);
+      });
+
+      row.appendChild(cities);
+      section.appendChild(row);
+      container.appendChild(section);
+    });
+  }
+
+  function buildGridPicker(filtered, titleCounts) {
+    var container = document.getElementById("lh-grid-picker-content");
+    if (!container) return;
+    container.innerHTML = "";
+
+    filtered.forEach(function (entry) {
+      var title = formatPhotoRollTitle(entry.club, titleCounts);
+      var heroPhoto = (entry.spotlight && entry.spotlight.photos && entry.spotlight.photos[0]) ||
+                      (entry.spotlight && entry.spotlight.photo) || "";
+      var scheduleLabel = formatSchedule(entry.club.schedule, entry.club);
+
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "lh-city-card";
+      card.dataset.city = entry.club.city;
+
+      if (heroPhoto) {
+        var img = document.createElement("img");
+        img.className = "lh-city-card-img";
+        img.src = heroPhoto;
+        img.alt = "";
+        img.setAttribute("aria-hidden", "true");
+        card.appendChild(img);
+      }
+
+      var info = document.createElement("div");
+      info.className = "lh-city-card-info";
+
+      var name = document.createElement("span");
+      name.className = "lh-city-card-name";
+      name.textContent = title;
+      info.appendChild(name);
+
+      if (scheduleLabel) {
+        var sched = document.createElement("span");
+        sched.className = "lh-city-card-schedule";
+        sched.textContent = scheduleLabel;
+        info.appendChild(sched);
+      }
+
+      card.appendChild(info);
+      container.appendChild(card);
+    });
+  }
+
+  function wireViewPickers(buttons) {
+    var listPicker = document.getElementById("lh-list-picker");
+    var gridPicker = document.getElementById("lh-grid-picker");
+    var shuffleBtn = document.getElementById("lh-shuffle");
+    var listBtn    = document.getElementById("lh-list-view");
+    var gridBtn    = document.getElementById("lh-grid-view");
+    var listBack   = document.getElementById("lh-list-back");
+    var gridBack   = document.getElementById("lh-grid-back");
+
+    function closePickers() {
+      if (listPicker) listPicker.classList.remove("is-open");
+      if (gridPicker) gridPicker.classList.remove("is-open");
+      if (listBtn) listBtn.classList.remove("is-active");
+      if (gridBtn) gridBtn.classList.remove("is-active");
+    }
+
+    function openPicker(picker, activeBtn) {
+      closePickers();
+      if (picker) picker.classList.add("is-open");
+      if (activeBtn) activeBtn.classList.add("is-active");
+    }
+
+    function pickCity(cityKey) {
+      closePickers();
+      var btn = buttons.find(function (b) { return b.dataset.city === cityKey; });
+      if (btn) btn.click();
+    }
+
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener("click", function () {
+        closePickers();
+        // Use exposed random nav if available, otherwise click a random button
+        if (typeof window.navigateOverlayRandom === "function") {
+          window.navigateOverlayRandom();
+        } else {
+          var randomBtn = buttons[Math.floor(Math.random() * buttons.length)];
+          if (randomBtn) randomBtn.click();
+        }
+      });
+    }
+
+    if (listBtn) listBtn.addEventListener("click", function () { openPicker(listPicker, listBtn); });
+    if (gridBtn) gridBtn.addEventListener("click", function () { openPicker(gridPicker, gridBtn); });
+
+    // Clicking the city name also opens the list picker (V3 pattern)
+    var cityBtn = document.getElementById("wc-overlay-city");
+    if (cityBtn) cityBtn.addEventListener("click", function () { openPicker(listPicker, listBtn); });
+    if (listBack) listBack.addEventListener("click", closePickers);
+    if (gridBack) gridBack.addEventListener("click", closePickers);
+
+    // Delegate clicks inside list picker
+    if (listPicker) {
+      listPicker.addEventListener("click", function (e) {
+        var btn = e.target.closest(".lh-list-city-btn");
+        if (!btn) return;
+        pickCity(btn.dataset.city);
+      });
+    }
+
+    // Delegate clicks inside grid picker
+    if (gridPicker) {
+      gridPicker.addEventListener("click", function (e) {
+        var card = e.target.closest(".lh-city-card");
+        if (!card) return;
+        pickCity(card.dataset.city);
+      });
+    }
+
+    // Close pickers on Escape
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closePickers();
+    });
   }
 
   function readRequestedCity() {
@@ -759,6 +945,8 @@
       }) || buttons[0];
     }
 
+    wireViewPickers(buttons);
+
     if (target) {
       setTimeout(function () {
         target.click();
@@ -768,16 +956,107 @@
     }
   }
 
+  // Merge admin-entered WWTA data (blob storage) into WC_SPOTLIGHTS
+  function mergeAdminWwta(cities) {
+    if (!cities || typeof cities !== "object") return;
+    var newCityKeys = new Set();
+
+    Object.entries(cities).forEach(function (pair) {
+      var cityKey = pair[0];
+      var record  = pair[1];
+      if (!record) return;
+
+      var adminTopics = Array.isArray(record.topics) ? record.topics : [];
+      var adminPhotos = Array.isArray(record.photos) ? record.photos.filter(Boolean) : [];
+      if (!adminTopics.length && !adminPhotos.length) return;
+
+      newCityKeys.add(cityKey);
+
+      // Find existing spotlight by key
+      var spotlights = Array.isArray(window.WC_SPOTLIGHTS) ? window.WC_SPOTLIGHTS : [];
+      var existing = spotlights.find(function (s) {
+        return normalizeCity(s.displayName) === cityKey ||
+               normalizeCity(s.displayName).indexOf(cityKey) !== -1 ||
+               cityKey.indexOf(normalizeCity(s.displayName)) !== -1;
+      });
+
+      if (existing) {
+        // Prepend admin topics (most recent / most authentic)
+        if (adminTopics.length) {
+          existing.topics = Array.from(new Set(adminTopics.concat(existing.topics || []))).slice(0, 20);
+        }
+        // Prepend admin photos
+        if (adminPhotos.length) {
+          existing.photos = adminPhotos.concat(existing.photos || []);
+          existing.photoTreatment = existing.photoTreatment || "polaroid-frame";
+          delete existing.photo;
+        }
+        // Update source date if more recent
+        if (record.latestDate && (!existing.sourceDate || record.latestDate > existing.sourceDate)) {
+          existing.sourceDate = record.latestDate;
+        }
+      } else {
+        // New city from admin — add a spotlight entry
+        var newSpotlight = {
+          displayName: cityKey,
+          topics: adminTopics,
+          photos: adminPhotos,
+          photoTreatment: "polaroid-frame",
+          heroPhotoIndex: 0,
+          sourceDate: record.latestDate || null,
+        };
+        if (Array.isArray(window.WC_SPOTLIGHTS)) {
+          window.WC_SPOTLIGHTS.push(newSpotlight);
+        }
+      }
+    });
+
+    // Mark buttons for cities with fresh admin data
+    window._wwtaAdminCityKeys = newCityKeys;
+    document.querySelectorAll(".wc-topics-btn").forEach(function (btn) {
+      var key = normalizeCity(btn.dataset.city || "");
+      var hasAdmin = false;
+      newCityKeys.forEach(function (k) {
+        if (k === key || key.indexOf(k) !== -1 || k.indexOf(key) !== -1) hasAdmin = true;
+      });
+      if (hasAdmin) btn.dataset.hasAdminWwta = "1";
+    });
+  }
+
+  // Show/hide NEW badge based on whether current city has admin WWTA
+  function syncNewBadge(cityKey) {
+    var badge = document.getElementById("lh-new-badge");
+    if (!badge) return;
+    var keys = window._wwtaAdminCityKeys;
+    if (!keys || !keys.size) { badge.style.display = "none"; return; }
+    var normalized = normalizeCity(cityKey || "");
+    var isNew = false;
+    keys.forEach(function (k) {
+      if (k === normalized || normalized.indexOf(k) !== -1 || k.indexOf(normalized) !== -1) isNew = true;
+    });
+    badge.style.display = isNew ? "" : "none";
+  }
+
+  window._wwtaSyncNewBadge = syncNewBadge;
+
   window.addEventListener("load", function () {
     Promise.all([
       loadJson(CLUBS_MAP_URL),
       loadJson(CACHE_URL).catch(function () { return { cities: {} }; }),
       loadJson(MEDIA_URL).catch(function () { return { clubs: [] }; }),
+      fetch("/.netlify/functions/get-wwta")
+        .then(function (r) { return r.ok ? r.json() : { cities: {} }; })
+        .catch(function () { return { cities: {} }; }),
     ]).then(function (results) {
-      var clubs = results[0] || [];
-      var cache = results[1] || { cities: {} };
-      var media = results[2] || { clubs: [] };
-      var buttons = buildClubButtons(clubs, cache, media);
+      var clubs     = results[0] || [];
+      var cache     = results[1] || { cities: {} };
+      var media     = results[2] || { clubs: [] };
+      var adminWwta = results[3] || { cities: {} };
+      var buttons   = buildClubButtons(clubs, cache, media);
+      mergeAdminWwta(adminWwta.cities || {});
+      // Hide NEW badge initially; it'll show when a city with admin data is opened
+      var badge = document.getElementById("lh-new-badge");
+      if (badge) badge.style.display = "none";
       wireStandaloneBehavior(buttons);
     }).catch(function (error) {
       console.error("WWTA bootstrap error:", error);

@@ -129,6 +129,10 @@
   text-transform: uppercase;
   color: #8a7030;
   margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .popup-card-meta {
@@ -372,4 +376,56 @@
 .popup-drawer-rsvp:hover {
   background: #2d2518;
   color: #d4ff00;
+}
+
+/* ── Transit connector between pop-up cards ──────────────────────────────── */
+
+.popup-transit-connector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  color: #9e8c7a;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  position: relative;
+}
+
+.popup-transit-connector::before {
+  content: "";
+  position: absolute;
+  left: 30px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(to bottom, #c8b89a 0px, #c8b89a 4px, transparent 4px, transparent 8px);
+}
+
+.popup-transit-icon {
+  font-size: 14px;
+  z-index: 1;
+  background: #f5f0ea;
+  padding: 2px 0;
+}
+
+.popup-transit-label {
+  flex: 1;
+  font-weight: 600;
+  color: #7a6850;
+}
+
+.popup-transit-link {
+  color: #9e8c7a;
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-bottom: 1px solid currentColor;
+  transition: color 0.12s;
+}
+
+.popup-transit-link:hover {
+  color: #1c1710;
 }

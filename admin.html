@@ -267,7 +267,7 @@
 
     /* Club select */
     .club-select-wrap { position: relative; }
-    #update-club-select, #wwta-club-select { font-size: 15px; font-weight: 600; }
+    #update-club-select { font-size: 15px; font-weight: 600; }
 
     /* Empty state */
     .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
@@ -319,6 +319,7 @@
     .flyer-tile img { width: 100%; height: 120px; object-fit: cover; display: block; }
     .flyer-tile-meta { padding: 7px 9px; }
     .flyer-tile-city { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .flyer-tile-city.unknown-city { color: var(--gold); }
     .flyer-tile-date { font-size: 10px; color: var(--muted); margin-top: 1px; }
     .flyer-tile-actions { display: flex; gap: 6px; padding: 0 9px 8px; }
 
@@ -479,53 +480,53 @@
     <section id="tab-wwta" class="tab-panel">
       <p class="section-title">What We Talked About</p>
 
+      <!-- Photo dump zone -->
       <div class="form-group">
-        <label for="wwta-club-select">Club</label>
-        <select id="wwta-club-select" onchange="onWwtaClubSelected(this.value)">
-          <option value="">— Select a club —</option>
-        </select>
+        <label>Drop your event photos</label>
+        <div class="scan-drop-zone" id="wwta-dump-zone"
+             ondragover="event.preventDefault()" ondrop="wwtaFileDrop(event)"
+             onclick="document.getElementById('wwta-dump-input').click()"
+             style="min-height:90px">
+          <input type="file" id="wwta-dump-input" accept="image/*" multiple style="display:none" onchange="wwtaFileSelect(event)">
+          <span style="font-size:24px">📸</span>
+          <span style="font-size:13px;color:var(--muted)">Drop photos from your meetup — city, date + topics auto-detected</span>
+        </div>
       </div>
 
-      <div id="wwta-form-body" style="display:none">
-        <div class="form-group">
-          <label>Auto-fill from screenshot or PDF <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
-          <div class="scan-drop-zone" id="wwta-scan-zone"
-               ondragover="scanDragOver(event,'wwta-scan-zone')" ondragleave="scanDragLeave(event,'wwta-scan-zone')" ondrop="scanDrop(event,'wwta')"
-               onclick="document.getElementById('wwta-scan-input').click()">
-            <input type="file" id="wwta-scan-input" accept="image/*,.pdf" style="display:none" onchange="scanFileSelected(event,'wwta')">
-            <span style="font-size:20px">📄</span>
-            <span style="font-size:13px;color:var(--muted)">Drop a screenshot or PDF — topics auto-fill</span>
-          </div>
-          <div id="wwta-scan-status" class="status-msg"></div>
-        </div>
+      <!-- Thumbnail strip -->
+      <div id="wwta-photo-strip" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
 
+      <!-- Detection status -->
+      <div id="wwta-detect-status" class="status-msg"></div>
+
+      <!-- Confirm + save form -->
+      <div id="wwta-confirm-form" style="display:none">
         <div class="form-row">
           <div class="form-group">
-            <label for="wwta-date">Date of this session</label>
+            <label for="wwta-city-input">City / Club</label>
+            <input type="text" id="wwta-city-input" placeholder="e.g. Barcelona">
+          </div>
+          <div class="form-group">
+            <label for="wwta-date">Date</label>
             <input type="date" id="wwta-date">
           </div>
         </div>
 
         <div class="form-group">
-          <label>Topics discussed</label>
+          <label>Topics that came up</label>
           <div class="tag-input-wrap" id="tag-wrap" onclick="document.getElementById('tag-input').focus()">
             <input type="text" id="tag-input" class="tag-input" placeholder="Type a topic, press Enter or comma…">
           </div>
           <p class="form-hint">Each topic becomes a chip. Press Enter or comma to add.</p>
         </div>
 
-        <div class="form-group">
-          <label for="wwta-photo">Photo URL <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
-          <input type="url" id="wwta-photo" placeholder="https://...">
-        </div>
-
-        <button type="button" class="btn-save" id="wwta-save-btn" onclick="saveWwta()">Add Entry</button>
+        <button type="button" class="btn-save" id="wwta-save-btn" onclick="saveWwtaDump()">Save + Update Happenings</button>
         <div id="wwta-status" class="status-msg"></div>
-
-        <hr class="divider">
-        <p style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted)">Recent entries</p>
-        <div id="wwta-entries-list"><div class="empty-state">No entries yet for this club.</div></div>
       </div>
+
+      <hr class="divider">
+      <p style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted)">Recent entries</p>
+      <div id="wwta-entries-list"><div class="empty-state">No entries yet.</div></div>
     </section>
 
     <!-- ── Pop-Ups (master only) ───────────────────────────────────── -->
@@ -710,27 +711,22 @@
     <section id="tab-flyers" class="tab-panel">
       <p class="section-title">Flyer Dump</p>
 
-      <div class="form-group" id="flyer-dump-club-wrap">
-        <label for="flyer-dump-club">Club</label>
-        <select id="flyer-dump-club">
-          <option value="">— Select a club —</option>
-          <option value="__all__">All Clubs (auto-detect city from flyer)</option>
-        </select>
-      </div>
-
       <div id="flyer-dump-zone" class="flyer-drop-zone" style="min-height:140px"
            ondragover="dumpDragOver(event)" ondragleave="dumpDragLeave(event)" ondrop="dumpDrop(event)"
            onclick="document.getElementById('flyer-dump-input').click()">
         <input type="file" id="flyer-dump-input" accept="image/*" multiple style="display:none" onchange="dumpFilesSelected(event)">
         <span class="flyer-drop-icon">🗂</span>
-        <span class="flyer-drop-label">Drop flyers here or tap to select — multiple files OK</span>
+        <span class="flyer-drop-label">Drop flyers here or tap to select — city auto-detected from each image</span>
       </div>
       <div id="flyer-dump-queue" style="margin-top:12px"></div>
 
       <hr class="divider">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
         <p style="font-size:14px;font-weight:700;margin:0">Uploaded Flyers</p>
-        <button type="button" id="flyer-week-dl-btn" class="btn-copy" style="font-size:12px" onclick="downloadWeekFlyers()">⬇ Download This Week's</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" id="flyer-redetect-btn" class="btn-copy" style="font-size:12px;background:var(--gold-bg);color:#5a4020;border-color:var(--gold-border)" onclick="redetectUnknownCities()">✦ Re-detect Unknown Cities</button>
+          <button type="button" id="flyer-week-dl-btn" class="btn-copy" style="font-size:12px" onclick="downloadWeekFlyers()">⬇ Download This Week's</button>
+        </div>
       </div>
       <div id="flyer-gallery" class="flyer-gallery"></div>
     </section>
@@ -916,23 +912,26 @@
     const clubs = accessibleClubs();
     const sorted = [...clubs].sort((a, b) => (a.displayCity || a.city).localeCompare(b.displayCity || b.city));
 
-    ['update-club-select', 'wwta-club-select'].forEach(id => {
-      const sel = document.getElementById(id);
-      sel.innerHTML = '<option value="">— Select a club —</option>';
+    const updateSel = document.getElementById('update-club-select');
+    if (updateSel) {
+      updateSel.innerHTML = '<option value="">— Select a club —</option>';
       sorted.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.city;
         opt.textContent = c.displayCity || c.city;
-        sel.appendChild(opt);
+        updateSel.appendChild(opt);
       });
-    });
+    }
 
-    // If host has exactly one club, auto-select it
+    // Auto-select for single-club hosts
     if (S.session.type === 'host' && sorted.length === 1) {
-      document.getElementById('update-club-select').value = sorted[0].city;
-      onClubSelected(sorted[0].city);
-      document.getElementById('wwta-club-select').value = sorted[0].city;
-      onWwtaClubSelected(sorted[0].city);
+      if (updateSel) { updateSel.value = sorted[0].city; onClubSelected(sorted[0].city); }
+    }
+
+    // Pre-fill city input on WWTA tab for single-club hosts
+    const cityInput = document.getElementById('wwta-city-input');
+    if (cityInput && S.session.type === 'host' && sorted.length === 1) {
+      cityInput.value = sorted[0].displayCity || sorted[0].city;
     }
   }
 
@@ -948,6 +947,7 @@
     if (name === 'hostemail' && S.session.type === 'master') loadEmailConfig();
     if (name === 'mypin') document.getElementById('mypin-new').focus();
     if (name === 'flyers') initFlyerDump();
+    if (name === 'wwta') loadWwtaEntries();
   }
 
   // ── Update Club ─────────────────────────────────────────────────────────
@@ -1136,23 +1136,72 @@
     });
   }
 
-  function onWwtaClubSelected(cityKey) {
-    const body = document.getElementById('wwta-form-body');
-    if (!cityKey) { body.style.display = 'none'; return; }
-    body.style.display = 'block';
-    S.currentWwtaClub = cityKey;
-    S.wwtaTags = [];
-    renderTags();
-    loadWwtaEntries(cityKey);
-    setStatus('wwta-status', '', '');
+  // ── WWTA Image Dump ──────────────────────────────────────────────────────
+
+  S.wwtaImages = [];
+
+  function wwtaFileDrop(e) {
+    e.preventDefault();
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+    wwtaProcessFiles(files);
   }
 
-  async function loadWwtaEntries(cityKey) {
+  function wwtaFileSelect(e) {
+    wwtaProcessFiles([...e.target.files]);
+    e.target.value = '';
+  }
+
+  async function wwtaProcessFiles(files) {
+    if (!files.length) return;
+    S.wwtaImages = [];
+
+    const strip = document.getElementById('wwta-photo-strip');
+    strip.style.display = 'flex';
+    strip.innerHTML = '';
+
+    for (const file of files.slice(0, 6)) {
+      const dataURL = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(file);
+      });
+      const resized = await resizeDataURL(dataURL, 800, 0.85);
+      S.wwtaImages.push(resized);
+
+      const img = document.createElement('img');
+      img.src = resized;
+      img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
+      strip.append(img);
+    }
+
+    const detectStatus = document.getElementById('wwta-detect-status');
+    const confirmForm = document.getElementById('wwta-confirm-form');
+    detectStatus.textContent = 'Detecting city, date + topics from your photos…';
+    confirmForm.style.display = 'none';
+
+    try {
+      const res = await apiFetch({ method: 'POST', body: { action: 'analyze_image', dataURL: S.wwtaImages[0], mode: 'wwta_full' } });
+      const d = res.data || {};
+      document.getElementById('wwta-city-input').value = d.city || '';
+      if (d.date) document.getElementById('wwta-date').value = d.date;
+      S.wwtaTags = Array.isArray(d.topics) ? d.topics.slice(0, 8) : [];
+      renderTags();
+      detectStatus.textContent = d.city
+        ? `Detected: ${d.city}${d.date ? ' · ' + formatDate(d.date) : ''}${d.summary ? ' — ' + d.summary : ''}`
+        : 'Could not auto-detect — fill in below';
+    } catch (_) {
+      detectStatus.textContent = 'Auto-detect unavailable — fill in below';
+    }
+
+    confirmForm.style.display = 'block';
+  }
+
+  async function loadWwtaEntries() {
     const listEl = document.getElementById('wwta-entries-list');
     listEl.innerHTML = '<div class="empty-state">Loading…</div>';
     try {
       const data = await apiFetch({ action: 'wwta' });
-      S.wwtaEntries = (data.entries || []).filter(e => normalizeKey(e.clubKey) === normalizeKey(cityKey));
+      S.wwtaEntries = data.entries || [];
       renderWwtaEntries();
     } catch (_) {
       listEl.innerHTML = '<div class="empty-state">Could not load entries.</div>';
@@ -1162,10 +1211,10 @@
   function renderWwtaEntries() {
     const listEl = document.getElementById('wwta-entries-list');
     if (!S.wwtaEntries.length) {
-      listEl.innerHTML = '<div class="empty-state">No entries yet for this club.</div>';
+      listEl.innerHTML = '<div class="empty-state">No entries yet.</div>';
       return;
     }
-    listEl.innerHTML = S.wwtaEntries.map(e => `
+    listEl.innerHTML = S.wwtaEntries.slice(0, 30).map(e => `
       <div class="wwta-entry" data-id="${e.id}">
         <div class="wwta-entry-header">
           <div>
@@ -1175,35 +1224,38 @@
           <button class="btn-danger" onclick="deleteWwta('${e.id}')">Remove</button>
         </div>
         <div class="wwta-chips">${e.topics.map(t => `<span class="wwta-chip">${t}</span>`).join('')}</div>
-        ${e.photoURL ? `<div class="wwta-photo">📷 <a href="${e.photoURL}" target="_blank" rel="noopener">Photo</a></div>` : ''}
+        ${(e.photoKeys||[]).length ? `<div class="wwta-photo">📷 ${e.photoKeys.length} photo${e.photoKeys.length>1?'s':''}</div>` : e.photoURL ? `<div class="wwta-photo">📷 <a href="${e.photoURL}" target="_blank" rel="noopener">Photo</a></div>` : ''}
       </div>
     `).join('');
   }
 
-  async function saveWwta() {
-    const club = document.getElementById('wwta-club-select').value;
+  async function saveWwtaDump() {
+    const club = document.getElementById('wwta-city-input').value.trim();
     const date = document.getElementById('wwta-date').value;
-    const photoURL = document.getElementById('wwta-photo').value.trim();
-
-    // Capture any unsaved text in the input
     const rawInput = document.getElementById('tag-input').value.trim();
     if (rawInput) { addTag(rawInput); document.getElementById('tag-input').value = ''; }
 
-    if (!club) return setStatus('wwta-status', 'Select a club.', 'error');
+    if (!club) return setStatus('wwta-status', 'Enter a city or club name.', 'error');
     if (!date) return setStatus('wwta-status', 'Pick a date.', 'error');
     if (!S.wwtaTags.length) return setStatus('wwta-status', 'Add at least one topic.', 'error');
 
     setSavingState('wwta-save-btn', true);
+    setStatus('wwta-status', S.wwtaImages.length ? 'Uploading photos + saving…' : 'Saving…', '');
     try {
-      const res = await apiFetch({ method: 'POST', body: { action: 'add_wwta', club, date, topics: S.wwtaTags, photoURL } });
+      const res = await apiFetch({ method: 'POST', body: {
+        action: 'add_wwta', club, date, topics: S.wwtaTags, imageDataURLs: S.wwtaImages
+      }});
       if (res.ok) {
         S.wwtaEntries.unshift(res.entry);
+        S.wwtaImages = [];
         S.wwtaTags = [];
         renderTags();
-        document.getElementById('wwta-date').value = '';
-        document.getElementById('wwta-photo').value = '';
+        document.getElementById('wwta-photo-strip').style.display = 'none';
+        document.getElementById('wwta-photo-strip').innerHTML = '';
+        document.getElementById('wwta-confirm-form').style.display = 'none';
+        document.getElementById('wwta-detect-status').textContent = '';
         renderWwtaEntries();
-        setStatus('wwta-status', 'Entry added!', 'success');
+        setStatus('wwta-status', 'Saved! Latest Happenings updated for ' + club + '.', 'success');
       } else {
         setStatus('wwta-status', res.error || 'Something went wrong.', 'error');
       }
@@ -1694,18 +1746,6 @@
   // ── Flyer Dump tab ──────────────────────────────────────────────────────
 
   function initFlyerDump() {
-    const sel = document.getElementById('flyer-dump-club');
-    const clubs = accessibleClubs();
-    const sorted = [...clubs].sort((a, b) => (a.displayCity || a.city).localeCompare(b.displayCity || b.city));
-    sel.innerHTML = '<option value="">— Select a club —</option>';
-    sorted.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.city;
-      opt.textContent = c.displayCity || c.city;
-      sel.appendChild(opt);
-    });
-    // Auto-select if host has one club
-    if (S.session.type === 'host' && sorted.length === 1) sel.value = sorted[0].city;
     loadFlyerGallery();
   }
 
@@ -1732,27 +1772,117 @@
       const raw = data.items || [];
       if (!raw.length) { gallery.innerHTML = '<div class="empty-state">No flyers uploaded yet.</div>'; return; }
 
-      // Newest first, then spread same-club flyers so they aren't adjacent
-      const sorted = [...raw].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
+      // Sort by flyerDate (event date on the flyer) then uploadedAt, newest first
+      const sorted = [...raw].sort((a, b) => flyerSortDate(b) - flyerSortDate(a));
       const items = dedupeAdjacentFlyers(sorted);
+      const isMaster = S.session?.type === 'master';
 
       gallery.innerHTML = items.map(f => {
         const url = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
         const dlUrl = url + '&download=1';
-        const date = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-        return `<div class="flyer-tile">
+        const displayDate = f.flyerDate
+          ? new Date(f.flyerDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : f.fileCreatedAt
+            ? 'file: ' + new Date(f.fileCreatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : (f.uploadedAt ? 'uploaded ' + new Date(f.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '?');
+        const cityLabel = f.club || cityFromFilename(f.key);
+        const isUnknown = !f.club || f.club === 'Unknown';
+        return `<div class="flyer-tile" data-key="${f.key}">
           <img src="${url}" alt="Flyer" loading="lazy">
           <div class="flyer-tile-meta">
-            <div class="flyer-tile-city">${f.club || '—'}</div>
-            <div class="flyer-tile-date">${date}</div>
+            <div class="flyer-tile-city${isUnknown ? ' unknown-city' : ''}" title="${isUnknown && isMaster ? 'Click to set city' : ''}"
+              ${isUnknown && isMaster ? `onclick="editFlyerCity(this,'${f.key}')" style="cursor:pointer"` : ''}>
+              ${cityLabel}${isUnknown ? ' ✎' : ''}
+            </div>
+            <div class="flyer-tile-date">${displayDate}</div>
           </div>
           <div class="flyer-tile-actions">
-            <a href="${dlUrl}" download="${f.key}" class="btn-copy" style="font-size:11px">⬇ Download</a>
+            <a href="${dlUrl}" download="${f.key}" class="btn-copy" style="font-size:11px">⬇</a>
           </div>
         </div>`;
       }).join('');
     } catch (_) {
       gallery.innerHTML = '<div class="empty-state">Could not load flyers.</div>';
+    }
+  }
+
+  async function editFlyerCity(el, key) {
+    const current = el.textContent.replace(' ✎', '').trim();
+    const city = prompt('Set city for this flyer:', current === 'Unknown' ? '' : current);
+    if (!city || city.trim() === current) return;
+    try {
+      await apiFetch({ method: 'POST', body: { action: 'patch_flyer', key, club: city.trim() } });
+      loadFlyerGallery();
+    } catch (err) {
+      alert('Failed: ' + err.message);
+    }
+  }
+
+  async function redetectUnknownCities() {
+    const btn = document.getElementById('flyer-redetect-btn');
+    btn.disabled = true;
+    try {
+      const data = await apiFetch({ action: 'flyers' });
+      const unknowns = (data.items || []).filter(f => !f.club || f.club === 'Unknown');
+      if (!unknowns.length) { alert('No Unknown cities to re-detect.'); return; }
+      // Heads-up: each image call costs ~$0.002 with Claude Haiku
+      const estimatedCost = (unknowns.length * 0.002).toFixed(2);
+      if (!confirm(`Re-detect cities for ${unknowns.length} flyers?\n\nEstimated cost: ~$${estimatedCost} (Claude Haiku, image analysis).\n\nNote: flyers with city names in the filename are skipped automatically.`)) return;
+
+      btn.textContent = `Detecting 0/${unknowns.length}…`;
+      let fixed = 0, failed = 0;
+      const errors = [];
+
+      for (let i = 0; i < unknowns.length; i++) {
+        const f = unknowns[i];
+        btn.textContent = `${fixed} fixed · ${i + 1}/${unknowns.length}…`;
+        try {
+          // Fetch stored image, resize, send to Gemini
+          const imgRes = await fetch(`/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`);
+          if (!imgRes.ok) throw new Error(`get-flyer returned ${imgRes.status} for ${f.key}`);
+          const blob = await imgRes.blob();
+          const rawDataURL = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          const dataURL = await resizeDataURL(rawDataURL);
+          const detected = await analyzeImage(dataURL, 'flyer_city');
+
+          if (detected.error) {
+            if (/quota|429|limit|rate_limit|overload/i.test(detected.error)) {
+              alert(`API rate limit hit. Fixed ${fixed} of ${unknowns.length} before the limit. Try again in a minute.`);
+              loadFlyerGallery();
+              return;
+            }
+            throw new Error(detected.error);
+          }
+
+          const city = detected.data?.city;
+          const date = detected.data?.date || null;
+          if (city && city.toLowerCase() !== 'unknown') {
+            const patch = await apiFetch({ method: 'POST', body: { action: 'patch_flyer', key: f.key, club: city, flyerDate: date } });
+            if (patch.error) throw new Error(patch.error);
+            fixed++;
+          }
+        } catch (err) {
+          failed++;
+          if (errors.length < 3) errors.push(`${f.key}: ${err.message}`);
+        }
+        // Small delay to stay within Gemini free-tier rate limit (15 RPM)
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      let msg = `Done — detected cities for ${fixed} of ${unknowns.length} flyers.`;
+      if (errors.length) msg += `\n\nFirst error(s):\n${errors.join('\n')}`;
+      alert(msg);
+      loadFlyerGallery();
+    } catch (err) {
+      alert('Re-detect failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✦ Re-detect Unknown Cities';
     }
   }
 
@@ -1762,26 +1892,58 @@
     btn.textContent = 'Preparing…';
     try {
       const data = await apiFetch({ action: 'flyers' });
-      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      const thisWeek = (data.items || []).filter(f => f.uploadedAt && new Date(f.uploadedAt).getTime() >= cutoff);
-      if (!thisWeek.length) { alert('No flyers uploaded in the last 7 days.'); return; }
+      const items = data.items || [];
+
+      // Current week: Monday 00:00 → Sunday 23:59
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0=Sun
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      monday.setHours(0, 0, 0, 0);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      // Sort all by flyerDate (then uploadedAt) newest first
+      const sorted = [...items].sort((a, b) => flyerSortDate(b) - flyerSortDate(a));
+
+      // Latest flyer per club
+      const latestByClub = new Map();
+      for (const f of sorted) {
+        const club = (f.club && f.club !== 'Unknown') ? f.club : cityFromFilename(f.key);
+        if (!latestByClub.has(club)) latestByClub.set(club, f);
+      }
+
+      // Only include flyers with a CONFIRMED date (from flyer or file) — never assume from upload time
+      const thisWeek = [...latestByClub.values()].filter(f => {
+        const d = flyerConfirmedDate(f);
+        return d && d >= monday && d <= sunday;
+      });
+
+      const weekLabel = monday.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      if (!thisWeek.length) {
+        alert(`No confirmed flyers for the week of ${weekLabel}.\n\nFlyers need a detected event date (or file date) to appear here. Try uploading new flyers or hit "Re-detect Unknown Cities" to scan existing ones.`);
+        return;
+      }
 
       const JSZip = window.JSZip;
       if (!JSZip) { alert('ZIP library not loaded — try refreshing.'); return; }
       const zip = new JSZip();
 
+      btn.textContent = `Downloading ${thisWeek.length} flyer${thisWeek.length !== 1 ? 's' : ''}…`;
       await Promise.all(thisWeek.map(async f => {
         const url = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
         const res = await fetch(url);
         const buf = await res.arrayBuffer();
-        zip.file(f.key, buf);
+        const club = (f.club && f.club !== 'Unknown') ? f.club : cityFromFilename(f.key);
+        const ext = f.key.split('.').pop();
+        zip.file(`${club}.${ext}`, buf);
       }));
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      const label = new Date().toISOString().split('T')[0];
-      a.download = `bk-flyers-${label}.zip`;
+      a.download = `bk-flyers-week-of-${monday.toISOString().split('T')[0]}.zip`;
       a.click();
       URL.revokeObjectURL(a.href);
     } catch (err) {
@@ -1857,10 +2019,6 @@
   }
 
   async function processDumpFiles(files) {
-    const club = document.getElementById('flyer-dump-club').value;
-    if (!club) { alert('Select a club first.'); return; }
-    const autoDetect = club === '__all__';
-
     const queue = document.getElementById('flyer-dump-queue');
     const rows = files.map((file, i) => ({ file, thumb: URL.createObjectURL(file), id: `dq-${Date.now()}-${i}` }));
     queue.innerHTML = rows.map(r => `
@@ -1876,20 +2034,41 @@
       const statusEl = document.querySelector(`#${row.id} .dump-queue-status`);
       const cityEl = document.querySelector(`#${row.id} .dump-queue-city`);
       try {
-        const dataURL = await fileToDataURL(row.file);
-        let targetClub = club;
-        if (autoDetect) {
+        const rawDataURL = await fileToDataURL(row.file);
+        // Resize to JPEG ≤ 1400px before sending to avoid 6MB function body limit
+        const dataURL = await resizeDataURL(rawDataURL);
+
+        // Use filename first — free, instant, works for ~80% of cases
+        let targetClub = cityFromFilename(row.file.name);
+        let flyerDate = parseDateFromFilename(row.file.name);
+
+        if (filenameGivesCity(targetClub)) {
+          // Filename clearly names the city — skip Gemini entirely
+          cityEl.textContent = targetClub + (flyerDate ? ` · ${flyerDate}` : '') + ' (filename)';
+        } else {
+          // Filename ambiguous — ask Gemini
           statusEl.textContent = 'Detecting…';
-          const r = await analyzeImage(dataURL, 'flyer_city');
-          targetClub = r.data?.city || 'Unknown';
-          cityEl.textContent = targetClub;
+          try {
+            const detected = await analyzeImage(dataURL, 'flyer_city');
+            if (detected.error) throw new Error(detected.error);
+            if (detected.data?.city) targetClub = detected.data.city;
+            if (detected.data?.date) flyerDate = detected.data.date;
+          } catch (e) {
+            if (/quota|429|limit|rate_limit|overload/i.test(e.message)) {
+              statusEl.textContent = 'API limit — using filename';
+            }
+          }
+          cityEl.textContent = targetClub + (flyerDate ? ` · ${flyerDate}` : '');
         }
+
+        // file.lastModified = OS creation/modification date — more reliable than upload time
+        const fileCreatedAt = row.file.lastModified ? new Date(row.file.lastModified).toISOString() : null;
         statusEl.textContent = 'Uploading…';
-        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club: targetClub, dataURL } });
+        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club: targetClub, dataURL, flyerDate, fileCreatedAt } });
         if (res.ok) { statusEl.textContent = '✓ Live'; statusEl.className = 'dump-queue-status ok'; uploaded++; }
         else { statusEl.textContent = res.error || 'Failed'; statusEl.className = 'dump-queue-status err'; }
-      } catch (_) {
-        statusEl.textContent = 'Error'; statusEl.className = 'dump-queue-status err';
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message; statusEl.className = 'dump-queue-status err';
       }
       URL.revokeObjectURL(row.thumb);
     }
@@ -1903,6 +2082,72 @@
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+
+  // Resize to JPEG ≤ 1400px / ≤ ~3MB before upload or analysis (fixes large-file errors)
+  function resizeDataURL(dataURL, maxPx = 1400, quality = 0.88) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+        const w = Math.round((img.naturalWidth || maxPx) * scale);
+        const h = Math.round((img.naturalHeight || maxPx) * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataURL);
+      img.src = dataURL;
+    });
+  }
+
+  // Parse a city name from a filename as fallback when AI detection fails
+  function cityFromFilename(filename) {
+    let base = filename.replace(/\.[a-zA-Z]+$/, '');
+    base = base.replace(/^(BC|BK|bc|bk)[_\s\-]+/i, '');
+    base = base.replace(/\d{4}[-_]\d{2}[-_]\d{2}/g, '').replace(/\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}/g, '');
+    base = base.replace(/\b20\d{2}\b/g, '');
+    base = base.replace(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi, '');
+    base = base.replace(/\b(flyer|club|breakfast|popup|pop\s*up|event|weekly|monthly|april\d*|spring|summer|fall|winter)\b/gi, '');
+    base = base.replace(/\d+/g, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+    return base || 'Unknown';
+  }
+
+  // Extract YYYY-MM-DD from filename patterns like 2026-04-08, 2026_05_07, 3.18.26
+  function parseDateFromFilename(filename) {
+    let m = filename.match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+    m = filename.match(/\b(\d{1,2})[.\-](\d{1,2})[.\-](\d{2,4})\b/);
+    if (m) {
+      const yr = m[3].length === 2 ? `20${m[3]}` : m[3];
+      return `${yr}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
+    }
+    return null;
+  }
+
+  // Returns true if the city parsed from the filename is clearly a real place name
+  function filenameGivesCity(city) {
+    if (!city || city.toLowerCase() === 'unknown') return false;
+    if (city.length < 3) return false;
+    return !/^(flyer|event|club|bc|bk|breakfast|popup|unknown|untitled)$/i.test(city.trim());
+  }
+
+  // Confirmed date: event date from flyer (AI-detected) or file's own creation date.
+  // uploadedAt alone is NOT a confirmed date — don't treat it as proof of recency.
+  function flyerConfirmedDate(f) {
+    if (f.flyerDate) return new Date(f.flyerDate + 'T12:00:00');
+    if (f.fileCreatedAt) return new Date(f.fileCreatedAt);
+    return null;
+  }
+
+  // Sort key: confirmed date → upload date, newest first.
+  // Unconfirmed items sort AFTER confirmed ones.
+  function flyerSortDate(f) {
+    const confirmed = flyerConfirmedDate(f);
+    if (confirmed) return confirmed;
+    // Penalise unconfirmed: put them after anything with a real date
+    return new Date(0);
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────

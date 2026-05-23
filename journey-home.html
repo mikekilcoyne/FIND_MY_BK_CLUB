@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakfast Club Journey Mock</title>
+    <style>
+      :root {
+        --paper: #efefef;
+        --ink: #111111;
+        --line: #d4d4d4;
+        --rail: #f7f7f7;
+        --accent: #0d6e43;
+        --accent-soft: #e9f3ed;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+
+      .mock-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+      }
+
+      .mock-rail {
+        padding: 20px 14px;
+        border-right: 1px solid var(--line);
+        background: var(--rail);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .mock-logo {
+        width: 136px;
+        height: 136px;
+        margin: 0 auto;
+        display: grid;
+        place-content: center;
+        border-radius: 50%;
+        background: #000000;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 0.95;
+        text-align: center;
+      }
+
+      .mock-rail-copy {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .mock-rail-note {
+        margin: 0;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        line-height: 1.45;
+        color: #4d4d4d;
+      }
+
+      .mock-main {
+        padding: 14px 20px 28px;
+      }
+
+      .mock-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .mock-title {
+        margin: 0;
+        font-size: clamp(28px, 3.6vw, 44px);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+      }
+
+      .mock-badge {
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: #111111;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .mock-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(300px, 380px);
+        gap: 18px;
+        margin-top: 16px;
+      }
+
+      .mock-section {
+        border: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .mock-section-head {
+        margin: 0;
+        padding: 16px 18px 10px;
+        font-size: clamp(24px, 3vw, 38px);
+        font-weight: 700;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+      }
+
+      .mock-section-subhead {
+        margin: 0;
+        padding: 0 18px 16px;
+        font-size: 14px;
+        line-height: 1.45;
+        color: #4c4c4c;
+      }
+
+      .club-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding: 0 18px 18px;
+      }
+
+      .club-card {
+        padding: 16px;
+        border: 1px solid var(--line);
+        background: #fdfdfd;
+        cursor: pointer;
+        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+      }
+
+      .club-card:hover {
+        transform: translateY(-2px);
+        border-color: #9db6a7;
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+      }
+
+      .club-card.is-active {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        box-shadow: 0 18px 30px rgba(13, 110, 67, 0.12);
+      }
+
+      .club-card__city {
+        margin: 0 0 8px;
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 0.96;
+        letter-spacing: -0.05em;
+      }
+
+      .club-card__meta {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #555555;
+      }
+
+      .journey-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100%;
+        padding: 18px;
+        border: 1px solid var(--line);
+        background:
+          radial-gradient(circle at top right, rgba(13, 110, 67, 0.12), transparent 30%),
+          linear-gradient(180deg, #ffffff 0%, #f8faf8 100%);
+      }
+
+      .journey-panel__eyebrow {
+        margin: 0 0 12px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .journey-panel__city {
+        margin: 0 0 12px;
+        font-size: clamp(34px, 4vw, 58px);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+      }
+
+      .journey-panel__body {
+        margin: 0 0 20px;
+        font-size: 14px;
+        line-height: 1.55;
+        color: #454545;
+      }
+
+      .journey-panel__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        padding: 12px 18px;
+        border: 1px solid #111111;
+        background: #111111;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .journey-panel__button:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .journey-panel__hint {
+        margin: 14px 0 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #666666;
+      }
+
+      @media (max-width: 960px) {
+        .mock-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .mock-rail {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .mock-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .club-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mock-shell">
+      <aside class="mock-rail">
+        <div class="mock-logo">BREAKFAST<br />CLUB</div>
+        <p class="mock-rail-copy">Everyone's invited. Especially you.</p>
+        <p class="mock-rail-note">
+          This is a standalone mock flow. Select Paris, then launch the video-backed intro page.
+        </p>
+      </aside>
+
+      <main class="mock-main">
+        <header class="mock-topbar">
+          <h1 class="mock-title">Breakfast Club</h1>
+          <span class="mock-badge">Journey Mock</span>
+        </header>
+
+        <div class="mock-layout">
+          <section class="mock-section" aria-label="Club list">
+            <h2 class="mock-section-head">Coming up this week around the world</h2>
+            <p class="mock-section-subhead">
+              Click a city card to preview a guided entry experience.
+            </p>
+
+            <div class="club-grid">
+              <button class="club-card" type="button" data-city="Copenhagen">
+                <p class="club-card__city">Copenhagen</p>
+                <p class="club-card__meta">Latest flyers, regular mornings, excellent pastries.</p>
+              </button>
+              <button class="club-card is-active" type="button" data-city="Paris">
+                <p class="club-card__city">Paris</p>
+                <p class="club-card__meta">Selected for the journey prototype.</p>
+              </button>
+              <button class="club-card" type="button" data-city="Maplewood">
+                <p class="club-card__city">Maplewood</p>
+                <p class="club-card__meta">Neighborhood energy, community-first hosting.</p>
+              </button>
+              <button class="club-card" type="button" data-city="Mexico City">
+                <p class="club-card__city">Mexico City</p>
+                <p class="club-card__meta">Big-table warmth and city-scale momentum.</p>
+              </button>
+            </div>
+          </section>
+
+          <aside class="journey-panel" aria-live="polite">
+            <div>
+              <p class="journey-panel__eyebrow">Selected City</p>
+              <h2 id="selected-city" class="journey-panel__city">Paris</h2>
+              <p id="selected-copy" class="journey-panel__body">
+                Start with a cinematic intro: land on a full-screen video moment and let the message type itself in.
+              </p>
+            </div>
+
+            <div>
+              <a id="start-journey" class="journey-panel__button" href="./typeout.html?city=paris">
+                Start Journey
+              </a>
+              <p class="journey-panel__hint">
+                Right now this mock routes Paris into the custom intro page.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        const cards = Array.from(document.querySelectorAll(".club-card"));
+        const selectedCity = document.getElementById("selected-city");
+        const selectedCopy = document.getElementById("selected-copy");
+        const startJourney = document.getElementById("start-journey");
+
+        const cityCopy = {
+          Copenhagen: "A calmer branch of the flow, ready for a city-specific intro later.",
+          Paris: "Start with a cinematic intro: land on a full-screen video moment and let the message type itself in.",
+          Maplewood: "This could branch into a more local, neighborhood-led version of the same sequence.",
+          "Mexico City": "This could open into a warmer, higher-energy version of the journey with its own visuals.",
+        };
+
+        cards.forEach((card) => {
+          card.addEventListener("click", () => {
+            const city = card.getAttribute("data-city") || "";
+            cards.forEach((item) => item.classList.toggle("is-active", item === card));
+            if (selectedCity) selectedCity.textContent = city;
+            if (selectedCopy) {
+              selectedCopy.textContent = cityCopy[city] || "Choose a city to continue.";
+            }
+            if (startJourney) {
+              const slug = city.toLowerCase().replace(/\s+/g, "-");
+              startJourney.href = `./typeout.html?city=${encodeURIComponent(slug)}`;
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

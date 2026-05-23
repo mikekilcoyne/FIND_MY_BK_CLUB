@@ -227,12 +227,29 @@ export async function handler(event) {
     }
 
     if (action === "add_wwta") {
-      const { club, date, topics, photoURL } = payload;
+      const { club, date, topics, photoURL, imageDataURLs } = payload;
       if (!club) return json(400, { error: "club is required." });
       if (!date) return json(400, { error: "date is required." });
       if (!topics?.length) return json(400, { error: "topics are required." });
       const clubKey = normalizeKey(club);
       if (!canWrite(session, clubKey)) return json(403, { error: "Not authorized for this club." });
+
+      // Upload any attached photos to bk-flyers store under wwta- prefix
+      const photoKeys = [];
+      if (Array.isArray(imageDataURLs)) {
+        const flyerStore = getConfiguredStore("bk-flyers", { consistency: "strong" });
+        for (const dataURL of imageDataURLs.slice(0, 5)) {
+          const imgMatch = dataURL?.match(/^data:(image\/[a-z+\-]+);base64,(.+)$/);
+          if (!imgMatch) continue;
+          const [, mimeType, b64] = imgMatch;
+          const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+          const photoKey = `wwta-${clubKey.replace(/[^a-z0-9-]/g, "-")}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+          try {
+            await flyerStore.set(photoKey, Buffer.from(b64, "base64"), { metadata: { mimeType, club, uploadedAt: new Date().toISOString() } });
+            photoKeys.push(photoKey);
+          } catch (_) {}
+        }
+      }
 
       const store = getConfiguredStore(WWTA_STORE, { consistency: "strong" });
       const data = (await store.get("entries.json", { type: "json" })) || { entries: [] };
@@ -245,6 +262,7 @@ export async function handler(event) {
         date,
         topics: Array.isArray(topics) ? topics.map((t) => String(t).trim()).filter(Boolean) : [],
         photoURL: String(photoURL || "").trim(),
+        photoKeys,
         addedAt: now,
         addedBy: session.name || "admin",
       };
@@ -423,15 +441,15 @@ export async function handler(event) {
     }
 
     if (action === "upload_flyer") {
-      const { club, dataURL } = payload;
+      const { club, dataURL, flyerDate, fileCreatedAt } = payload;
       if (!club) return json(400, { error: "club is required." });
       if (!dataURL) return json(400, { error: "dataURL is required." });
       if (!canWrite(session, normalizeKey(club))) return json(403, { error: "Not authorized for this club." });
 
-      const match = dataURL.match(/^data:(image\/[a-z+]+);base64,(.+)$/);
+      const match = dataURL.match(/^data:(image\/[a-z+\-]+);base64,(.+)$/);
       if (!match) return json(400, { error: "Invalid image data." });
       const [, mimeType, base64Data] = match;
-      const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+      const ext = mimeType.split("/")[1].replace("jpeg", "jpg").replace("svg+xml", "svg");
       const safeClub = normalizeKey(club).replace(/[^a-z0-9-]/g, "-");
       const key = `${safeClub}-${Date.now()}.${ext}`;
 
@@ -443,7 +461,10 @@ export async function handler(event) {
       // Maintain listing index
       try {
         const index = (await store.get("index.json", { type: "json" })) || { items: [] };
-        index.items.unshift({ key, club, mimeType, uploadedAt: new Date().toISOString(), uploadedBy: session.name || session.email });
+        const entry = { key, club, mimeType, uploadedAt: new Date().toISOString(), uploadedBy: session.name || session.email };
+        if (flyerDate) entry.flyerDate = flyerDate;
+        if (fileCreatedAt && !flyerDate) entry.fileCreatedAt = fileCreatedAt;
+        index.items.unshift(entry);
         if (index.items.length > 500) index.items = index.items.slice(0, 500);
         await store.setJSON("index.json", index);
       } catch (_) {}
@@ -451,39 +472,62 @@ export async function handler(event) {
       return json(200, { ok: true, flyerURL, key });
     }
 
+    if (action === "patch_flyer") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { key, club, flyerDate } = payload;
+      if (!key) return json(400, { error: "key required." });
+      try {
+        const store = getConfiguredStore("bk-flyers", { consistency: "strong" });
+        const index = (await store.get("index.json", { type: "json" })) || { items: [] };
+        const item = index.items.find(f => f.key === key);
+        if (!item) return json(404, { error: "Flyer not found." });
+        if (club !== undefined) item.club = club;
+        if (flyerDate !== undefined) item.flyerDate = flyerDate || null;
+        await store.setJSON("index.json", index);
+        return json(200, { ok: true });
+      } catch (err) {
+        return json(500, { error: err.message });
+      }
+    }
+
     if (action === "analyze_image") {
       const { dataURL, mode } = payload;
       if (!dataURL) return json(400, { error: "dataURL required." });
       const PROMPTS = {
-        flyer_city: `What city or location is this event flyer for? Return ONLY valid JSON: {"city":"City Name"}. Use your best guess from any visible text, logos, or landmarks.`,
+        flyer_city: `What city is this Breakfast Club event flyer for, and what is the event date? Return ONLY valid JSON: {"city":"City Name","date":"YYYY-MM-DD"}. Use null for date if not visible. Use your best guess from any visible text, logos, or landmarks.`,
         popup_details: `Extract event details from this flyer. Return ONLY valid JSON (null for anything not found):\n{"headline":"EVENT TITLE","subheadline":null,"date":"YYYY-MM-DD","time":"8:00 AM","venue":"Venue Name and Address","city":"City, Country","host":"Host Name","description":"1-2 sentence description"}`,
-        wwta_topics: `Look at this image (meeting notes, screenshot, whiteboard, chat, etc.) and extract topics or subjects discussed. Return ONLY valid JSON:\n{"topics":["topic 1","topic 2"],"date":"YYYY-MM-DD"}\nUse null for date if not visible. Keep topics concise (2-5 words).`
+        wwta_topics: `Look at this image (meeting notes, screenshot, whiteboard, chat, etc.) and extract topics or subjects discussed. Return ONLY valid JSON:\n{"topics":["topic 1","topic 2"],"date":"YYYY-MM-DD"}\nUse null for date if not visible. Keep topics concise (2-5 words).`,
+        wwta_full: `This is a photo from a Breakfast Club event (a regular recurring breakfast meetup where people discuss ideas). Analyze it and return ONLY valid JSON:\n{"city":"City Name","date":"YYYY-MM-DD","topics":["topic 1","topic 2","topic 3"],"summary":"One sentence describing what happened."}\nCity: look for visual clues, venue signs, or any visible text. Date: look for date stamps, event materials, or any visible dates. Topics: what subjects, themes, or ideas came up — 2-5 word phrases, max 6. Use null for any field you cannot determine.`
       };
       const prompt = PROMPTS[mode];
       if (!prompt) return json(400, { error: "Invalid mode." });
-      const apiKey = process.env.GEM_KEY;
-      if (!apiKey) return json(500, { error: "GEM_KEY not configured." });
+      const apiKey = process.env.CLAUDE_BK_CLUB;
+      if (!apiKey) return json(500, { error: "CLAUDE_BK_CLUB not configured." });
       const [header, base64Data] = dataURL.split(",");
       const mediaType = header?.match(/:(.*?);/)?.[1] || "image/jpeg";
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { inline_data: { mime_type: mediaType, data: base64Data } },
-                  { text: prompt },
-                ],
-              }],
-              generationConfig: { maxOutputTokens: 512, temperature: 0.1 },
-            }),
-          }
-        );
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 256,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "image", source: { type: "base64", media_type: mediaType, data: base64Data } },
+                { type: "text", text: prompt },
+              ],
+            }],
+          }),
+        });
         const result = await res.json();
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
+        if (result.type === "error") return json(502, { error: `Claude error: ${result.error?.message || result.error?.type}` });
+        const text = result.content?.[0]?.text?.trim() || "{}";
         const match = text.match(/\{[\s\S]*\}/);
         const data = match ? JSON.parse(match[0]) : {};
         return json(200, { ok: true, data });
@@ -512,7 +556,8 @@ export async function handler(event) {
 
     if (action === "seed_from_sheet") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
-      const sheetUrl = process.env.SHEET_CSV_URL;
+      const sheetUrl = process.env.SHEET_CSV_URL ||
+        "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
       if (!sheetUrl) return json(400, { error: "SHEET_CSV_URL not configured." });
       try {
         const res = await fetch(sheetUrl);

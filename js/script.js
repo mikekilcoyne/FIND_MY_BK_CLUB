@@ -878,7 +878,13 @@ function getFlyerFeatureLead(items = []) {
 }
 
 function getFlyerFeatureHeadline(items = []) {
-  return "Latest flyers from Austin, Barcelona, and more...";
+  const cities = Array.from(
+    new Set((items || []).map((item) => getFlyerFeatureCityLabel(item.city || "")).filter(Boolean))
+  );
+  if (!cities.length) return "Latest flyers from clubs worldwide.";
+  if (cities.length === 1) return `Latest flyers from ${cities[0]}.`;
+  if (cities.length === 2) return `Latest flyers from ${cities[0]}, ${cities[1]}, and more.`;
+  return `Latest flyers from ${cities[0]}, ${cities[1]}, ${cities[2]}, and more.`;
 }
 
 function openFlyerCollection(items, selectedItem = null) {
@@ -1037,23 +1043,43 @@ function createFlyerCallout(club) {
   return null;
 }
 
+async function fetchBlobFlyerItems() {
+  try {
+    const res = await fetch("/.netlify/functions/get-public-flyers?limit=60");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return (data.items || [])
+      .filter((f) => f.key && f.club && f.club !== "Unknown")
+      .map((f) => ({
+        city: f.club,
+        url: `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`,
+        key: f.key,
+        flyerDate: f.flyerDate || f.uploadedAt || null,
+      }));
+  } catch (_) {
+    return [];
+  }
+}
+
 async function renderFlyerFeature(items) {
   if (!flyerFeature || !flyerFeatureTitle || !flyerFeatureText || !flyerFeatureButton) return;
 
+  const [blobItems, wallItems] = await Promise.all([
+    fetchBlobFlyerItems(),
+    fetchFlyerWallManifestItems(),
+  ]);
   const fallbackItems = getPreferredFlyerGalleryItems(items);
-  const wallItems = await fetchFlyerWallManifestItems();
-  const flyerItems = wallItems.length ? wallItems : fallbackItems;
+  const flyerItems = blobItems.length ? blobItems : (wallItems.length ? wallItems : fallbackItems);
   const featuredFlyer = getFlyerFeatureLead(flyerItems);
-  const featuredCity = getFlyerFeatureCityLabel(featuredFlyer ? featuredFlyer.city : "");
 
-  flyerFeatureTitle.textContent = featuredFlyer
+  flyerFeatureTitle.textContent = flyerItems.length
     ? getFlyerFeatureHeadline(flyerItems)
     : "Latest flyers from clubs worldwide.";
   flyerFeatureText.textContent = "";
   flyerFeatureText.hidden = true;
   flyerFeatureButton.textContent = "View Fly-er Wall";
   flyerFeatureButton.onclick = () => {
-    window.location.href = getFlyerPageHref(featuredFlyer ? featuredFlyer.city : "");
+    window.location.href = "./flyers.html";
   };
   flyerFeature.hidden = false;
 }
@@ -2196,7 +2222,14 @@ if (calendarViewLink) {
 
   function renderStrip(items) {
     grid.innerHTML = "";
-    items.forEach((item) => grid.append(createPopupCard(item)));
+    // Ascending by event date — soonest first
+    const sorted = [...items].sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
+    sorted.forEach((item) => grid.append(createPopupCard(item)));
     strip.hidden = false;
   }
 
@@ -2249,6 +2282,53 @@ if (calendarViewLink) {
     });
 
     return card;
+  }
+
+  function createTransitConnector(from, to) {
+    const el = document.createElement("div");
+    el.className = "popup-transit-connector";
+
+    const fromLoc = [from.venue, from.city].filter(Boolean).join(", ");
+    const toLoc   = [to.venue,   to.city  ].filter(Boolean).join(", ");
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(fromLoc)}&destination=${encodeURIComponent(toLoc)}&travelmode=transit`;
+
+    const icon = document.createElement("span");
+    icon.className = "popup-transit-icon";
+    icon.textContent = "🚆";
+
+    const label = document.createElement("span");
+    label.className = "popup-transit-label";
+    label.textContent = "…";
+
+    const link = document.createElement("a");
+    link.className = "popup-transit-link";
+    link.href = mapsUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "directions →";
+
+    el.append(icon, label, link);
+
+    // Lazily fetch estimate so it doesn't block initial render
+    if (fromLoc && toLoc) {
+      fetch(`/.netlify/functions/get-transit-estimate?from=${encodeURIComponent(fromLoc)}&to=${encodeURIComponent(toLoc)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.feasible) {
+            label.textContent = "different cities";
+          } else if (data.minutes) {
+            const hrs = Math.floor(data.minutes / 60);
+            const mins = data.minutes % 60;
+            const time = hrs > 0 ? `${hrs}h ${mins > 0 ? mins + "m" : ""}`.trim() : `${mins}m`;
+            label.textContent = `~${time} by ${data.mode || "transit"}`;
+          } else {
+            label.textContent = "transit available";
+          }
+        })
+        .catch(() => { label.textContent = "transit"; });
+    }
+
+    return el;
   }
 
   // ── Drawer ────────────────────────────────────────────────────────────────

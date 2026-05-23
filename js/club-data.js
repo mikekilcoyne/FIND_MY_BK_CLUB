@@ -4,7 +4,7 @@
   const LOCAL_SHEET_CSV_URL = "./data/clubs-sheet-local.csv";
   const LIVE_CLUB_OVERRIDES_URL = "/.netlify/functions/live-club-overrides";
   const LATEST_HAPPENINGS_MEDIA_URL = "./data/club-story-media.json";
-  const LATEST_HAPPENINGS_CACHE_URL = "./data/wwta-substack-cache.json";
+  const LATEST_HAPPENINGS_CACHE_URL = "/.netlify/functions/get-wwta";
   const EXCLUDED_LATEST_HAPPENINGS_MEDIA = new Set([
     "./assets/photos/club_updates/las-vegas/00000109-photo-2026-03-23-15-27-10-e9119f81e9.jpg",
     "./assets/photos/club_updates/maplewood/00000001-photo-2026-03-13-11-02-58-c21e67f8b7.jpg",
