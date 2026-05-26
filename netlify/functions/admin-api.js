@@ -490,10 +490,27 @@ export async function handler(event) {
       }
     }
 
+    if (action === "delete_flyer") {
+      if (session.type !== "master") return json(403, { error: "Forbidden." });
+      const { key } = payload;
+      if (!key) return json(400, { error: "key required." });
+      try {
+        const store = getConfiguredStore("bk-flyers", { consistency: "strong" });
+        await store.delete(key);
+        const index = (await store.get("index.json", { type: "json" })) || { items: [] };
+        index.items = index.items.filter(f => f.key !== key);
+        await store.setJSON("index.json", index);
+        return json(200, { ok: true });
+      } catch (err) {
+        return json(500, { error: err.message });
+      }
+    }
+
     if (action === "analyze_image") {
       const { dataURL, mode } = payload;
       if (!dataURL) return json(400, { error: "dataURL required." });
       const PROMPTS = {
+        flyer_check: `Is this image a designed event flyer or promotional graphic (with text, date, venue, or event info)? Or is it primarily a photo of people, a selfie, a casual photo, or a scene without flyer-style text? Reply ONLY with valid JSON: {"isFlyer": true/false, "reason": "one short phrase"}`,
         flyer_city: `What city is this Breakfast Club event flyer for, and what is the event date? Return ONLY valid JSON: {"city":"City Name","date":"YYYY-MM-DD"}. Use null for date if not visible. Use your best guess from any visible text, logos, or landmarks.`,
         popup_details: `Extract event details from this flyer. Return ONLY valid JSON (null for anything not found):\n{"headline":"EVENT TITLE","subheadline":null,"date":"YYYY-MM-DD","time":"8:00 AM","venue":"Venue Name and Address","city":"City, Country","host":"Host Name","description":"1-2 sentence description"}`,
         wwta_topics: `Look at this image (meeting notes, screenshot, whiteboard, chat, etc.) and extract topics or subjects discussed. Return ONLY valid JSON:\n{"topics":["topic 1","topic 2"],"date":"YYYY-MM-DD"}\nUse null for date if not visible. Keep topics concise (2-5 words).`,

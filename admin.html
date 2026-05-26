@@ -315,13 +315,26 @@
     .flyer-preview { max-width: 100%; max-height: 180px; border-radius: 6px; display: block; margin: 0 auto; }
 
     .flyer-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-    .flyer-tile { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; }
+    .flyer-tile { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
     .flyer-tile img { width: 100%; height: 120px; object-fit: cover; display: block; }
     .flyer-tile-meta { padding: 7px 9px; }
     .flyer-tile-city { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .flyer-tile-city.unknown-city { color: var(--gold); }
     .flyer-tile-date { font-size: 10px; color: var(--muted); margin-top: 1px; }
     .flyer-tile-actions { display: flex; gap: 6px; padding: 0 9px 8px; }
+    .flyer-tile-edit-btn { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border); background: #faf8f4; color: var(--muted); cursor: pointer; letter-spacing: 0.04em; }
+    .flyer-tile-edit-btn.needs-edit { border-color: var(--gold-border); background: var(--gold-bg); color: #7a4f10; }
+    .flyer-tile-edit-btn:hover { border-color: var(--gold); background: var(--gold-bg); color: #5a3a08; }
+    .flyer-tile-edit-form { display: none; position: absolute; inset: 0; background: #fff; z-index: 10; padding: 10px; flex-direction: column; gap: 7px; }
+    .flyer-tile-edit-form.is-open { display: flex; }
+    .flyer-tile-edit-form input { font-size: 12px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 5px; width: 100%; background: #faf8f4; color: var(--text); }
+    .flyer-tile-edit-form input:focus { outline: none; border-color: var(--gold); }
+    .flyer-tile-edit-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 1px; }
+    .flyer-tile-edit-actions { display: flex; gap: 6px; margin-top: 2px; }
+    .flyer-tile-save-btn { flex: 1; font-size: 11px; font-weight: 700; padding: 5px 0; border-radius: 5px; border: none; background: var(--gold); color: #fff; cursor: pointer; }
+    .flyer-tile-save-btn:hover { background: #c9920a; }
+    .flyer-tile-cancel-btn { font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border); background: #faf8f4; color: var(--muted); cursor: pointer; }
+    .flyer-tile-cancel-btn:hover { border-color: var(--gold); }
 
     .scan-drop-zone { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px dashed var(--border); border-radius: 8px; cursor: pointer; background: var(--bg); transition: border-color 0.15s, background 0.15s; }
     .scan-drop-zone:hover, .scan-drop-zone.drag-over { border-color: var(--gold); background: var(--gold-bg); }
@@ -469,6 +482,20 @@
             </div>
           </div>
           <div id="flyer-upload-status" class="status-msg"></div>
+          <div id="flyer-info-fields" style="display:none;margin-top:10px;display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+              <div>
+                <label style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px">City</label>
+                <input type="text" id="flyer-info-city" placeholder="e.g. Copenhagen" style="width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#faf8f4">
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px">Event Date</label>
+                <input type="date" id="flyer-info-date" style="width:100%;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#faf8f4">
+              </div>
+            </div>
+            <button type="button" id="flyer-info-save-btn" onclick="saveFlyerInfo()" style="margin-top:8px;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--gold);color:#fff;cursor:pointer">Save Info</button>
+            <span id="flyer-info-save-status" style="font-size:12px;margin-left:8px;color:var(--muted)"></span>
+          </div>
         </div>
 
         <button type="button" class="btn-save" id="update-save-btn" onclick="saveClubUpdate()">Save Changes</button>
@@ -1711,6 +1738,8 @@
     if (file) handleFlyerFile(file);
   }
 
+  let _lastUploadedFlyerKey = null;
+
   function handleFlyerFile(file) {
     if (!file.type.startsWith('image/')) return setStatus('flyer-upload-status', 'Please drop an image file.', 'error');
     const club = document.getElementById('update-club-select').value;
@@ -1718,15 +1747,32 @@
 
     const zone = document.getElementById('flyer-drop-zone');
     zone.innerHTML = '<span class="spinner" style="border-top-color:var(--gold);border-color:rgba(0,0,0,0.1)"></span>';
+    document.getElementById('flyer-info-fields').style.display = 'none';
 
     const reader = new FileReader();
     reader.onload = async (ev) => {
       try {
-        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club, dataURL: ev.target.result } });
+        const dataURL = await resizeDataURL(ev.target.result);
+        // Reject photos of people
+        const check = await analyzeImage(dataURL, 'flyer_check').catch(() => null);
+        if (check?.ok && check.data?.isFlyer === false) {
+          resetFlyerZone();
+          setStatus('flyer-upload-status', `Not uploaded — looks like a photo, not a flyer (${check.data.reason || 'no event info detected'}).`, 'error');
+          return;
+        }
+        const res = await apiFetch({ method: 'POST', body: { action: 'upload_flyer', club, dataURL } });
         if (res.ok) {
+          _lastUploadedFlyerKey = res.key;
           document.getElementById('u-flyer-url').value = res.flyerURL;
           zone.innerHTML = `<img src="${res.flyerURL}" class="flyer-preview" alt="Flyer">`;
-          setStatus('flyer-upload-status', 'Flyer uploaded! Hit Save Changes to go live.', 'success');
+          setStatus('flyer-upload-status', 'Uploaded! Fix city/date below if needed.', 'success');
+          // Show info fields, pre-fill city from club name
+          const infoFields = document.getElementById('flyer-info-fields');
+          infoFields.style.display = 'block';
+          document.getElementById('flyer-info-city').value = club;
+          document.getElementById('flyer-info-date').value = new Date().toISOString().split('T')[0];
+          document.getElementById('flyer-info-save-status').textContent = '';
+          document.getElementById('flyer-info-city').focus();
         } else {
           resetFlyerZone();
           setStatus('flyer-upload-status', res.error || 'Upload failed.', 'error');
@@ -1739,8 +1785,33 @@
     reader.readAsDataURL(file);
   }
 
+  async function saveFlyerInfo() {
+    if (!_lastUploadedFlyerKey) return;
+    const city = document.getElementById('flyer-info-city').value.trim();
+    const date = document.getElementById('flyer-info-date').value.trim();
+    const btn = document.getElementById('flyer-info-save-btn');
+    const statusEl = document.getElementById('flyer-info-save-status');
+    if (!city) { document.getElementById('flyer-info-city').focus(); return; }
+    btn.disabled = true;
+    btn.textContent = '…';
+    statusEl.textContent = '';
+    try {
+      await apiFetch({ method: 'POST', body: { action: 'patch_flyer', key: _lastUploadedFlyerKey, club: city, flyerDate: date || null } });
+      statusEl.textContent = '✓ Saved';
+      statusEl.style.color = 'var(--success)';
+    } catch (err) {
+      statusEl.textContent = 'Failed: ' + err.message;
+      statusEl.style.color = 'var(--error)';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Info';
+    }
+  }
+
   function resetFlyerZone() {
     document.getElementById('flyer-drop-zone').innerHTML = `<input type="file" id="flyer-file-input" accept="image/*" style="display:none" onchange="flyerFileSelected(event)"><div id="flyer-drop-inner"><span class="flyer-drop-icon">🖼</span><span class="flyer-drop-label">Drop flyer here or tap to upload</span></div>`;
+    document.getElementById('flyer-info-fields').style.display = 'none';
+    _lastUploadedFlyerKey = null;
   }
 
   // ── Flyer Dump tab ──────────────────────────────────────────────────────
@@ -1787,18 +1858,34 @@
             : (f.uploadedAt ? 'uploaded ' + new Date(f.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '?');
         const cityLabel = f.club || cityFromFilename(f.key);
         const isUnknown = !f.club || f.club === 'Unknown';
+        const escapedKey = f.key.replace(/'/g, "\\'");
+        const escapedCity = cityLabel.replace(/'/g, "\\'");
+        const editDate = f.flyerDate || '';
         return `<div class="flyer-tile" data-key="${f.key}">
           <img src="${url}" alt="Flyer" loading="lazy">
           <div class="flyer-tile-meta">
-            <div class="flyer-tile-city${isUnknown ? ' unknown-city' : ''}" title="${isUnknown && isMaster ? 'Click to set city' : ''}"
-              ${isUnknown && isMaster ? `onclick="editFlyerCity(this,'${f.key}')" style="cursor:pointer"` : ''}>
-              ${cityLabel}${isUnknown ? ' ✎' : ''}
-            </div>
+            <div class="flyer-tile-city${isUnknown ? ' unknown-city' : ''}">${cityLabel}</div>
             <div class="flyer-tile-date">${displayDate}</div>
           </div>
           <div class="flyer-tile-actions">
             <a href="${dlUrl}" download="${f.key}" class="btn-copy" style="font-size:11px">⬇</a>
+            ${isMaster ? `<button type="button" class="flyer-tile-edit-btn${isUnknown ? ' needs-edit' : ''}" onclick="openFlyerEditForm(this,'${escapedKey}','${escapedCity}','${editDate}')">✎ Edit</button>` : ''}
+            ${isMaster ? `<button type="button" class="flyer-tile-edit-btn" style="color:#c0392b;border-color:#e0b0aa" onclick="deleteFlyerTile(this,'${escapedKey}')">✕</button>` : ''}
           </div>
+          ${isMaster ? `<div class="flyer-tile-edit-form" id="ef-${f.key.replace(/[^a-z0-9]/gi,'-')}">
+            <div>
+              <div class="flyer-tile-edit-label">City</div>
+              <input type="text" class="ef-city" placeholder="e.g. Copenhagen" value="${cityLabel === 'Unknown' ? '' : cityLabel}">
+            </div>
+            <div>
+              <div class="flyer-tile-edit-label">Event Date</div>
+              <input type="date" class="ef-date" value="${editDate}">
+            </div>
+            <div class="flyer-tile-edit-actions">
+              <button type="button" class="flyer-tile-save-btn" onclick="saveFlyerEdit(this,'${escapedKey}')">Save</button>
+              <button type="button" class="flyer-tile-cancel-btn" onclick="closeFlyerEditForm(this)">✕</button>
+            </div>
+          </div>` : ''}
         </div>`;
       }).join('');
     } catch (_) {
@@ -1806,15 +1893,60 @@
     }
   }
 
-  async function editFlyerCity(el, key) {
-    const current = el.textContent.replace(' ✎', '').trim();
-    const city = prompt('Set city for this flyer:', current === 'Unknown' ? '' : current);
-    if (!city || city.trim() === current) return;
+  function openFlyerEditForm(btn, key, city, date) {
+    const tile = btn.closest('.flyer-tile');
+    const form = tile.querySelector('.flyer-tile-edit-form');
+    if (!form) return;
+    form.classList.add('is-open');
+    const cityInput = form.querySelector('.ef-city');
+    cityInput.focus();
+    cityInput.select();
+  }
+
+  function closeFlyerEditForm(btn) {
+    btn.closest('.flyer-tile-edit-form').classList.remove('is-open');
+  }
+
+  async function saveFlyerEdit(btn, key) {
+    const form = btn.closest('.flyer-tile-edit-form');
+    const city = form.querySelector('.ef-city').value.trim();
+    const date = form.querySelector('.ef-date').value.trim();
+    if (!city) { form.querySelector('.ef-city').focus(); return; }
+    btn.textContent = '…';
+    btn.disabled = true;
     try {
-      await apiFetch({ method: 'POST', body: { action: 'patch_flyer', key, club: city.trim() } });
-      loadFlyerGallery();
+      await apiFetch({ method: 'POST', body: { action: 'patch_flyer', key, club: city, flyerDate: date || null } });
+      form.classList.remove('is-open');
+      // Update tile display inline — no full reload needed
+      const tile = form.closest('.flyer-tile');
+      const cityEl = tile.querySelector('.flyer-tile-city');
+      const editBtnEl = tile.querySelector('.flyer-tile-edit-btn');
+      cityEl.textContent = city;
+      cityEl.classList.remove('unknown-city');
+      if (editBtnEl) editBtnEl.classList.remove('needs-edit');
+      if (date) {
+        tile.querySelector('.flyer-tile-date').textContent =
+          new Date(date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
     } catch (err) {
-      alert('Failed: ' + err.message);
+      alert('Save failed: ' + err.message);
+    } finally {
+      btn.textContent = 'Save';
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteFlyerTile(btn, key) {
+    if (!confirm('Delete this flyer? This cannot be undone.')) return;
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      await apiFetch({ method: 'POST', body: { action: 'delete_flyer', key } });
+      btn.closest('.flyer-tile').remove();
+    } catch (err) {
+      alert('Delete failed: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = '✕';
     }
   }
 
@@ -2037,6 +2169,18 @@
         const rawDataURL = await fileToDataURL(row.file);
         // Resize to JPEG ≤ 1400px before sending to avoid 6MB function body limit
         const dataURL = await resizeDataURL(rawDataURL);
+
+        // Check it's actually a flyer, not a photo of people
+        statusEl.textContent = 'Checking…';
+        try {
+          const check = await analyzeImage(dataURL, 'flyer_check');
+          if (check.ok && check.data?.isFlyer === false) {
+            statusEl.textContent = `Skipped — not a flyer (${check.data.reason || 'photo of people'})`;
+            statusEl.className = 'dump-queue-status err';
+            URL.revokeObjectURL(row.thumb);
+            continue;
+          }
+        } catch (_) { /* if check fails, continue anyway */ }
 
         // Use filename first — free, instant, works for ~80% of cases
         let targetClub = cityFromFilename(row.file.name);
