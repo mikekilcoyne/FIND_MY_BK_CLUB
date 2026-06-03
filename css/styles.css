@@ -218,19 +218,19 @@ a {
 }
 
 h1 {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(28px, 3.8vw, 46px);
   margin: 0;
-  font-weight: 500;
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
   text-transform: uppercase;
 }
 
 h2 {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(26px, 4.2vw, 44px);
   margin: 16px 0 10px;
-  font-weight: 500;
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
   text-transform: uppercase;
 }

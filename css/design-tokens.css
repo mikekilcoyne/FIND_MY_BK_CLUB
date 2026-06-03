@@ -1,0 +1,64 @@
+/* ============================================================================
+   Breakfast Club — Design Tokens (single source of truth)
+   Include this FIRST on every page, before page-specific stylesheets.
+   Change a value here and it propagates everywhere. Don't hardcode fonts,
+   weights, or the accent color in other files — reference these tokens.
+   ========================================================================== */
+
+:root {
+  /* ── Type ─────────────────────────────────────────────────────────────── */
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;   /* the standard for headers */
+
+  /* H1: Helvetica Neue Bold, ALL CAPS. Use --h1-size for fluid scaling. */
+  --h1-size: clamp(2.2rem, 7vw, 5.5rem);
+  --h1-weight: var(--weight-bold);
+  --h1-tracking: -0.01em;
+
+  /* H2: the section-title style used across the site. */
+  --h2-size: clamp(24px, 3vw, 40px);
+  --h2-weight: var(--weight-bold);
+  --h2-tracking: 0.02em;
+
+  /* Body + eyebrow (small italic uppercase label seen above titles). */
+  --body-size: 1rem;
+  --body-weight: var(--weight-regular);
+  --eyebrow-size: clamp(0.55rem, 1.1vw, 0.72rem);
+  --eyebrow-tracking: 4px;
+
+  /* ── Color ────────────────────────────────────────────────────────────── */
+  --accent: #ffd700;          /* BK yellow — badges, active states */
+  --accent-ink: #000000;      /* text on accent */
+  --paper: #efefef;
+  --ink: #111111;
+  --line: #cfcfcf;
+  --night-sky-deep: #08111f;  /* dark overlay backdrop */
+
+  /* ── Spacing scale ────────────────────────────────────────────────────── */
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 20px;
+  --space-5: 32px;
+  --space-6: 48px;
+}
+
+/* ── Base header standard ──────────────────────────────────────────────────
+   All H1s: Helvetica Neue Bold, uppercase. Page-specific rules may override
+   size/color, but should inherit weight + transform from here. */
+h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--h1-weight);
+  letter-spacing: var(--h1-tracking);
+  text-transform: uppercase;
+}
+
+h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--h2-weight);
+  letter-spacing: var(--h2-tracking);
+  text-transform: uppercase;
+}

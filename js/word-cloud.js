@@ -559,18 +559,82 @@
 
   function syncOverlayPhotoDots() {
     const dots = document.getElementById("wc-overlay-photo-dots");
-    if (!dots) return;
+    if (dots) {
+      if (overlayPhotos.length <= 1) {
+        dots.hidden = true;
+      } else {
+        dots.hidden = false;
+        dots.innerHTML = "";
+        overlayPhotos.forEach(function (_, i) {
+          const dot = document.createElement("span");
+          dot.className = "wc-overlay-photo-dot" + (i === overlayPhotoIdx ? " is-active" : "");
+          dots.appendChild(dot);
+        });
+      }
+    }
+    syncOverlayPhotoThumbs();
+  }
+
+  function syncOverlayPhotoThumbs() {
+    const strip = document.getElementById("wc-overlay-photo-thumbs");
+    if (!strip) return;
     if (overlayPhotos.length <= 1) {
-      dots.hidden = true;
+      strip.hidden = true;
+      strip.innerHTML = "";
       return;
     }
-    dots.hidden = false;
-    dots.innerHTML = "";
-    overlayPhotos.forEach(function (_, i) {
-      const dot = document.createElement("span");
-      dot.className = "wc-overlay-photo-dot" + (i === overlayPhotoIdx ? " is-active" : "");
-      dots.appendChild(dot);
+    strip.hidden = false;
+    strip.innerHTML = "";
+    overlayPhotos.forEach(function (src, i) {
+      const thumb = document.createElement("button");
+      thumb.type = "button";
+      thumb.className = "wc-overlay-photo-thumb" + (i === overlayPhotoIdx ? " is-active" : "");
+      thumb.setAttribute("aria-label", "View photo " + (i + 1) + " of " + overlayPhotos.length);
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "";
+      img.loading = "lazy";
+      thumb.appendChild(img);
+      thumb.addEventListener("click", function () {
+        transitionOverlayPhoto(i);
+      });
+      strip.appendChild(thumb);
     });
+    positionOverlayThumbs();
+    showSwipeHintOnce();
+  }
+
+  function positionOverlayThumbs() {
+    const strip = document.getElementById("wc-overlay-photo-thumbs");
+    const overlay = document.getElementById("wc-overlay");
+    if (!strip || strip.hidden || !overlay) return;
+    const frame = overlay.querySelector(".wc-overlay-bg-photo-frame");
+    if (!frame) return;
+    requestAnimationFrame(function () {
+      const frameRect = frame.getBoundingClientRect();
+      const overlayRect = overlay.getBoundingClientRect();
+      const top = frameRect.bottom - overlayRect.top + 14;
+      strip.style.position = "absolute";
+      strip.style.bottom = "auto";
+      strip.style.top = Math.round(top) + "px";
+      strip.style.left = "50%";
+      strip.style.transform = "translateX(-50%)";
+      const hint = document.getElementById("wc-swipe-hint");
+      if (hint) {
+        const stripRect = strip.getBoundingClientRect();
+        const hintTop = stripRect.bottom - overlayRect.top + 12;
+        hint.style.top = Math.round(hintTop) + "px";
+      }
+    });
+  }
+
+  let swipeHintShown = false;
+  function showSwipeHintOnce() {
+    if (swipeHintShown || overlayPhotos.length <= 1) return;
+    const hint = document.getElementById("wc-swipe-hint");
+    if (!hint) return;
+    swipeHintShown = true;
+    hint.hidden = false;
   }
 
   function syncOverlayCarouselGhosts() {
@@ -633,16 +697,9 @@
       return;
     }
 
-    const cityButton = document.getElementById("wc-overlay-city");
-    if (!cityButton) {
-      overlay.style.setProperty("--wc-frame-center-x", "50vw");
-      return;
-    }
-
-    const buttonRect = cityButton.getBoundingClientRect();
-    const overlayRect = overlay.getBoundingClientRect();
-    const centerX = buttonRect.left - overlayRect.left + (buttonRect.width / 2);
-    overlay.style.setProperty("--wc-frame-center-x", centerX + "px");
+    // Polaroid is always centered to the viewport (not the city button, which
+    // can be pushed off-center by the NEW badge sharing its row).
+    overlay.style.setProperty("--wc-frame-center-x", "50vw");
   }
 
   function syncOverlayPhotoNav() {
@@ -1097,6 +1154,44 @@
   let overlayCurrentIdx  = 0;
   let overlayPhotos = [];
   let overlayPhotoIdx = 0;
+  const OVERLAY_PHOTO_CAP = 6;
+
+  // Sort photos newest-first by the date embedded in WhatsApp filenames
+  // (…PHOTO-YYYY-MM-DD-HH-MM-SS…), keep the hero photo, cap the count.
+  function capCarouselPhotos(photos, heroPhoto, cap) {
+    const photoDate = function (src) {
+      const m = String(src).match(/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+      return m ? m.slice(1).join("") : "";
+    };
+    const sorted = photos.slice().sort(function (a, b) {
+      return photoDate(b).localeCompare(photoDate(a));
+    });
+    if (heroPhoto && sorted.indexOf(heroPhoto) !== -1) {
+      const rest = sorted.filter(function (p) { return p !== heroPhoto; });
+      return [heroPhoto].concat(rest).slice(0, cap);
+    }
+    return sorted.slice(0, cap);
+  }
+  function latestPhotoDateLabel(photos) {
+    if (!photos || !photos.length) return "";
+    let best = "";
+    photos.forEach(function (src) {
+      const m = String(src).match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        const key = m[1] + m[2] + m[3];
+        if (key > best) best = key;
+      }
+    });
+    if (!best) return "";
+    const y = Number(best.slice(0, 4));
+    const mo = Number(best.slice(4, 6)) - 1;
+    const d = Number(best.slice(6, 8));
+    const months = ["January","February","March","April","May","June",
+      "July","August","September","October","November","December"];
+    if (mo < 0 || mo > 11) return "";
+    return months[mo] + " " + d + ", " + y;
+  }
+
   let overlayPhotoTransitioning = false;
   let overlayRecentClubKeys = [];
   const OVERLAY_RECENT_CLUB_LIMIT = 5;
@@ -1238,57 +1333,129 @@
     return Math.min(280, Math.max(170, Math.round(stageWidth * 0.19)));
   }
 
-  function renderOverlayWords(stage, wordList, usePhotoPalette) {
-    const stageWidth = stage.offsetWidth || window.innerWidth || 900;
-    const surroundPhoto = document.getElementById("wc-overlay") &&
-      document.getElementById("wc-overlay").classList.contains("wc-overlay--photo-frame");
-    const zoneOrder = getOverlayZoneOrder(stageWidth, surroundPhoto);
-    const zoneBuckets = new Map(OVERLAY_ZONE_NAMES.map((name) => [name, []]));
-    const sizeScale = stageWidth <= 540 ? 0.84 : stageWidth <= 860 ? 0.94 : 1.08;
-    const typingSpans = [];
+  // Topics now live in a Notes-app popup behind a chat-bubble button.
+  let overlayTopics = [];
 
-    wordList.forEach((item, index) => {
-      const zoneName = zoneOrder[index % zoneOrder.length];
-      zoneBuckets.get(zoneName).push({ ...item, index, zoneName });
-    });
+  function renderOverlayWords(stage, wordList) {
+    if (stage) {
+      stage.innerHTML = "";
+      stage.classList.remove("wc-overlay-stage--zones");
+    }
+    overlayTopics = wordList
+      .map((item) => String(item.text || "").trim())
+      .filter(Boolean);
+    const bubble = document.getElementById("wc-topics-bubble");
+    if (bubble) bubble.hidden = true;
+    const hasTopics = overlayTopics.length > 0;
+    const preamble = document.getElementById("wc-overlay-preamble");
+    if (preamble) {
+      preamble.classList.toggle("wc-overlay-preamble--has-notes", hasTopics);
+      preamble.style.cursor = hasTopics ? "pointer" : "default";
+    }
+    const note = document.querySelector(".wc-overlay-preamble-note");
+    if (note) note.style.display = hasTopics ? "" : "none";
+  }
 
-    stage.innerHTML = "";
-    stage.classList.add("wc-overlay-stage--zones");
+  let notesTypeTimer = null;
 
-    OVERLAY_ZONE_NAMES.forEach((zoneName) => {
-      const zone = document.createElement("div");
-      zone.className = `wc-overlay-zone wc-overlay-zone--${zoneName}`;
+  function openTopicsNotes() {
+    const backdrop = document.getElementById("wc-notes-backdrop");
+    const notes    = document.getElementById("wc-notes");
+    const list     = document.getElementById("wc-notes-list");
+    const heading  = document.getElementById("wc-notes-heading");
+    const dateEl   = document.getElementById("wc-notes-date");
+    if (!notes || !list) return;
 
-      const items = zoneBuckets.get(zoneName) || [];
-      items.forEach(({ text, weight, index }) => {
-        const px = isSinglePolaroidCaptureMode()
-          ? Math.min(28, Math.max(16, Math.round(weight * 1.8 * sizeScale)))
-          : Math.min(30, Math.max(14, Math.round(weight * 2.15 * sizeScale)));
-        const span = document.createElement("span");
-        span.dataset.fullText = text.toUpperCase();
-        span.dataset.typingIndex = String(index);
-        span.className = "wc-overlay-word";
-        span.style.fontSize = px + "px";
-        span.style.color = overlayPickColor(usePhotoPalette);
-        span.style.setProperty("--wc-chip-max", `${getOverlayChipMax(zoneName, stageWidth)}px`);
-        span.style.setProperty("--wc-target-opacity", String(randBetween(0.8, 0.96)));
-        span.style.setProperty("--wc-dx1", `${randInt(-6, 6)}px`);
-        span.style.setProperty("--wc-dy1", `${randInt(-12, 4)}px`);
-        span.style.setProperty("--wc-dx2", `${randInt(-8, 8)}px`);
-        span.style.setProperty("--wc-dy2", `${randInt(-18, -4)}px`);
-        span.style.setProperty("--wc-dx3", `${randInt(-6, 6)}px`);
-        span.style.setProperty("--wc-dy3", `${randInt(-10, 6)}px`);
-        span.style.animationDuration = `${randBetween(18, 32)}s`;
-        span.style.animationDelay = `${randBetween(-18, 0)}s`;
-        zone.appendChild(span);
-        typingSpans.push(span);
+    const cityLabel = document.getElementById("wc-overlay-city-label");
+    if (heading) heading.textContent = "What we talked about";
+    if (dateEl) {
+      const meta = document.getElementById("wc-overlay-meta");
+      const parts = [];
+      if (cityLabel && cityLabel.textContent.trim()) parts.push(cityLabel.textContent.trim());
+      if (meta) {
+        meta.querySelectorAll(".wc-overlay-meta-line").forEach(function (line) {
+          const t = line.textContent.trim();
+          if (t) parts.push(t);
+        });
+      }
+      dateEl.textContent = parts.join("  ·  ");
+    }
+
+    if (backdrop) backdrop.hidden = false;
+    notes.hidden = false;
+
+    // Type out each topic line sequentially.
+    list.innerHTML = "";
+    if (notesTypeTimer) { clearTimeout(notesTypeTimer); notesTypeTimer = null; }
+
+    const topics = overlayTopics.slice();
+    let lineIdx = 0;
+
+    function typeLine() {
+      if (lineIdx >= topics.length) return;
+      const li = document.createElement("li");
+      const textSpan = document.createElement("span");
+      const caret = document.createElement("span");
+      caret.className = "wc-notes__caret";
+      li.appendChild(textSpan);
+      li.appendChild(caret);
+      list.appendChild(li);
+
+      const full = topics[lineIdx];
+      let charIdx = 0;
+      function typeChar() {
+        textSpan.textContent = full.slice(0, charIdx);
+        charIdx += 1;
+        if (charIdx <= full.length) {
+          notesTypeTimer = setTimeout(typeChar, 22);
+        } else {
+          caret.remove();
+          lineIdx += 1;
+          notesTypeTimer = setTimeout(typeLine, 180);
+        }
+      }
+      typeChar();
+    }
+    typeLine();
+  }
+
+  function closeTopicsNotes() {
+    const backdrop = document.getElementById("wc-notes-backdrop");
+    const notes    = document.getElementById("wc-notes");
+    if (notesTypeTimer) { clearTimeout(notesTypeTimer); notesTypeTimer = null; }
+    if (backdrop) backdrop.hidden = true;
+    if (notes) notes.hidden = true;
+  }
+
+  function wireTopicsNotes() {
+    const bubble   = document.getElementById("wc-topics-bubble");
+    const closeBtn = document.getElementById("wc-notes-close");
+    const backdrop = document.getElementById("wc-notes-backdrop");
+    if (bubble && !bubble.dataset.wired) {
+      bubble.dataset.wired = "1";
+      bubble.addEventListener("click", openTopicsNotes);
+    }
+    const preamble = document.getElementById("wc-overlay-preamble");
+    if (preamble && !preamble.dataset.wired) {
+      preamble.dataset.wired = "1";
+      preamble.addEventListener("click", function () {
+        if (overlayTopics.length) openTopicsNotes();
       });
-
-      stage.appendChild(zone);
-    });
-
-    typingSpans.sort((a, b) => Number(a.dataset.typingIndex) - Number(b.dataset.typingIndex));
-    typeOverlayWordsSequentially(typingSpans);
+      preamble.addEventListener("keydown", function (e) {
+        if ((e.key === "Enter" || e.key === " ") && overlayTopics.length) {
+          e.preventDefault();
+          openTopicsNotes();
+        }
+      });
+    }
+    if (closeBtn && !closeBtn.dataset.wired) {
+      closeBtn.dataset.wired = "1";
+      closeBtn.addEventListener("click", closeTopicsNotes);
+    }
+    if (backdrop && !backdrop.dataset.wired) {
+      backdrop.dataset.wired = "1";
+      backdrop.addEventListener("click", closeTopicsNotes);
+    }
   }
 
   function openOverlay(cityKey, displayCity, scheduleLabel, eventTime, venue, upcomingDate) {
@@ -1334,7 +1501,8 @@
       : 0;
     const preferredHeroPhoto = photos && photos.length ? photos[heroPhotoIndex] : null;
     const heroPhoto = preferredHeroPhoto;
-    overlayPhotos = singlePolaroidCapture && photos && photos.length ? [heroPhoto] : (photos ? photos.slice() : []);
+    const cappedPhotos = photos ? capCarouselPhotos(photos, heroPhoto, OVERLAY_PHOTO_CAP) : [];
+    overlayPhotos = singlePolaroidCapture && photos && photos.length ? [heroPhoto] : cappedPhotos;
     overlayPhotoIdx = overlayPhotos.length ? 0 : 0;
     overlayPhotoTransitioning = false;
     rememberOverlayClubVisit();
@@ -1351,6 +1519,13 @@
         metaEl.appendChild(venueSpan);
       }
       if (scheduleLine) {
+        if (venueLine) {
+          const sep = document.createElement("span");
+          sep.className = "wc-overlay-meta-sep";
+          sep.setAttribute("aria-hidden", "true");
+          sep.textContent = "  ·  ";
+          metaEl.appendChild(sep);
+        }
         const scheduleSpan = document.createElement("span");
         scheduleSpan.className = "wc-overlay-meta-line wc-overlay-meta-line--schedule";
         scheduleSpan.textContent = scheduleLine;
@@ -1358,11 +1533,15 @@
       }
     }
 
+    const dateLabel = latestPhotoDateLabel(overlayPhotos);
+    const preambleText = dateLabel
+      ? "What we talked about on " + dateLabel
+      : "What we talked about";
     if (!overlayPreambleHasTyped) {
-      typeOverlayPreamble("Latest Happenings...");
+      typeOverlayPreamble(preambleText);
       overlayPreambleHasTyped = true;
     } else {
-      showOverlayPreamble("Latest Happenings...");
+      showOverlayPreamble(preambleText);
     }
 
     stopPhotoCycle();
@@ -1486,6 +1665,12 @@
 
     stopPhotoCycle();
     clearOverlayTyping();
+    closeTopicsNotes();
+    const topicsBubble = document.getElementById("wc-topics-bubble");
+    if (topicsBubble) topicsBubble.hidden = true;
+    const swipeHint = document.getElementById("wc-swipe-hint");
+    if (swipeHint) swipeHint.hidden = true;
+    swipeHintShown = false;
     overlay.classList.add("wc-overlay--closing");
     document.removeEventListener("keydown", onOverlayKeydown);
 
@@ -1580,6 +1765,8 @@
     const closeBtn = document.getElementById("wc-overlay-close");
     if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
 
+    wireTopicsNotes();
+
     const cleanBgBtn = getOverlayCleanBackgroundButton();
     if (cleanBgBtn) {
       cleanBgBtn.addEventListener("click", function (event) {
@@ -1628,6 +1815,7 @@
       if (overlay && !overlay.hidden) {
         syncOverlayCitySizing();
         syncOverlayFrameCenter();
+        positionOverlayThumbs();
       }
     });
 

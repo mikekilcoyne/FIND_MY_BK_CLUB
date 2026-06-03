@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Latest Happenings — Breakfast Club</title>
     <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
+    <link rel="stylesheet" href="./css/design-tokens.css?v=20260603" />
     <link rel="stylesheet" href="./css/word-cloud.css?v=20260523" />
     <style>
       body {
@@ -22,83 +23,370 @@
         font-weight: 400 !important;
         letter-spacing: 4px !important;
         text-transform: uppercase !important;
-        color: rgba(255,255,255,0.35) !important;
+        color: rgba(255,255,255,0.45) !important;
         font-style: italic;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        white-space: normal;
+        transition: color 0.18s ease;
       }
+      .wc-overlay-preamble:hover { color: rgba(255,255,255,0.85) !important; }
+      .wc-overlay-preamble-note {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(255,215,0,0.9);
+        color: #000;
+        flex-shrink: 0;
+      }
+      .wc-overlay-preamble-note svg { display: block; }
       .wc-overlay-preamble-caret { display: none; }
 
       /* ── V3-style city name: huge, bold, uppercase ── */
       .wc-overlay-city-row {
-        display: flex;
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        gap: 0.9rem;
-        flex-wrap: wrap;
+        gap: 0;
       }
       .wc-overlay-city-button {
         font-size: clamp(2.2rem, 7vw, 90px) !important;
-        font-weight: 900 !important;
+        font-weight: var(--weight-bold) !important;
         letter-spacing: -1px !important;
         line-height: 0.9 !important;
         text-transform: uppercase !important;
         color: #fff !important;
-        text-shadow: 0 8px 40px rgba(0,0,0,0.9) !important;
+        text-shadow: 0 2px 14px rgba(0,0,0,0.55) !important;
         background: none !important;
         border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
         padding: 0 !important;
-        cursor: pointer;
+        cursor: default;
         white-space: nowrap;
-        text-align: left;
+        text-align: center;
+        grid-column: 2;
+        justify-self: center;
       }
+      .wc-overlay-city-button:hover { background: none !important; box-shadow: none !important; }
       .wc-overlay-city-button__label { pointer-events: none; }
 
       /* ── NEW badge ── */
       .lh-new-badge {
-        display: inline-block;
-        background: #ffd700;
-        color: #000;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 0.7rem;
-        font-weight: 900;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        padding: 0.25rem 0.6rem;
-        vertical-align: middle;
-        flex-shrink: 0;
+        grid-column: 3;
+        justify-self: start;
         align-self: center;
-        margin-bottom: 4px;
+        margin-left: 0.7rem;
+        background: none;
+        color: #ffd700;
+        font-family: inherit;
+        font-size: 0.62rem;
+        font-weight: var(--weight-bold, 700);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid rgba(255,215,0,0.55);
+        border-radius: 999px;
+        white-space: nowrap;
       }
+      .lh-new-badge[hidden] { display: none; }
 
       /* ── View icon buttons (shuffle / list / grid) ── */
       .lh-view-icons {
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        margin-left: 0.2rem;
+        justify-content: center;
+        gap: 0.6rem;
+        margin: 1rem auto 0;
         flex-shrink: 0;
-        align-self: center;
-        margin-bottom: 2px;
+        flex-wrap: wrap;
       }
       .lh-icon-btn {
-        background: none;
-        border: none;
-        padding: 5px 7px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 999px;
+        padding: 0.5rem 0.95rem;
         cursor: pointer;
-        color: rgba(255,255,255,0.35);
-        display: flex;
+        color: #fff;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        transition: color 0.18s ease;
+        gap: 0.45rem;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
         line-height: 1;
       }
-      .lh-icon-btn:hover { color: #fff; }
-      .lh-icon-btn.is-active { color: #ffd700; }
+      .lh-icon-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
+      .lh-icon-btn.is-active {
+        background: #ffd700;
+        border-color: #ffd700;
+        color: #000;
+      }
       .lh-icon-btn svg { display: block; }
+      .lh-icon-label {
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: var(--weight-bold, 700);
+        letter-spacing: 0.5px;
+      }
 
       /* V3 header: left-aligned, interactive */
       .wc-overlay-header {
-        text-align: left !important;
+        text-align: center !important;
         pointer-events: auto !important;
         padding: clamp(24px, 5vh, 48px) clamp(24px, 5vw, 60px) 16px !important;
+      }
+      .wc-overlay-preamble-row { text-align: center; }
+      .wc-overlay-meta {
+        display: block;
+        text-align: center;
+        font-size: clamp(0.92rem, 2.6vw, 1.12rem) !important;
+        letter-spacing: 1px;
+        line-height: 1.4;
+        color: rgba(255,255,255,0.82) !important;
+        margin-top: 0.6rem;
+      }
+
+      /* ── Exit-door button (bottom-left, opposite Notes bubble) ── */
+      .wc-exit-door {
+        position: fixed;
+        left: clamp(16px, 4vw, 32px);
+        bottom: clamp(16px, 4vw, 32px);
+        top: auto !important;
+        right: auto !important;
+        z-index: 45;
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        background: rgba(8,16,32,0.55);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+      .wc-exit-door:hover { transform: translateY(-3px); background: rgba(8,16,32,0.7); }
+      .wc-exit-door svg { display: block; }
+
+      /* ── Swipe affordance ── */
+      .wc-swipe-hint {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(8,16,32,0.5);
+        color: rgba(255,255,255,0.92);
+        font-family: inherit;
+        font-size: 0.72rem;
+        font-weight: var(--weight-bold, 700);
+        letter-spacing: 1px;
+        pointer-events: none;
+        opacity: 0;
+        animation: wc-swipe-fade 3.4s ease forwards;
+      }
+      .wc-swipe-hint[hidden] { display: none; }
+      .wc-swipe-hint svg { display: block; animation: wc-swipe-nudge 1.3s ease-in-out infinite; }
+      @keyframes wc-swipe-fade {
+        0% { opacity: 0; } 14% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; }
+      }
+      @keyframes wc-swipe-nudge {
+        0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); }
+      }
+
+      /* Hide prev/next arrows + dots — swipe + thumbnails replace them */
+      .wc-overlay-nav { display: none !important; }
+      .wc-overlay-photo-dots { display: none !important; }
+
+      /* Topics no longer scatter on the stage — they live in the Notes popup. */
+      #wc-overlay-stage.wc-overlay-stage { pointer-events: none; }
+
+      /* ── Topics chat-bubble trigger ── */
+      .wc-topics-bubble {
+        position: fixed;
+        right: clamp(16px, 4vw, 32px);
+        bottom: clamp(16px, 4vw, 32px);
+        z-index: 45;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: none;
+        background: #ffd700;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .wc-topics-bubble:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.55); }
+      .wc-topics-bubble svg { display: block; }
+      .wc-topics-bubble[hidden] { display: none; }
+
+      /* ── Notes-app popup ── */
+      .wc-notes-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(3px);
+      }
+      .wc-notes {
+        position: fixed;
+        z-index: 61;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: min(440px, 94vw);
+        max-height: 80vh;
+        background: #f7f6f1;
+        border-radius: 18px 18px 0 0;
+        box-shadow: 0 -10px 50px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: wc-notes-up 0.32s cubic-bezier(0.16,1,0.3,1);
+      }
+      .wc-notes[hidden], .wc-notes-backdrop[hidden] { display: none; }
+      @keyframes wc-notes-up { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+      .wc-notes__bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        background: #efeee8;
+      }
+      .wc-notes__dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcf4a; }
+      .wc-notes__title {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(0,0,0,0.45);
+      }
+      .wc-notes__close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #d39a00;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .wc-notes__sheet { padding: 1.4rem 1.5rem 2rem; overflow-y: auto; }
+      .wc-notes__heading {
+        margin: 0 0 0.2rem;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+      .wc-notes__date {
+        margin: 0 0 1.1rem;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 0.72rem;
+        color: rgba(0,0,0,0.4);
+      }
+      .wc-notes__list { margin: 0; padding: 0; list-style: none; }
+      .wc-notes__list li {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 0.96rem;
+        line-height: 1.55;
+        color: #2a2a2a;
+        padding: 0.35rem 0 0.35rem 1.4rem;
+        position: relative;
+      }
+      .wc-notes__list li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: #d39a00;
+      }
+      .wc-notes__caret {
+        display: inline-block;
+        width: 2px;
+        height: 1em;
+        margin-left: 2px;
+        background: #d39a00;
+        vertical-align: -0.15em;
+        animation: wc-notes-blink 0.9s step-end infinite;
+      }
+      @keyframes wc-notes-blink { 50% { opacity: 0; } }
+
+      /* ── Thumbnail strip (sits just below the tiny dots) ── */
+      .wc-overlay-photo-thumbs {
+        position: absolute;
+        z-index: 9;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        max-width: 92vw;
+        padding: 0 16px;
+        pointer-events: auto;
+      }
+      .wc-overlay-photo-thumbs[hidden] { display: none; }
+      .wc-overlay-photo-thumb {
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        border: 2px solid rgba(255,255,255,0.25);
+        border-radius: 4px;
+        overflow: hidden;
+        background: #111;
+        cursor: pointer;
+        opacity: 0.55;
+        transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        flex-shrink: 0;
+      }
+      .wc-overlay-photo-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .wc-overlay-photo-thumb:hover { opacity: 0.85; transform: translateY(-2px); }
+      .wc-overlay-photo-thumb.is-active {
+        opacity: 1;
+        border-color: #ffd700;
+      }
+      @media (max-width: 600px) {
+        .wc-overlay-preamble {
+          letter-spacing: 2px !important;
+          font-size: 0.55rem !important;
+        }
+        .wc-overlay-photo-thumb { width: 40px; height: 40px; flex: 0 0 auto; }
+        .wc-overlay-photo-thumbs {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          justify-content: center;
+          gap: 6px;
+          padding: 0 12px;
+          -webkit-overflow-scrolling: touch;
+        }
+        .lh-icon-btn { padding: 0.45rem 0.8rem; }
+        .lh-icon-label { font-size: 0.68rem; }
       }
 
       /* Hide the old emoji swap buttons — replaced by icons */
@@ -315,9 +603,11 @@
     <div id="clubs-list" aria-hidden="true"></div>
 
     <div id="wc-overlay" class="wc-overlay" hidden aria-modal="true" role="dialog" aria-label="What we talked about">
-      <button class="wc-overlay-close" id="wc-overlay-close" aria-label="Close">
-        <svg class="wc-overlay-control-icon wc-overlay-control-icon--close" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 7l10 10M17 7L7 17"></path>
+      <button class="wc-overlay-close wc-exit-door" id="wc-overlay-close" aria-label="Exit">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 3l4 1.5V19.5L14 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="15.2" cy="12" r="1" fill="currentColor"/>
         </svg>
       </button>
       <button class="wc-overlay-nav wc-overlay-nav--prev" id="wc-overlay-prev" aria-label="Previous photo">
@@ -346,10 +636,49 @@
       <!-- Photo dots -->
       <div class="wc-overlay-photo-dots" id="wc-overlay-photo-dots" aria-hidden="true" hidden></div>
 
+      <!-- Swipe affordance -->
+      <div class="wc-swipe-hint" id="wc-swipe-hint" hidden aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M7 8l-3 4 3 4M17 8l3 4-3 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Swipe to browse</span>
+      </div>
+
+      <!-- Thumbnail strip -->
+      <div class="wc-overlay-photo-thumbs" id="wc-overlay-photo-thumbs" hidden></div>
+
+      <!-- Topics chat-bubble trigger -->
+      <button class="wc-topics-bubble" id="wc-topics-bubble" type="button" aria-label="See what we talked about" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="9" cy="11" r="1" fill="currentColor"/>
+          <circle cx="12.5" cy="11" r="1" fill="currentColor"/>
+          <circle cx="16" cy="11" r="1" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <!-- Notes-app topics popup -->
+      <div class="wc-notes-backdrop" id="wc-notes-backdrop" hidden></div>
+      <div class="wc-notes" id="wc-notes" role="dialog" aria-modal="true" aria-label="What we talked about" hidden>
+        <div class="wc-notes__bar">
+          <span class="wc-notes__dot"></span>
+          <span class="wc-notes__title">Notes</span>
+          <button class="wc-notes__close" id="wc-notes-close" type="button" aria-label="Close">Done</button>
+        </div>
+        <div class="wc-notes__sheet">
+          <p class="wc-notes__heading" id="wc-notes-heading"></p>
+          <p class="wc-notes__date" id="wc-notes-date"></p>
+          <ul class="wc-notes__list" id="wc-notes-list"></ul>
+        </div>
+      </div>
+
       <div class="wc-overlay-header">
         <div class="wc-overlay-preamble-row">
-          <span class="wc-overlay-preamble" id="wc-overlay-preamble">
+          <span class="wc-overlay-preamble" id="wc-overlay-preamble" role="button" tabindex="0" aria-label="See what we talked about">
             <span id="wc-overlay-preamble-text">What we talked about...</span>
+            <span class="wc-overlay-preamble-note" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none">
+                <path d="M5 4h14a1 1 0 0 1 1 1v9l-4 4H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </span>
           </span>
         </div>
         <div class="wc-overlay-city-row">
@@ -359,44 +688,46 @@
             <span class="wc-overlay-city-button__label" id="wc-overlay-city-label"></span>
           </button>
           <button class="wc-overlay-club-swap-pointer" id="wc-overlay-swap-club-next" type="button" aria-label="Next club" hidden>👉</button>
-
           <!-- NEW badge -->
           <span class="lh-new-badge" id="lh-new-badge">New</span>
-
-          <!-- View icons -->
-          <div class="lh-view-icons">
-            <button class="lh-icon-btn" id="lh-shuffle" title="Shuffle">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
-                <path d="M11.5 1L14.5 1L14.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M3.5 1H6C7.5 1 8.5 3 9 3.5C9.5 4 10.5 6 12 6H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                <path d="M11.5 13L14.5 13L14.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M3.5 13H6C7.5 13 8.5 11 9 10.5C9.5 10 10.5 8 12 8H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </button>
-            <button class="lh-icon-btn" id="lh-list-view" title="List View">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
-                <rect x="0" y="0"   width="18" height="2.5" rx="1.25" fill="currentColor"/>
-                <rect x="0" y="5.75" width="18" height="2.5" rx="1.25" fill="currentColor"/>
-                <rect x="0" y="11.5" width="18" height="2.5" rx="1.25" fill="currentColor"/>
-              </svg>
-            </button>
-            <button class="lh-icon-btn" id="lh-grid-view" title="Grid View">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="0"    y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="5.75" y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="11.5" y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="0"    y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="5.75" y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="11.5" y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="0"    y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="5.75" y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-                <rect x="11.5" y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
-              </svg>
-            </button>
-          </div>
         </div>
         <span class="wc-overlay-meta" id="wc-overlay-meta"></span>
         <span class="wc-overlay-source-date" id="wc-overlay-source-date" hidden></span>
+
+        <!-- View icons (under sub-header) -->
+        <div class="lh-view-icons">
+          <button class="lh-icon-btn" id="lh-shuffle" title="Shuffle">
+            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
+              <path d="M11.5 1L14.5 1L14.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3.5 1H6C7.5 1 8.5 3 9 3.5C9.5 4 10.5 6 12 6H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M11.5 13L14.5 13L14.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3.5 13H6C7.5 13 8.5 11 9 10.5C9.5 10 10.5 8 12 8H14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span class="lh-icon-label">Shuffle</span>
+          </button>
+          <button class="lh-icon-btn" id="lh-list-view" title="List View">
+            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
+              <rect x="0" y="0"   width="18" height="2.5" rx="1.25" fill="currentColor"/>
+              <rect x="0" y="5.75" width="18" height="2.5" rx="1.25" fill="currentColor"/>
+              <rect x="0" y="11.5" width="18" height="2.5" rx="1.25" fill="currentColor"/>
+            </svg>
+            <span class="lh-icon-label">List</span>
+          </button>
+          <button class="lh-icon-btn" id="lh-grid-view" title="Grid View">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="0"    y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="5.75" y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="11.5" y="0"    width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="0"    y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="5.75" y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="11.5" y="5.75" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="0"    y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="5.75" y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+              <rect x="11.5" y="11.5" width="4.5" height="4.5" rx="0.75" fill="currentColor"/>
+            </svg>
+            <span class="lh-icon-label">Grid</span>
+          </button>
+        </div>
       </div>
 
       <div class="wc-overlay-body">

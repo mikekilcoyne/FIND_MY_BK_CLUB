@@ -1023,17 +1023,40 @@
     });
   }
 
-  // Show/hide NEW badge based on whether current city has admin WWTA
+  // Build the set of city keys whose media update is recent (within
+  // NEW_WINDOW_DAYS of the newest update across the dataset). Any freshly
+  // added update — e.g. a new WhatsApp import — gets a NEW tag automatically.
+  var NEW_WINDOW_DAYS = 30;
+  function computeNewCityKeys(media) {
+    var keys = new Set();
+    var clubs = (media && media.clubs) || [];
+    var stamp = function (c) { return Date.parse(c.updatedAt || c.sourceDate || "") || 0; };
+    var newest = clubs.reduce(function (max, c) { return Math.max(max, stamp(c)); }, 0);
+    if (!newest) return keys;
+    var cutoff = newest - NEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    clubs.forEach(function (c) {
+      if (stamp(c) >= cutoff) {
+        keys.add(normalizeCity(c.displayName || c.slug || ""));
+        if (c.slug) keys.add(normalizeCity(c.slug.replace(/-/g, " ")));
+      }
+    });
+    return keys;
+  }
+
+  // Show/hide NEW badge — true for admin WWTA cities or recently-updated ones
   function syncNewBadge(cityKey) {
     var badge = document.getElementById("lh-new-badge");
     if (!badge) return;
-    var keys = window._wwtaAdminCityKeys;
-    if (!keys || !keys.size) { badge.style.display = "none"; return; }
     var normalized = normalizeCity(cityKey || "");
-    var isNew = false;
-    keys.forEach(function (k) {
-      if (k === normalized || normalized.indexOf(k) !== -1 || k.indexOf(normalized) !== -1) isNew = true;
-    });
+    var matches = function (keys) {
+      if (!keys || !keys.size) return false;
+      var hit = false;
+      keys.forEach(function (k) {
+        if (k && (k === normalized || normalized.indexOf(k) !== -1 || k.indexOf(normalized) !== -1)) hit = true;
+      });
+      return hit;
+    };
+    var isNew = matches(window._wwtaAdminCityKeys) || matches(window._wwtaNewCityKeys);
     badge.style.display = isNew ? "" : "none";
   }
 
@@ -1053,6 +1076,7 @@
       var media     = results[2] || { clubs: [] };
       var adminWwta = results[3] || { cities: {} };
       var buttons   = buildClubButtons(clubs, cache, media);
+      window._wwtaNewCityKeys = computeNewCityKeys(media);
       mergeAdminWwta(adminWwta.cities || {});
       // Hide NEW badge initially; it'll show when a city with admin data is opened
       var badge = document.getElementById("lh-new-badge");
