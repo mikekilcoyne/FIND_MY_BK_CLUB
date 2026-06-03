@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-26T13:09:51.641Z",
+  "generatedAt": "2026-06-03T14:38:03.526Z",
   "clubs": [
     {
       "slug": "soma",
@@ -65,11 +65,13 @@
       "region": "Other",
       "source": "whatsapp",
       "photoTreatment": "polaroid-frame",
-      "updatedAt": "2026-03-26T13:09:51.621Z",
+      "updatedAt": "2026-06-03T14:38:03.494Z",
       "photos": [
         "./assets/photos/club_updates/mexico-city/00000033-photo-2026-03-16-09-00-32-f32f205a3c.jpg",
         "./assets/photos/club_updates/mexico-city/00000054-photo-2026-03-18-12-59-28-7ee4eea2dc.jpg",
-        "./assets/photos/club_updates/mexico-city/mexico-city-2026-04-10.jpg"
+        "./assets/photos/club_updates/mexico-city/mexico-city-2026-04-10.jpg",
+        "./assets/photos/club_updates/mexico-city/00000143-PHOTO-2026-03-25-20-16-39.jpg",
+        "./assets/photos/club_updates/mexico-city/00000144-PHOTO-2026-03-25-20-16-42.jpg"
       ]
     },
     {
@@ -78,9 +80,12 @@
       "region": "Europe",
       "source": "whatsapp",
       "photoTreatment": "polaroid-frame",
-      "updatedAt": "2026-03-26T13:09:51.627Z",
+      "updatedAt": "2026-06-03T14:38:03.510Z",
       "photos": [
-        "./assets/photos/club_updates/milano/00000135-photo-2026-03-25-16-16-42-2495253451.jpg"
+        "./assets/photos/club_updates/milano/00000135-photo-2026-03-25-16-16-42-2495253451.jpg",
+        "./assets/photos/club_updates/milano/00000491-PHOTO-2026-05-15-20-24-07.jpg",
+        "./assets/photos/club_updates/milano/00000494-PHOTO-2026-05-15-20-24-15.jpg",
+        "./assets/photos/club_updates/milano/00000554-PHOTO-2026-05-26-15-22-01.jpg"
       ]
     },
     {
@@ -89,9 +94,10 @@
       "region": "Northeast US",
       "source": "whatsapp",
       "photoTreatment": "polaroid-frame",
-      "updatedAt": "2026-03-26T13:09:51.623Z",
+      "updatedAt": "2026-06-03T14:38:03.499Z",
       "photos": [
-        "./assets/photos/club_updates/new-york-downtown-brooklyn/00000092-photo-2026-03-20-08-08-35-eada719590.jpg"
+        "./assets/photos/club_updates/new-york-downtown-brooklyn/00000092-photo-2026-03-20-08-08-35-eada719590.jpg",
+        "./assets/photos/club_updates/new-york-downtown-brooklyn/00000151-PHOTO-2026-03-26-17-00-44.jpg"
       ]
     },
     {
@@ -153,11 +159,84 @@
       "region": "Europe",
       "source": "whatsapp",
       "photoTreatment": "polaroid-frame",
-      "updatedAt": "2026-03-26T13:09:51.617Z",
+      "updatedAt": "2026-06-03T14:38:03.500Z",
       "photos": [
         "./assets/photos/club_updates/vienna/00000009-photo-2026-03-13-15-40-28-74f43916c5.jpg",
-        "./assets/photos/club_updates/vienna/vienna-2026-04-10.jpg"
+        "./assets/photos/club_updates/vienna/vienna-2026-04-10.jpg",
+        "./assets/photos/club_updates/vienna/00000263-PHOTO-2026-04-09-19-03-41.jpg"
       ]
+    },
+    {
+      "slug": "seattle",
+      "displayName": "Seattle, WA",
+      "photos": [
+        "./assets/photos/club_updates/seattle/-0000002-PHOTO-2026-03-12-16-37-03.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.491Z"
+    },
+    {
+      "slug": "toronto",
+      "displayName": "Toronto, ON",
+      "photos": [
+        "./assets/photos/club_updates/toronto/00000138-PHOTO-2026-03-25-16-31-25.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.492Z"
+    },
+    {
+      "slug": "manila",
+      "displayName": "Manila, PH",
+      "photos": [
+        "./assets/photos/club_updates/manila/00000145-PHOTO-2026-03-26-04-04-48.jpg",
+        "./assets/photos/club_updates/manila/00000146-PHOTO-2026-03-26-04-04-50.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.497Z"
+    },
+    {
+      "slug": "amsterdam",
+      "displayName": "Amsterdam, NL",
+      "photos": [
+        "./assets/photos/club_updates/amsterdam/00000270-PHOTO-2026-04-10-16-10-44.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.500Z"
+    },
+    {
+      "slug": "new-york",
+      "displayName": "New York",
+      "photos": [
+        "./assets/photos/club_updates/new-york/00000274-PHOTO-2026-04-10-16-25-03.jpg",
+        "./assets/photos/club_updates/new-york/00000275-PHOTO-2026-04-10-16-25-05.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.502Z"
+    },
+    {
+      "slug": "paris",
+      "displayName": "Paris, FR",
+      "photos": [
+        "./assets/photos/club_updates/paris/00000355-PHOTO-2026-04-25-16-20-46.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.503Z"
+    },
+    {
+      "slug": "ny-kingston",
+      "displayName": "NY - Kingston",
+      "photos": [
+        "./assets/photos/club_updates/ny-kingston/00000406-PHOTO-2026-05-05-14-48-44.jpg"
+      ],
+      "photoTreatment": "polaroid-frame",
+      "source": "whatsapp",
+      "updatedAt": "2026-06-03T14:38:03.503Z"
     }
   ]
 }

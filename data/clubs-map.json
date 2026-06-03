@@ -11,34 +11,26 @@
     "upcoming_date": "2026-03-13",
     "mapsURL": "https://maps.google.com/?q=Skina+Bilderdijkstraat+113+Amsterdam",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 2, "weekday": 5 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 2,
+      "weekday": 5
+    }
   },
   {
     "city": "atlanta, ga",
     "displayCity": "Atlanta, GA",
-    "latitude": 33.7490,
-    "longitude": -84.3880,
+    "latitude": 33.749,
+    "longitude": -84.388,
     "region": "Southeast US",
     "host": "Stephanie Nelson",
     "venue": "",
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Atlanta+GA",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
-  },
-  {
-    "city": "austin, tx",
-    "displayCity": "Austin, TX",
-    "latitude": 30.2672,
-    "longitude": -97.7431,
-    "region": "Southeast US",
-    "host": "Alyssa Gray (@alyssajgray)",
-    "venue": "Jo's Coffee Downtown, 242 W 2nd St",
-    "upcoming_date": "2026-04-26",
-    "mapsURL": "https://maps.google.com/?q=Jo%27s+Coffee+Downtown%2C+242+W+2nd+St%2C+Austin%2C+TX+78701",
-    "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "specific", "dates": ["2026-04-26"] },
-    "flyerURL": "assets/flyers/austin-apr-26-2026.png"
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "barcelona, spain",
@@ -52,12 +44,16 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Caravelle+Carrer+del+Pintor+Fortuny+31+Barcelona",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 1, "weekday": 3 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 1,
+      "weekday": 3
+    }
   },
   {
     "city": "bassano del grappa, italy",
     "displayCity": "Bassano del Grappa, IT",
-    "latitude": 45.7660,
+    "latitude": 45.766,
     "longitude": 11.7343,
     "region": "Europe",
     "host": "Charla Caponi & Amy Rich (@cncbassano)",
@@ -66,20 +62,24 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Bassano+del+Grappa+Italy",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "berlin",
     "displayCity": "Berlin, DE",
-    "latitude": 52.5200,
-    "longitude": 13.4050,
+    "latitude": 52.52,
+    "longitude": 13.405,
     "region": "Europe",
     "host": "",
     "venue": "",
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Berlin",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "biarritz, fr",
@@ -93,7 +93,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Spok+Cafe+44+Rue+Luis+Mariano+Biarritz",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 1, "weekday": 5 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 1,
+      "weekday": 5
+    }
   },
   {
     "city": "boston",
@@ -106,21 +110,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Boston+MA",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
-  },
-  {
-    "city": "boulder, co",
-    "displayCity": "Boulder, CO",
-    "latitude": 40.0150,
-    "longitude": -105.2705,
-    "region": "Other",
-    "host": "Joy Shure",
-    "email": "joy.s@skratchlabs.com",
-    "venue": "",
-    "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Boulder+CO",
-    "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "brighton, uk",
@@ -133,7 +125,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Brighton+UK",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "burlington, vermont",
@@ -146,7 +140,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Burlington+Vermont",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 2, "weekday": 1 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 2,
+      "weekday": 1
+    }
   },
   {
     "city": "cambridge, ma",
@@ -159,7 +157,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Cambridge+MA",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "chicago, usa",
@@ -172,7 +172,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Chicago+IL",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "copenhagen",
@@ -186,7 +188,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Granola+V%C3%A6rnedamsvej+5+Copenhagen",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "biweekly", "weekday": 4 }
+    "schedule": {
+      "type": "biweekly",
+      "weekday": 4
+    }
   },
   {
     "city": "denver",
@@ -199,7 +204,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Denver+CO",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "ibiza, spain",
@@ -212,7 +219,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Ibiza+Spain",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "london, uk",
@@ -226,7 +235,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+London+UK",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 1, "weekday": 4 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 1,
+      "weekday": 4
+    }
   },
   {
     "city": "los angeles",
@@ -239,7 +252,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Los+Angeles+CA",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 3, "weekday": 5 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 3,
+      "weekday": 5
+    }
   },
   {
     "city": "lugano, switzerland",
@@ -253,7 +270,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Lugano+Switzerland",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "manila, philippines",
@@ -266,7 +285,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Manila+Philippines",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "melbourne - fitzroy",
@@ -280,7 +301,9 @@
     "upcoming_date": "2026-04-24",
     "mapsURL": "https://maps.google.com/?q=Code+Black+Coffee+Flinders+Lane+Melbourne",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "melbourne - richmond",
@@ -294,7 +317,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Pillar+of+Salt+Richmond+Melbourne",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "mexico city",
@@ -308,7 +333,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Mendl+Mexico+City",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "miami",
@@ -321,7 +349,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Novela+Cafe+Social+Miami",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "milan",
@@ -335,7 +366,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=The+Urban+Society+Via+Pietrasanta+14+Milan",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unscheduled" }
+    "schedule": {
+      "type": "unscheduled"
+    }
   },
   {
     "city": "new york - downtown brooklyn",
@@ -349,7 +382,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Ace+Hotel+Downtown+Brooklyn+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 4 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 4
+    }
   },
   {
     "city": "new york - hamptons",
@@ -364,7 +400,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Tutto+Cafe+Hampton+Bays+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "new york - upper west",
@@ -378,7 +417,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Viand+Cafe+2130+Broadway+New+York+NY+10023",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "new york - hudson",
@@ -391,7 +433,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Hudson+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "new york - kingston",
@@ -404,12 +448,16 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Kingston+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 1, "weekday": 3 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 1,
+      "weekday": 3
+    }
   },
   {
     "city": "new york - les",
     "displayCity": "NY - LES",
-    "latitude": 40.7150,
+    "latitude": 40.715,
     "longitude": -73.9843,
     "region": "Northeast US",
     "host": "Heidi Hartwig (@friendsfromnewyork @heidiheartsclub)",
@@ -418,7 +466,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Rule+257+234+Eldridge+St+New+York+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 4 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 4
+    }
   },
   {
     "city": "new york - williamsburg",
@@ -433,21 +484,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Le+Crocodile+Williamsburg+Brooklyn+NY",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
-  },
-  {
-    "city": "norwich, uk",
-    "displayCity": "Norwich, UK",
-    "latitude": 52.6309,
-    "longitude": 1.2974,
-    "region": "UK",
-    "host": "Rusty Nash & Emily Delva",
-    "email": "rusty@opalescent.com",
-    "venue": "",
-    "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Norwich+UK",
-    "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 5 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "panama city",
@@ -461,7 +501,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Les+Mecs+Calle+Uruguay+Panama+City",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 4 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 4,
+      "weekday": 4
+    }
   },
   {
     "city": "paris, france",
@@ -475,7 +519,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Cult+Cafe+Paris+France",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "perth",
@@ -488,21 +534,9 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Perth+Australia",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
-  },
-  {
-    "city": "philadelphia, pa",
-    "displayCity": "Philadelphia, PA",
-    "latitude": 39.9526,
-    "longitude": -75.1652,
-    "region": "Northeast US",
-    "host": "Julie Gerstein",
-    "email": "julie.gerstein@gmail.com",
-    "venue": "",
-    "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Philadelphia+PA",
-    "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "portland, maine",
@@ -516,13 +550,15 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Breakfast+Club+Portland+Maine",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "portland, or",
     "displayCity": "Portland, OR",
     "latitude": 45.5051,
-    "longitude": -122.6750,
+    "longitude": -122.675,
     "region": "West Coast",
     "host": "Nina Sers & Chelsea Place (@ninasers)",
     "email": "ninasers@gmail.com",
@@ -530,7 +566,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=It%27s+Just+a+Feeling+2393+NE+Fremont+St+Portland+OR",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 2 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 2
+    }
   },
   {
     "city": "san francisco, ca",
@@ -544,7 +583,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Terrene+1+Hotel+San+Francisco+8+Mission+St",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 3 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 3
+    }
   },
   {
     "city": "seattle, washington",
@@ -558,7 +600,11 @@
     "upcoming_date": "2026-03-12",
     "mapsURL": "https://maps.google.com/?q=Mr.+West+Seattle+WA",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 2, "weekday": 4 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 2,
+      "weekday": 4
+    }
   },
   {
     "city": "singapore",
@@ -572,7 +618,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Grain+Traders+Singapore",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 4 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 4,
+      "weekday": 4
+    }
   },
   {
     "city": "soma, nj, usa",
@@ -586,7 +636,10 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Artie%27s+15+Newark+Way+Maplewood+NJ",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "weekly", "weekday": 5 }
+    "schedule": {
+      "type": "weekly",
+      "weekday": 5
+    }
   },
   {
     "city": "surf coast - torquay",
@@ -599,7 +652,11 @@
     "upcoming_date": "2026-03-13",
     "mapsURL": "https://maps.google.com/?q=Bomboras+Torquay+Victoria+Australia",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 2, "weekday": 5 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 2,
+      "weekday": 5
+    }
   },
   {
     "city": "sydney, au",
@@ -612,7 +669,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Ace+Hotel+Sydney+Australia",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 3, "weekday": 5 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 3,
+      "weekday": 5
+    }
   },
   {
     "city": "toronto",
@@ -625,20 +686,11 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=Boxcar+Social+298+Markham+St+Toronto",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 3 }
-  },
-  {
-    "city": "vegas",
-    "displayCity": "Las Vegas, NV",
-    "latitude": 36.1699,
-    "longitude": -115.1398,
-    "region": "Other",
-    "host": "Steph Balzer",
-    "venue": "Prosecco Fresh Italian Kitchen",
-    "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Prosecco+Fresh+Italian+Kitchen+Las+Vegas",
-    "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "monthly", "ordinal": 4, "weekday": 4 }
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 4,
+      "weekday": 3
+    }
   },
   {
     "city": "vienna",
@@ -651,7 +703,9 @@
     "upcoming_date": "2026-04-09",
     "mapsURL": "https://maps.google.com/?q=Cafe+Francais+Vienna",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "unknown" }
+    "schedule": {
+      "type": "unknown"
+    }
   },
   {
     "city": "washington dc",
@@ -664,6 +718,63 @@
     "upcoming_date": "",
     "mapsURL": "https://maps.google.com/?q=The+LINE+Hotel+DC+Adams+Morgan",
     "link": "https://breakfastclubbing.com",
-    "schedule": { "type": "biweekly", "weekday": 4 }
+    "schedule": {
+      "type": "biweekly",
+      "weekday": 4
+    }
+  },
+  {
+    "city": "ct, usa",
+    "displayCity": "CT",
+    "latitude": 41.0772,
+    "longitude": -73.4687,
+    "region": "Northeast US",
+    "host": "Mike Beyman",
+    "email": "mike@beymana.com",
+    "venue": "Zucchero Cafe",
+    "upcoming_date": "2026-04-24",
+    "mapsURL": "https://maps.google.com/?q=Zucchero+Cafe+CT",
+    "link": "https://breakfastclubbing.com",
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 4,
+      "weekday": 5
+    }
+  },
+  {
+    "city": "detroit, mi, usa",
+    "displayCity": "Detroit",
+    "latitude": 42.3299,
+    "longitude": -83.0726,
+    "region": "Other",
+    "host": "CeCe Chin (@ce_ce_chin)",
+    "email": "cecechinnyc@gmail.com",
+    "venue": "Anthology Coffee",
+    "upcoming_date": "2026-05-21",
+    "mapsURL": "https://maps.google.com/?q=Anthology+Coffee+Detroit",
+    "link": "https://breakfastclubbing.com",
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 3,
+      "weekday": 4
+    }
+  },
+  {
+    "city": "wilmington, nc, usa",
+    "displayCity": "Wilmington",
+    "latitude": 34.2257,
+    "longitude": -77.9447,
+    "region": "Southeast US",
+    "host": "Andrea Capodilupo, Kiah Palumbo (@dreadreon, @kiahpalumbo)",
+    "email": "Andrea@capodilupoconsulting.com",
+    "venue": "Current Coffee (rotating)",
+    "upcoming_date": "2026-06-05",
+    "mapsURL": "https://maps.google.com/?q=Current+Coffee+Wilmington+NC",
+    "link": "https://breakfastclubbing.com",
+    "schedule": {
+      "type": "monthly",
+      "ordinal": 1,
+      "weekday": 5
+    }
   }
 ]

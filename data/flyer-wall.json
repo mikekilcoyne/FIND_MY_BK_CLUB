@@ -1,6 +1,11 @@
 {
   "items": [
     {
+      "city": "Amsterdam, NL",
+      "url": "./assets/flyers/2026/00000545-PHOTO-2026-05-25-17-22-13.jpg",
+      "sourceFile": "00000545-PHOTO-2026-05-25-17-22-13.jpg"
+    },
+    {
       "city": "Austin, TX",
       "url": "./assets/flyers/2026/BC_Austin_April26_Flyer.png",
       "sourceFile": "BC_Austin_April26_Flyer.png"
@@ -124,6 +129,11 @@
       "city": "Torquay, AU",
       "url": "./assets/flyers/2026/Torquay_2026-04-17.png",
       "sourceFile": "Torquay_2026-04-17.png"
+    },
+    {
+      "city": "Torquay, AU",
+      "url": "./assets/flyers/2026/00000578-PHOTO-2026-05-31-06-17-36.jpg",
+      "sourceFile": "00000578-PHOTO-2026-05-31-06-17-36.jpg"
     },
     {
       "city": "Vienna, AT",
