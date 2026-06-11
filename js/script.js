@@ -885,7 +885,21 @@ function normalizeFlyerCityKey(value) {
 // date) or dated TODAY/UPCOMING. An expired dated flyer is never shareable —
 // better no Share button than sending a friend to yesterday's breakfast.
 async function applyManifestFlyers(list) {
-  const manifest = await fetchFlyerWallManifestItems();
+  // Admin-uploaded blob flyers merge in ahead of the static manifest, so an
+  // /admin upload plugs straight into the card Share Flyer buttons too —
+  // no redeploy needed. (Blob flyers carry flyerDate; the date-gate applies.)
+  const [blobItems, staticItems] = await Promise.all([
+    fetchBlobFlyerItems(),
+    fetchFlyerWallManifestItems(),
+  ]);
+  const manifest = blobItems
+    .map((f) => ({
+      city: f.city,
+      url: f.url,
+      flyerDate: (String(f.flyerDate || "").match(/^\d{4}-\d{2}-\d{2}/) || [""])[0],
+      evergreen: false,
+    }))
+    .concat(staticItems);
   if (!manifest.length) return;
 
   const today = new Date();
