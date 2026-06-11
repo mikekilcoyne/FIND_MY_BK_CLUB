@@ -1,0 +1,63 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Typeout,Helvetica Neue,122,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,5,80,80,180,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:00.25,Typeout,,0,0,0,,
+Dialogue: 0,0:00:00.25,0:00:00.32,Typeout,,0,0,0,,W
+Dialogue: 0,0:00:00.32,0:00:00.38,Typeout,,0,0,0,,Wh
+Dialogue: 0,0:00:00.38,0:00:00.44,Typeout,,0,0,0,,Wha
+Dialogue: 0,0:00:00.44,0:00:00.51,Typeout,,0,0,0,,What
+Dialogue: 0,0:00:00.51,0:00:00.57,Typeout,,0,0,0,,What 
+Dialogue: 0,0:00:00.57,0:00:00.64,Typeout,,0,0,0,,What i
+Dialogue: 0,0:00:00.64,0:00:00.70,Typeout,,0,0,0,,What if
+Dialogue: 0,0:00:00.70,0:00:00.77,Typeout,,0,0,0,,What if 
+Dialogue: 0,0:00:00.77,0:00:00.83,Typeout,,0,0,0,,What if b
+Dialogue: 0,0:00:00.83,0:00:00.90,Typeout,,0,0,0,,What if bu
+Dialogue: 0,0:00:00.90,0:00:00.96,Typeout,,0,0,0,,What if bui
+Dialogue: 0,0:00:00.96,0:00:01.03,Typeout,,0,0,0,,What if buil
+Dialogue: 0,0:00:01.03,0:00:01.09,Typeout,,0,0,0,,What if build
+Dialogue: 0,0:00:01.09,0:00:01.16,Typeout,,0,0,0,,What if buildi
+Dialogue: 0,0:00:01.16,0:00:01.22,Typeout,,0,0,0,,What if buildin
+Dialogue: 0,0:00:01.22,0:00:01.29,Typeout,,0,0,0,,What if building
+Dialogue: 0,0:00:01.29,0:00:01.35,Typeout,,0,0,0,,What if building 
+Dialogue: 0,0:00:01.35,0:00:01.42,Typeout,,0,0,0,,What if building a
+Dialogue: 0,0:00:01.42,0:00:01.48,Typeout,,0,0,0,,What if building a 
+Dialogue: 0,0:00:01.48,0:00:01.55,Typeout,,0,0,0,,What if building a g
+Dialogue: 0,0:00:01.55,0:00:01.61,Typeout,,0,0,0,,What if building a gl
+Dialogue: 0,0:00:01.61,0:00:01.68,Typeout,,0,0,0,,What if building a glo
+Dialogue: 0,0:00:01.68,0:00:01.74,Typeout,,0,0,0,,What if building a glob
+Dialogue: 0,0:00:01.74,0:00:01.81,Typeout,,0,0,0,,What if building a globa
+Dialogue: 0,0:00:01.81,0:00:01.87,Typeout,,0,0,0,,What if building a global
+Dialogue: 0,0:00:01.87,0:00:01.94,Typeout,,0,0,0,,What if building a global\N
+Dialogue: 0,0:00:01.94,0:00:02.00,Typeout,,0,0,0,,What if building a global\Nc
+Dialogue: 0,0:00:02.00,0:00:02.07,Typeout,,0,0,0,,What if building a global\Nco
+Dialogue: 0,0:00:02.07,0:00:02.13,Typeout,,0,0,0,,What if building a global\Ncom
+Dialogue: 0,0:00:02.13,0:00:02.20,Typeout,,0,0,0,,What if building a global\Ncomm
+Dialogue: 0,0:00:02.20,0:00:02.26,Typeout,,0,0,0,,What if building a global\Ncommu
+Dialogue: 0,0:00:02.26,0:00:02.33,Typeout,,0,0,0,,What if building a global\Ncommun
+Dialogue: 0,0:00:02.33,0:00:02.39,Typeout,,0,0,0,,What if building a global\Ncommuni
+Dialogue: 0,0:00:02.39,0:00:02.46,Typeout,,0,0,0,,What if building a global\Ncommunit
+Dialogue: 0,0:00:02.46,0:00:02.52,Typeout,,0,0,0,,What if building a global\Ncommunity
+Dialogue: 0,0:00:02.52,0:00:02.59,Typeout,,0,0,0,,What if building a global\Ncommunity 
+Dialogue: 0,0:00:02.59,0:00:02.65,Typeout,,0,0,0,,What if building a global\Ncommunity w
+Dialogue: 0,0:00:02.65,0:00:02.72,Typeout,,0,0,0,,What if building a global\Ncommunity wa
+Dialogue: 0,0:00:02.72,0:00:02.78,Typeout,,0,0,0,,What if building a global\Ncommunity was
+Dialogue: 0,0:00:02.78,0:00:02.85,Typeout,,0,0,0,,What if building a global\Ncommunity was 
+Dialogue: 0,0:00:02.85,0:00:02.91,Typeout,,0,0,0,,What if building a global\Ncommunity was e
+Dialogue: 0,0:00:02.91,0:00:02.98,Typeout,,0,0,0,,What if building a global\Ncommunity was ea
+Dialogue: 0,0:00:02.98,0:00:03.04,Typeout,,0,0,0,,What if building a global\Ncommunity was eas
+Dialogue: 0,0:00:03.04,0:00:03.11,Typeout,,0,0,0,,What if building a global\Ncommunity was easy
+Dialogue: 0,0:00:03.11,0:00:03.17,Typeout,,0,0,0,,What if building a global\Ncommunity was easy.
+Dialogue: 0,0:00:03.17,0:00:03.24,Typeout,,0,0,0,,What if building a global\Ncommunity was easy..
+Dialogue: 0,0:00:03.24,0:00:03.30,Typeout,,0,0,0,,What if building a global\Ncommunity was easy...
+Dialogue: 0,0:00:03.30,0:00:04.47,Typeout,,0,0,0,,What if building a global\Ncommunity was easy...?

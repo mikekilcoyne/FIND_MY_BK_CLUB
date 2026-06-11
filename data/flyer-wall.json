@@ -2,13 +2,15 @@
   "items": [
     {
       "city": "Amsterdam, NL",
-      "url": "./assets/flyers/2026/00000545-PHOTO-2026-05-25-17-22-13.jpg",
-      "sourceFile": "00000545-PHOTO-2026-05-25-17-22-13.jpg"
+      "url": "./assets/flyers/2026/Amsterdam_2026-05-29.jpg",
+      "sourceFile": "Amsterdam_2026-05-29.jpg",
+      "date": "2026-05-29"
     },
     {
       "city": "Austin, TX",
       "url": "./assets/flyers/2026/BC_Austin_April26_Flyer.png",
-      "sourceFile": "BC_Austin_April26_Flyer.png"
+      "sourceFile": "BC_Austin_April26_Flyer.png",
+      "date": "2026-04-30"
     },
     {
       "city": "Barcelona, ES",
@@ -16,9 +18,34 @@
       "sourceFile": "Barcelona_2026-04-08.jpg"
     },
     {
+      "city": "Barcelona, ES",
+      "url": "./assets/flyers/2026/Barcelona_2026-05-06.jpg",
+      "sourceFile": "Barcelona_2026-05-06.jpg",
+      "date": "2026-05-06",
+      "evergreen": true
+    },
+    {
+      "city": "Biarritz, FR",
+      "url": "./assets/flyers/2026/Biarritz_2026-05-15.jpg",
+      "sourceFile": "Biarritz_2026-05-15.jpg",
+      "date": "2026-05-15"
+    },
+    {
+      "city": "Biarritz, FR",
+      "url": "./assets/flyers/2026/Biarritz_2026-06-19.jpg",
+      "sourceFile": "Biarritz_2026-06-19.jpg",
+      "date": "2026-06-19"
+    },
+    {
       "city": "Burlington, VT",
       "url": "./assets/flyers/2026/BurlingtonVT_2026-04-13.jpg",
       "sourceFile": "BurlingtonVT_2026-04-13.jpg"
+    },
+    {
+      "city": "CT",
+      "url": "./assets/flyers/2026/CT_2026-April-24_Flyer.png",
+      "sourceFile": "CT_2026-April-24_Flyer.png",
+      "date": "2026-04-24"
     },
     {
       "city": "Cambridge, MA",
@@ -41,9 +68,10 @@
       "sourceFile": "Cph_2026-04-09.png"
     },
     {
-      "city": "CT",
-      "url": "./assets/flyers/2026/CT_2026-April-24_Flyer.png",
-      "sourceFile": "CT_2026-April-24_Flyer.png"
+      "city": "Copenhagen, DK",
+      "url": "./assets/flyers/2026/Copenhagen_2026-06-10.jpg",
+      "sourceFile": "Copenhagen_2026-06-10.jpg",
+      "date": "2026-06-10"
     },
     {
       "city": "Denver, CO",
@@ -51,9 +79,40 @@
       "sourceFile": "Denver_2026-05-07.png"
     },
     {
+      "city": "Honolulu, HI",
+      "url": "./assets/flyers/2026/Honolulu_2026-06-19.jpg",
+      "sourceFile": "Honolulu_2026-06-19.jpg",
+      "date": "2026-06-19"
+    },
+    {
+      "city": "Hudson, NY",
+      "url": "./assets/flyers/2026/HudsonNY_2026-05-13.jpg",
+      "sourceFile": "HudsonNY_2026-05-13.jpg",
+      "date": "2026-05-13"
+    },
+    {
+      "city": "London, UK",
+      "url": "./assets/flyers/2026/London_2026-06-04.jpg",
+      "sourceFile": "London_2026-06-04.jpg",
+      "date": "2026-06-04"
+    },
+    {
       "city": "Los Angeles, CA",
       "url": "./assets/flyers/2026/LAWestside_2026_03_20.png",
-      "sourceFile": "LAWestside_2026_03_20.png"
+      "sourceFile": "LAWestside_2026_03_20.png",
+      "date": "2026-03-20"
+    },
+    {
+      "city": "Los Angeles, CA",
+      "url": "./assets/flyers/2026/LAWestside_2026-05-15.jpg",
+      "sourceFile": "LAWestside_2026-05-15.jpg",
+      "date": "2026-05-15"
+    },
+    {
+      "city": "Los Angeles, CA",
+      "url": "./assets/flyers/2026/LosAngelesSilverlake_2026-05-08.jpeg",
+      "sourceFile": "LosAngelesSilverlake_2026-05-08.jpeg",
+      "date": "2026-05-08"
     },
     {
       "city": "Maplewood, NJ",
@@ -71,9 +130,21 @@
       "sourceFile": "MaplewoodNJ_2026-04-24.png"
     },
     {
+      "city": "Maplewood, NJ",
+      "url": "./assets/flyers/2026/MaplewoodSOMA_2026-05.jpg",
+      "sourceFile": "MaplewoodSOMA_2026-05.jpg",
+      "date": "2026-05-29"
+    },
+    {
       "city": "Melbourne - CBD, AU",
       "url": "./assets/flyers/2026/Melb.png",
       "sourceFile": "Melb.png"
+    },
+    {
+      "city": "Melbourne - CBD, AU",
+      "url": "./assets/flyers/2026/MelbourneCBD_2026-05-22.jpg",
+      "sourceFile": "MelbourneCBD_2026-05-22.jpg",
+      "date": "2026-05-22"
     },
     {
       "city": "Melbourne - Richmond, AU",
@@ -82,13 +153,14 @@
     },
     {
       "city": "Milano, IT",
-      "url": "./assets/flyers/2026/Milano_2026-04-16 .jpg",
-      "sourceFile": "Milano_2026-04-16 .jpg"
+      "url": "./assets/flyers/2026/Milano_2026-04-16.jpg",
+      "sourceFile": "Milano_2026-04-16.jpg"
     },
     {
       "city": "NY - Hamptons",
       "url": "./assets/flyers/2026/bc_hamptons_330.png",
-      "sourceFile": "bc_hamptons_330.png"
+      "sourceFile": "bc_hamptons_330.png",
+      "date": "2026-03-30"
     },
     {
       "city": "NY - Hamptons",
@@ -101,19 +173,48 @@
       "sourceFile": "KingstonNY_2026-04-06.jpg"
     },
     {
-      "city": "NY - Williamsburg",
-      "url": "./assets/flyers/2026/BC Williamsburg 3.18.26.png",
-      "sourceFile": "BC Williamsburg 3.18.26.png"
+      "city": "NY - Kingston",
+      "url": "./assets/flyers/2026/KingstonNY_2026-06-01.jpg",
+      "sourceFile": "KingstonNY_2026-06-01.jpg",
+      "date": "2026-06-01",
+      "evergreen": true
+    },
+    {
+      "city": "NY - Lower East Side",
+      "url": "./assets/flyers/2026/NYLowerEastSide_2026-05-28.jpg",
+      "sourceFile": "NYLowerEastSide_2026-05-28.jpg",
+      "date": "2026-05-28",
+      "evergreen": true
     },
     {
       "city": "NY - Williamsburg",
-      "url": "./assets/flyers/2026/BC Wmsburg 3.25.26.png",
-      "sourceFile": "BC Wmsburg 3.25.26.png"
+      "url": "./assets/flyers/2026/Williamsburg_2026-03-18.png",
+      "sourceFile": "Williamsburg_2026-03-18.png",
+      "date": "2026-03-18"
+    },
+    {
+      "city": "NY - Williamsburg",
+      "url": "./assets/flyers/2026/Williamsburg_2026-03-25.png",
+      "sourceFile": "Williamsburg_2026-03-25.png",
+      "date": "2026-03-25"
+    },
+    {
+      "city": "Paris, FR",
+      "url": "./assets/flyers/2026/Paris_2026-05-11.jpg",
+      "sourceFile": "Paris_2026-05-11.jpg",
+      "date": "2026-05-11"
     },
     {
       "city": "Portland, ME",
-      "url": "./assets/flyers/2026/BC Portland Maine April 2026.jpeg",
-      "sourceFile": "BC Portland Maine April 2026.jpeg"
+      "url": "./assets/flyers/2026/PortlandME_2026-04.jpeg",
+      "sourceFile": "PortlandME_2026-04.jpeg",
+      "date": "2026-04-30"
+    },
+    {
+      "city": "Portland, ME",
+      "url": "./assets/flyers/2026/PortlandME_2026-05-28.jpg",
+      "sourceFile": "PortlandME_2026-05-28.jpg",
+      "date": "2026-05-28"
     },
     {
       "city": "Portland, OR",
@@ -122,8 +223,20 @@
     },
     {
       "city": "San Francisco, CA",
-      "url": "./assets/flyers/2026/SF breakfast club flyer.png",
-      "sourceFile": "SF breakfast club flyer.png"
+      "url": "./assets/flyers/2026/SFBreakfastClub.png",
+      "sourceFile": "SFBreakfastClub.png"
+    },
+    {
+      "city": "Seattle, WA",
+      "url": "./assets/flyers/2026/Seattle_2026-05-14.jpg",
+      "sourceFile": "Seattle_2026-05-14.jpg",
+      "date": "2026-05-14"
+    },
+    {
+      "city": "Toronto, ON",
+      "url": "./assets/flyers/2026/Toronto_2026-05-27.jpg",
+      "sourceFile": "Toronto_2026-05-27.jpg",
+      "date": "2026-05-27"
     },
     {
       "city": "Torquay, AU",
@@ -132,18 +245,21 @@
     },
     {
       "city": "Torquay, AU",
-      "url": "./assets/flyers/2026/00000578-PHOTO-2026-05-31-06-17-36.jpg",
-      "sourceFile": "00000578-PHOTO-2026-05-31-06-17-36.jpg"
+      "url": "./assets/flyers/2026/Torquay_2026-06-05.jpg",
+      "sourceFile": "Torquay_2026-06-05.jpg",
+      "date": "2026-06-05"
     },
     {
       "city": "Vienna, AT",
       "url": "./assets/flyers/2026/Vienna_APR26.png",
-      "sourceFile": "Vienna_APR26.png"
+      "sourceFile": "Vienna_APR26.png",
+      "date": "2026-04-30"
     },
     {
       "city": "Washington, DC",
-      "url": "./assets/flyers/2026/DC BC April 9.2026.jpeg",
-      "sourceFile": "DC BC April 9.2026.jpeg"
+      "url": "./assets/flyers/2026/WashingtonDC_2026-04-09.jpeg",
+      "sourceFile": "WashingtonDC_2026-04-09.jpeg",
+      "date": "2026-04-09"
     }
   ]
 }

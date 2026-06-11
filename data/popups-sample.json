@@ -1,0 +1,29 @@
+{
+  "_note": "Local-dev fallback only. Production pop-ups live in Netlify blobs via get-popups; this file is served when that function is unreachable (e.g. python3 -m http.server). Real June 2026 pop-ups from the hosts chat.",
+  "items": [
+    {
+      "headline": "K\u00f8benhavn Pop-Up",
+      "subheadline": "Breakfast Club lands in Copenhagen",
+      "date": "2026-06-10",
+      "time": "7:45 \u2013 9:15 am",
+      "venue": "\u00d812 Central, Silkegade 1",
+      "city": "Copenhagen, DK"
+    },
+    {
+      "headline": "Breakfast Club Biarritz",
+      "subheadline": "A one-morning pop-up \u00b7 espresso edition",
+      "date": "2026-06-19",
+      "time": "9h \u2013 10h30",
+      "venue": "hino, 3 rue de Larralde",
+      "city": "Biarritz, FR"
+    },
+    {
+      "headline": "Breakfast Club Lisbon",
+      "subheadline": "Every Friday \u2014 everyone's invited, especially you",
+      "date": "2026-06-13",
+      "time": "10:00 AM",
+      "venue": "Raffi's, Campo de Ourique",
+      "city": "Lisbon, PT"
+    }
+  ]
+}

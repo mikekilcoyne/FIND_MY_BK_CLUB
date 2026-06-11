@@ -314,4 +314,6 @@ window.STATIC_CLUBS = [
     isNight: false,
     isNew: true,
   },
+  // Lisbon lives in the Pop-Ups section (Netlify blob / popups-sample.json),
+  // not as a static club card — per the production blob: Fridays, 10:00 AM.
 ];

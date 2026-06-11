@@ -71,6 +71,95 @@
     return parts.join("  ·  ");
   }
 
+  function getShareUrl(item) {
+    // Absolute URL to the flyer image so the link unfurls with the artwork.
+    return new URL(item.url, window.location.href).href;
+  }
+
+  function flyerFileMeta(item) {
+    var name = decodeURIComponent((item.url.split("/").pop() || "flyer").split("?")[0]);
+    var ext = (name.indexOf(".") >= 0 ? name.split(".").pop() : "").toLowerCase();
+    var types = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", pdf: "application/pdf" };
+    if (!types[ext]) {
+      ext = "jpg";
+      name += ".jpg";
+    }
+    return {
+      name: name,
+      type: types[ext],
+      label: ext === "pdf" ? "PDF" : ext === "png" ? "PNG" : "JPG",
+    };
+  }
+
+  function canShareFlyerFiles() {
+    if (!navigator.canShare || typeof window.File !== "function") return false;
+    try {
+      return navigator.canShare({ files: [new File([new Blob()], "flyer.jpg", { type: "image/jpeg" })] });
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  // Share the actual JPG/PDF through the native share sheet (WhatsApp,
+  // Messages, Mail, AirDrop...). Falls back to a WhatsApp text+link.
+  function shareFlyerFile(item, btn) {
+    var meta = flyerFileMeta(item);
+    var original = "Share the Flyer (" + meta.label + ")";
+    btn.textContent = "Preparing...";
+    fetch(item.url)
+      .then(function (res) {
+        if (!res.ok) throw new Error("fetch failed");
+        return res.blob();
+      })
+      .then(function (blob) {
+        var file = new File([blob], meta.name, { type: blob.type || meta.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          return navigator.share({ files: [file], text: buildShareText(item) });
+        }
+        throw new Error("file share unsupported");
+      })
+      .catch(function (err) {
+        if (!err || err.name !== "AbortError") {
+          window.open(
+            "https://wa.me/?text=" + encodeURIComponent(buildShareText(item) + "\n" + getShareUrl(item)),
+            "_blank",
+            "noopener",
+          );
+        }
+      })
+      .then(function () {
+        btn.textContent = original;
+      });
+  }
+
+  function buildShareText(item) {
+    var line = "Breakfast Club" + (item.city ? " " + item.city : "");
+    var meta = buildMetaLine(item);
+    if (meta) line += " — " + meta;
+    line += ". Everyone's invited. Especially you.";
+    return line;
+  }
+
+  function updateShareTargets(item) {
+    if (!lightbox || !item) return;
+    var meta = flyerFileMeta(item);
+    var payload = encodeURIComponent(buildShareText(item) + "\n" + getShareUrl(item));
+    var nativeBtn = lightbox.querySelector(".flyer-share__btn--native");
+    if (nativeBtn && !nativeBtn.hidden) {
+      nativeBtn.textContent = "Share the Flyer (" + meta.label + ")";
+    }
+    var wa = lightbox.querySelector(".flyer-share__btn--whatsapp:not(.flyer-share__btn--native)");
+    if (wa) wa.href = "https://wa.me/?text=" + payload;
+    var sms = lightbox.querySelector(".flyer-share__btn--sms");
+    if (sms) sms.href = "sms:?&body=" + payload;
+    var dl = lightbox.querySelector(".flyer-share__btn--download");
+    if (dl) {
+      dl.href = item.url;
+      dl.setAttribute("download", meta.name);
+      dl.textContent = "Download " + meta.label;
+    }
+  }
+
   function setCaptionFaded(isFaded) {
     if (!lightbox) return;
     var caption = lightbox.querySelector(".flyer-lightbox-caption");
@@ -178,10 +267,80 @@
     hint.className = "flyer-lightbox-hint";
     hint.textContent = "Swipe or tap arrows";
 
+    // ── Easy to Share bar ────────────────────────────────────────────────
+    var shareBar = document.createElement("div");
+    shareBar.className = "flyer-share";
+
+    var shareEyebrow = document.createElement("span");
+    shareEyebrow.className = "flyer-share__eyebrow";
+    shareEyebrow.textContent = "Easy to Share";
+
+    var fileShareSupported = canShareFlyerFiles();
+
+    // Primary: share the actual JPG/PDF via the native sheet (mobile et al.)
+    var shareNative = document.createElement("button");
+    shareNative.type = "button";
+    shareNative.className = "flyer-share__btn flyer-share__btn--whatsapp flyer-share__btn--native";
+    shareNative.textContent = "Share the Flyer (JPG)";
+    shareNative.hidden = !fileShareSupported;
+    shareNative.addEventListener("click", function () {
+      var item = flyerGalleryItems[activeFlyerIndex];
+      if (item) shareFlyerFile(item, shareNative);
+    });
+
+    // Fallbacks for browsers that can't share files: text + link
+    var shareWhatsApp = document.createElement("a");
+    shareWhatsApp.className = "flyer-share__btn flyer-share__btn--whatsapp";
+    shareWhatsApp.target = "_blank";
+    shareWhatsApp.rel = "noopener";
+    shareWhatsApp.textContent = "Send to a Friend on WhatsApp";
+    shareWhatsApp.hidden = fileShareSupported;
+
+    var shareSms = document.createElement("a");
+    shareSms.className = "flyer-share__btn flyer-share__btn--sms";
+    shareSms.textContent = "Text It";
+    shareSms.hidden = fileShareSupported;
+
+    // Always available: grab the file itself
+    var shareDownload = document.createElement("a");
+    shareDownload.className = "flyer-share__btn flyer-share__btn--download";
+    shareDownload.textContent = "Download";
+
+    var shareCopy = document.createElement("button");
+    shareCopy.type = "button";
+    shareCopy.className = "flyer-share__btn flyer-share__btn--copy";
+    shareCopy.textContent = "Copy Link";
+    shareCopy.addEventListener("click", function () {
+      var item = flyerGalleryItems[activeFlyerIndex];
+      if (!item) return;
+      var payload = buildShareText(item) + "\n" + getShareUrl(item);
+      var done = function () {
+        shareCopy.textContent = "Copied!";
+        shareCopy.classList.add("is-copied");
+        window.setTimeout(function () {
+          shareCopy.textContent = "Copy Link";
+          shareCopy.classList.remove("is-copied");
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(payload).then(done, done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = payload;
+        document.body.append(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        done();
+      }
+    });
+
+    shareBar.append(shareEyebrow, shareNative, shareWhatsApp, shareSms, shareDownload, shareCopy);
+
     var gallery = document.createElement("div");
     gallery.className = "flyer-lightbox-gallery";
 
-    panel.append(topbar, stage, hint, gallery);
+    panel.append(topbar, stage, hint, shareBar, gallery);
     lightbox.append(backdrop, panel);
 
     lightbox.addEventListener("click", function (e) {
@@ -242,6 +401,7 @@
     }
     captionMeta.textContent = metaLine;
     caption.hidden = !item.city && !metaLine;
+    updateShareTargets(item);
     scheduleCaptionFade();
 
     var multi = flyerGalleryItems.length > 1;

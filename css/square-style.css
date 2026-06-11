@@ -1,0 +1,510 @@
+/* ────────────────────────────────────────────────────────────────────────────
+   SQUARE STYLE — design-direction prototype (June 2026)
+   Hard corners, 2px ink borders, offset block shadows — same language as the
+   flyer Easy to Share bar. This file is a pure overlay loaded last; remove the
+   <link> in index.html / fly-er.html to revert the whole direction.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --sq-ink: #111111;
+  --sq-paper: #ffffff;
+  --sq-pop: #25d366;
+  --sq-shadow-sm: 3px 3px 0 var(--sq-ink);
+  --sq-shadow: 4px 4px 0 var(--sq-ink);
+  --sq-shadow-lg: 8px 8px 0 var(--sq-ink);
+}
+
+/* ── Home: feature callout button ("See the Latest Fly-Ers") ─────────────── */
+
+.feature-callout__button {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: var(--sq-shadow);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.feature-callout__button:hover,
+.feature-callout__button:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--sq-ink);
+}
+
+.feature-callout__button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--sq-ink);
+}
+
+/* ── Home: search + left-rail mobile action buttons ──────────────────────── */
+
+.search-wrap input,
+#club-search {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-sm);
+}
+
+.mobile-action-btn {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  box-shadow: var(--sq-shadow-sm);
+}
+
+/* ── Club cards: utility icon chips (map / instagram / linkedin) ─────────── */
+
+.card-utility a,
+.card-utility button,
+.social-icon-link,
+.social-menu-trigger {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  box-shadow: var(--sq-shadow-sm);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.card-utility a:hover,
+.card-utility button:hover,
+.card-utility a:focus-visible,
+.card-utility button:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sq-shadow);
+}
+
+.card-utility a:active,
+.card-utility button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--sq-ink);
+}
+
+/* night edition cards: keep the dark fill, square the shape */
+.club-card.night-edition .card-utility a,
+.club-card.night-edition .card-utility button {
+  border-radius: 0;
+  border-width: 2px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* ── Pop-Ups strip cards ─────────────────────────────────────────────────── */
+
+.popup-card {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: 5px 5px 0 var(--sq-ink);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.popup-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--sq-ink);
+}
+
+.popup-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--sq-ink);
+}
+
+/* ── Pop-up drawer (club modal) ──────────────────────────────────────────── */
+
+#popup-drawer {
+  border-left: 2px solid var(--sq-ink);
+  border-radius: 0;
+}
+
+@media (max-width: 720px) {
+  #popup-drawer {
+    border-left: 0;
+    border-top: 2px solid var(--sq-ink);
+    border-radius: 0;
+  }
+}
+
+.popup-drawer-close-btn {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  box-shadow: var(--sq-shadow-sm);
+}
+
+.popup-drawer-sticker {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.popup-drawer-rsvp {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.popup-drawer-rsvp:hover,
+.popup-drawer-rsvp:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--sq-ink);
+}
+
+/* ── "Spotted something off?" club-update modal ──────────────────────────── */
+
+.club-update-modal {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-lg);
+}
+
+.club-update-label input,
+.club-update-label textarea {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+}
+
+.club-update-close {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  box-shadow: var(--sq-shadow-sm);
+}
+
+.club-update-submit {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-pop);
+  color: var(--sq-ink);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: var(--sq-shadow);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.club-update-submit:hover,
+.club-update-submit:focus-visible {
+  background: var(--sq-pop);
+  border-color: var(--sq-ink);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--sq-ink);
+}
+
+/* ── Flyer lightbox chrome (close button) + wall chrome links ────────────── */
+
+.flyer-lightbox-close {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  box-shadow: var(--sq-shadow-sm);
+}
+
+.flyer-page-back,
+.flyer-page-jump {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-sm);
+}
+
+/* ── Back to top ─────────────────────────────────────────────────────────── */
+
+.back-to-top-btn {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  box-shadow: var(--sq-shadow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PASS 2 — full-board consistency: filters, chips, badges, cards
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Region filter pills (All / NEW / Northeast US / …) ──────────────────── */
+
+.region-pill,
+.region-pill-new,
+.region-mobile-summary {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.region-pill:hover,
+.region-pill-new:hover,
+.region-pill:focus-visible,
+.region-pill-new:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sq-shadow);
+}
+
+.region-pill.active,
+.region-pill-new.active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--sq-ink);
+}
+
+/* ── Left rail day chips (Mon / Tue / …) ─────────────────────────────────── */
+
+.day-chip {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: var(--sq-shadow-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.day-chip:hover,
+.day-chip:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sq-shadow);
+}
+
+.day-chip.active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--sq-ink);
+}
+
+/* ── Club cards — the container itself goes square ───────────────────────── */
+
+.club-card {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  box-shadow: 5px 5px 0 var(--sq-ink);
+}
+
+.club-card.night-edition {
+  border-color: var(--sq-ink);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* ── Card schedule pill ("FIRST MONDAY") ─────────────────────────────────── */
+
+.card-timetable-day {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  box-shadow: 2px 2px 0 var(--sq-ink);
+}
+
+/* ── "Latest happenings..." button + NEW badge ───────────────────────────── */
+
+.card-latest-happenings-btn {
+  border: 2px solid var(--sq-ink) !important;
+  border-radius: 0 !important;
+  background: var(--sq-paper) !important;
+  box-shadow: var(--sq-shadow-sm) !important;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.card-latest-happenings-btn:hover,
+.card-latest-happenings-btn:focus-visible {
+  border-color: var(--sq-ink) !important;
+  background: #fff6dd !important;
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sq-shadow) !important;
+}
+
+.card-latest-happenings-btn__badge {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: #0d6e43;
+  box-shadow: none;
+}
+
+/* ── NEW feature badge (rail) + update "?" trigger ───────────────────────── */
+
+.new-feature-badge {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+}
+
+.card-update-link {
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-paper);
+  color: var(--sq-ink);
+  box-shadow: 2px 2px 0 var(--sq-ink);
+}
+
+/* ── Calendar + map rail boxes ───────────────────────────────────────────── */
+
+/* Rail info boxes stay clean — square language via a single ink rule, no box */
+.calendar-box,
+.map-box {
+  border: 0;
+  border-top: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ── Card "Share Flyer" — clean green square button (replaces marker text) ── */
+
+.card-flyer-callout {
+  transform: none;
+  border: 2px solid var(--sq-ink);
+  border-radius: 0;
+  background: var(--sq-pop);
+  padding: 8px 14px;
+  margin: 2px 0 4px;
+  box-shadow: var(--sq-shadow-sm);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.card-flyer-callout:hover,
+.card-flyer-callout:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--sq-shadow);
+}
+
+.card-flyer-callout:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--sq-ink);
+}
+
+.card-flyer-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sq-ink);
+  text-decoration: none;
+}
+
+.club-card.night-edition .card-flyer-callout {
+  background: var(--sq-pop);
+}
+
+.club-card.night-edition .card-flyer-title {
+  color: var(--sq-ink);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PASS 3 — share bar on one line, Share Flyer chip in the utility row
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* [hidden] must always win over our explicit display values */
+.flyer-share__btn[hidden],
+.flyer-share [hidden] {
+  display: none !important;
+}
+
+/* Share bar: one clean row, gallery strip stays visible below it */
+.flyer-share {
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 10px 12px 4px;
+}
+
+.flyer-share__eyebrow {
+  flex-basis: auto;
+  display: none; /* the buttons say it all — reclaim the vertical space */
+}
+
+.flyer-share__btn {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 14px;
+  font-size: clamp(10px, 1.4vw, 13px);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: var(--sq-shadow-sm);
+}
+
+.flyer-share__btn--whatsapp {
+  flex: 0 1 auto;
+  font-size: clamp(10px, 1.4vw, 13px);
+  padding: 10px 16px;
+}
+
+@media (max-width: 720px) {
+  .flyer-share {
+    gap: 6px;
+    padding: 8px 6px 2px;
+  }
+
+  .flyer-share__btn,
+  .flyer-share__btn--whatsapp {
+    flex: 1 1 0;
+    min-height: 40px;
+    padding: 8px 6px;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+  }
+}
+
+/* Card utility row: Share Flyer as a chip, right of the other buttons */
+.card-utility .card-flyer-callout {
+  margin: 0;
+  min-height: 32px;
+  padding: 5px 12px;
+  align-self: auto;
+}
+
+.card-utility .card-flyer-title {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PASS 4 — green Share Flyer chip wins, nothing ever clips
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Share Flyer chip: green always (outranks the generic .card-utility button
+   paper-white rule), full label, never truncated */
+.card-utility .card-flyer-callout,
+.card-utility button.card-flyer-callout {
+  background: var(--sq-pop);
+  color: var(--sq-ink);
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.card-utility .card-flyer-callout:hover,
+.card-utility .card-flyer-callout:focus-visible {
+  background: var(--sq-pop);
+  color: var(--sq-ink);
+}
+
+.card-utility .card-flyer-title {
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Lightbox caption: clamp so long city names wrap instead of clipping */
+.flyer-lightbox-caption {
+  max-width: 92%;
+}
+
+.flyer-lightbox-caption-city {
+  overflow-wrap: break-word;
+  line-height: 0.95;
+}

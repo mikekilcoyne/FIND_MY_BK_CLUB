@@ -389,3 +389,86 @@ body.flyer-overlay-open .site-footer {
     width: 34px;
   }
 }
+
+/* ── Easy to Share bar ──────────────────────────────────────────────────── */
+
+.flyer-share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px 6px;
+}
+
+.flyer-share__eyebrow {
+  flex-basis: 100%;
+  text-align: center;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.55);
+}
+
+.flyer-share__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 14px 26px;
+  border: 2px solid #111111;
+  background: #ffffff;
+  color: #111111;
+  text-decoration: none;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #111111;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.flyer-share__btn:hover,
+.flyer-share__btn:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #111111;
+}
+
+.flyer-share__btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #111111;
+}
+
+.flyer-share__btn--whatsapp {
+  background: #25d366;
+  border-color: #111111;
+  color: #111111;
+  font-size: clamp(16px, 2.4vw, 22px);
+  padding: 16px 32px;
+}
+
+.flyer-share__btn--copy.is-copied {
+  background: #111111;
+  color: #ffffff;
+}
+
+@media (max-width: 720px) {
+  .flyer-share {
+    gap: 8px;
+    padding: 10px 10px 4px;
+  }
+
+  .flyer-share__btn--whatsapp {
+    flex-basis: 100%;
+  }
+
+  .flyer-share__btn--sms,
+  .flyer-share__btn--copy {
+    flex: 1 1 0;
+  }
+}

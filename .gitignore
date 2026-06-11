@@ -7,3 +7,4 @@ private/
 # Local Netlify folder
 .netlify
 node_modules
+.claude/

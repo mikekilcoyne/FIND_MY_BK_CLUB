@@ -846,10 +846,18 @@ function fetchFlyerWallManifestItems() {
       })
       .then((manifest) => (manifest.items || [])
         .filter((item) => item && item.url && item.city && isFlyerWallImage(item.url))
-        .map((item) => ({
-          city: compactText(item.city || ""),
-          url: item.url,
-        })));
+        .map((item) => {
+          // Date can live in the JSON or be embedded in the filename
+          // (e.g. Cph_2026-04-09.png) — a flyer is only "date agnostic"
+          // if neither carries one, or it's explicitly flagged evergreen.
+          const fileDate = ((item.sourceFile || item.url || "").match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || "";
+          return {
+            city: compactText(item.city || ""),
+            url: item.url,
+            flyerDate: item.date || fileDate,
+            evergreen: Boolean(item.evergreen),
+          };
+        }));
   }
 
   return flyerWallManifestPromise.catch(() => []);
@@ -859,6 +867,83 @@ function getFlyerPageHref(cityName = "") {
   const base = "./fly-er.html";
   const city = compactText(cityName);
   return city ? `${base}?city=${encodeURIComponent(city)}` : base;
+}
+
+function normalizeFlyerCityKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[—–]/g, "-")
+    .split(",")[0]
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Give every club its latest wall flyer when the sheet doesn't set one,
+// so cards like Biarritz get a Share Flyer button from data/flyer-wall.json.
+//
+// Sharability rule: only surface flyers that are DATE-AGNOSTIC (no event
+// date) or dated TODAY/UPCOMING. An expired dated flyer is never shareable —
+// better no Share button than sending a friend to yesterday's breakfast.
+async function applyManifestFlyers(list) {
+  const manifest = await fetchFlyerWallManifestItems();
+  if (!manifest.length) return;
+
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const exactKey = (v) => String(v || "").toLowerCase().replace(/[—–]/g, "-").replace(/\s+/g, " ").trim();
+
+  // Pick the best shareable flyer: soonest upcoming date first, then
+  // evergreen / date-agnostic; expired dated flyers are excluded entirely.
+  const pickShareable = (items) => {
+    const upcoming = items
+      .filter((i) => !i.evergreen && i.flyerDate && i.flyerDate >= todayKey)
+      .sort((a, b) => a.flyerDate.localeCompare(b.flyerDate));
+    if (upcoming.length) return upcoming[0];
+    const agnostic = items.filter((i) => i.evergreen || !i.flyerDate);
+    return agnostic.length ? agnostic[agnostic.length - 1] : null;
+  };
+
+  const byExact = new Map();
+  const byLoose = new Map();
+  const looseOwner = new Map(); // looseKey -> exactKey, to detect ambiguity (Portland ME vs OR)
+  manifest.forEach((item) => {
+    const ek = exactKey(item.city);
+    const lk = normalizeFlyerCityKey(item.city);
+    if (!ek) return;
+    if (!byExact.has(ek)) byExact.set(ek, []);
+    byExact.get(ek).push(item);
+    if (!lk) return;
+    if (looseOwner.has(lk) && looseOwner.get(lk) !== ek) {
+      byLoose.delete(lk); // ambiguous across different cities — never guess
+      looseOwner.set(lk, "__ambiguous__");
+      return;
+    }
+    if (looseOwner.get(lk) !== "__ambiguous__") {
+      looseOwner.set(lk, ek);
+      if (!byLoose.has(lk)) byLoose.set(lk, []);
+      byLoose.get(lk).push(item);
+    }
+  });
+
+  list.forEach((club) => {
+    if (!club || club.flyerURL) return;
+    const buckets = [
+      byExact.get(exactKey(getDisplayCity(club))),
+      byExact.get(exactKey(club.city)),
+      byLoose.get(normalizeFlyerCityKey(getDisplayCity(club))),
+      byLoose.get(normalizeFlyerCityKey(club.city)),
+    ];
+    for (const bucket of buckets) {
+      if (!bucket || !bucket.length) continue;
+      const match = pickShareable(bucket);
+      if (match) {
+        club.flyerURL = match.url;
+        return;
+      }
+      // bucket existed but everything in it is expired — keep checking
+      // broader buckets, otherwise leave the club without a Share button.
+    }
+  });
 }
 
 function formatFlyerCitySummary(items) {
@@ -891,7 +976,9 @@ function openFlyerCollection(items, selectedItem = null) {
   const nextItems = (items || []).filter((item) => item && item.url);
   if (!nextItems.length) return;
   const target = selectedItem || nextItems[0];
-  openFlyerLightbox(target.url, target.city, { items: nextItems });
+  // Always route through the shared lightbox (js/flyer-lightbox.js) — it owns
+  // the Easy to Share bar. The legacy in-file lightbox below is fallback-only.
+  window.openFlyerLightbox(target.url, target.city, { items: nextItems });
 }
 
 function renderHostText(text, instagramURL, linkedinURL) {
@@ -1040,7 +1127,45 @@ function getStartsAtLabel(club) {
 }
 
 function createFlyerCallout(club) {
-  return null;
+  if (!club || !club.flyerURL) return null;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "card-flyer-callout";
+  btn.setAttribute("aria-label", `Share the ${getDisplayCity(club)} flyer`);
+
+  const copy = document.createElement("span");
+  copy.className = "card-flyer-copy";
+
+  const title = document.createElement("span");
+  title.className = "card-flyer-title";
+  title.textContent = "Share Flyer";
+
+  copy.append(title);
+  btn.append(copy);
+
+  btn.addEventListener("click", async (event) => {
+    event.stopPropagation();
+    const mine = {
+      city: getDisplayCity(club),
+      url: club.flyerURL,
+      venue: club.venue || "",
+      scheduleLabel: club.scheduleLabel || "",
+      eventTime: club.eventTime || "",
+    };
+    // Same feed as the Frequent Fly-Ers wall: full manifest, newest first,
+    // with this club's flyer up front. Club-derived list is the fallback.
+    let items = (await fetchFlyerWallManifestItems())
+      .slice()
+      .sort((a, b) => String(b.flyerDate || "").localeCompare(String(a.flyerDate || "")));
+    if (!items.length) items = getPreferredFlyerGalleryItems();
+    if (!items.some((item) => item.url === mine.url)) {
+      items = [mine].concat(items);
+    }
+    openFlyerCollection(items, mine);
+  });
+
+  return btn;
 }
 
 async function fetchBlobFlyerItems() {
@@ -1284,9 +1409,6 @@ function createClubCard(club) {
     card.append(createLocationNoteBody(club.locationNote, club.locationNoteDetail));
   }
 
-  const flyerCallout = createFlyerCallout(club);
-  if (flyerCallout) card.append(flyerCallout);
-
   const util = document.createElement("div");
   util.className = "card-utility";
 
@@ -1320,6 +1442,11 @@ function createClubCard(club) {
       `Open ${club.city} host on LinkedIn`,
     ));
   }
+
+  // Share Flyer sits at the right end of the utility row, same line as the
+  // other buttons (sized as a chip via .card-utility .card-flyer-callout).
+  const flyerCallout = createFlyerCallout(club);
+  if (flyerCallout) util.append(flyerCallout);
 
   if (util.children.length) card.append(util);
 
@@ -1837,6 +1964,7 @@ async function loadClubs() {
         };
       });
     clubs = clubs.concat(staticEntries);
+    await applyManifestFlyers(clubs);
 
     statusText.textContent = usedLocalSnapshot ? "(local sheet snapshot)" : "";
     flyerGalleryItems = getFlyerGalleryItems();
@@ -1977,204 +2105,10 @@ function renderFeaturedEvent(items) {
   strip.hidden = false;
 }
 
-// ── Flyer overlay ─────────────────────────────────────────────────────────────
-
-let lightbox = null;
-let activeFlyerIndex = 0;
-let flyerKeyHandler = null;
-let flyerTouchStartX = 0;
-let flyerTouchDeltaX = 0;
-
-function getWrappedFlyerIndex(index) {
-  const count = flyerGalleryItems.length;
-  if (!count) return 0;
-  return (index + count) % count;
-}
-
-function jumpToFlyer(index) {
-  if (!flyerGalleryItems.length) return;
-  activeFlyerIndex = getWrappedFlyerIndex(index);
-  renderActiveFlyer();
-}
-
-function randomizeFlyer() {
-  if (flyerGalleryItems.length <= 1) return;
-  let nextIndex = activeFlyerIndex;
-  while (nextIndex === activeFlyerIndex) {
-    nextIndex = Math.floor(Math.random() * flyerGalleryItems.length);
-  }
-  jumpToFlyer(nextIndex);
-}
-
-function buildFlyerOverlay() {
-  lightbox = document.createElement("div");
-  lightbox.className = "flyer-lightbox";
-  lightbox.setAttribute("role", "dialog");
-  lightbox.setAttribute("aria-modal", "true");
-  lightbox.hidden = true;
-
-  const backdrop = document.createElement("div");
-  backdrop.className = "flyer-lightbox-backdrop";
-
-  const panel = document.createElement("div");
-  panel.className = "flyer-lightbox-panel";
-
-  const topbar = document.createElement("div");
-  topbar.className = "flyer-lightbox-topbar";
-
-  const closeBtn = document.createElement("button");
-  closeBtn.className = "flyer-lightbox-close";
-  closeBtn.setAttribute("aria-label", "Close flyer gallery");
-  closeBtn.textContent = "Close";
-  closeBtn.addEventListener("click", closeFlyerLightbox);
-
-  const rouletteBtn = document.createElement("button");
-  rouletteBtn.className = "flyer-lightbox-roulette";
-  rouletteBtn.setAttribute("aria-label", "Jump to a random flyer");
-  rouletteBtn.textContent = "Flyer Roulette";
-  rouletteBtn.addEventListener("click", randomizeFlyer);
-
-  topbar.append(rouletteBtn, closeBtn);
-
-  const prevBtn = document.createElement("button");
-  prevBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--prev";
-  prevBtn.setAttribute("aria-label", "Previous flyer");
-  prevBtn.textContent = "←";
-  prevBtn.addEventListener("click", () => stepFlyer(-1));
-
-  const nextBtn = document.createElement("button");
-  nextBtn.className = "flyer-lightbox-nav flyer-lightbox-nav--next";
-  nextBtn.setAttribute("aria-label", "Next flyer");
-  nextBtn.textContent = "→";
-  nextBtn.addEventListener("click", () => stepFlyer(1));
-
-  const stage = document.createElement("div");
-  stage.className = "flyer-lightbox-stage";
-
-  const img = document.createElement("img");
-  img.className = "flyer-lightbox-img";
-  img.alt = "";
-  stage.append(prevBtn, img, nextBtn);
-
-  const hint = document.createElement("div");
-  hint.className = "flyer-lightbox-hint";
-  hint.textContent = "Swipe or tap arrows";
-
-  const gallery = document.createElement("div");
-  gallery.className = "flyer-lightbox-gallery";
-
-  panel.append(topbar, stage, hint, gallery);
-  lightbox.append(backdrop, panel);
-
-  lightbox.addEventListener("click", (e) => {
-    if (e.target === lightbox || e.target === backdrop) closeFlyerLightbox();
-  });
-
-  stage.addEventListener("touchstart", (e) => {
-    flyerTouchStartX = e.touches[0]?.clientX || 0;
-    flyerTouchDeltaX = 0;
-  }, { passive: true });
-
-  stage.addEventListener("touchmove", (e) => {
-    const currentX = e.touches[0]?.clientX || 0;
-    flyerTouchDeltaX = currentX - flyerTouchStartX;
-  }, { passive: true });
-
-  stage.addEventListener("touchend", () => {
-    if (Math.abs(flyerTouchDeltaX) < 45) return;
-    stepFlyer(flyerTouchDeltaX < 0 ? 1 : -1);
-  });
-
-  document.body.append(lightbox);
-}
-
-function renderActiveFlyer() {
-  if (!lightbox || !flyerGalleryItems.length) return;
-  const item = flyerGalleryItems[activeFlyerIndex];
-  const img = lightbox.querySelector(".flyer-lightbox-img");
-  const prevBtn = lightbox.querySelector(".flyer-lightbox-nav--prev");
-  const nextBtn = lightbox.querySelector(".flyer-lightbox-nav--next");
-  const hint = lightbox.querySelector(".flyer-lightbox-hint");
-  const gallery = lightbox.querySelector(".flyer-lightbox-gallery");
-
-  img.src = item.url;
-  img.alt = `${item.city} flyer`;
-
-  const multi = flyerGalleryItems.length > 1;
-  prevBtn.hidden = !multi;
-  nextBtn.hidden = !multi;
-  hint.hidden = !multi;
-
-  gallery.innerHTML = "";
-  flyerGalleryItems.forEach((galleryItem, index) => {
-    const thumbBtn = document.createElement("button");
-    thumbBtn.className = "flyer-gallery-thumb" + (index === activeFlyerIndex ? " active" : "");
-    thumbBtn.setAttribute("aria-label", `View flyer for ${galleryItem.city}`);
-    thumbBtn.addEventListener("click", () => jumpToFlyer(index));
-
-    const thumbImg = document.createElement("img");
-    thumbImg.className = "flyer-gallery-thumb-img";
-    thumbImg.src = galleryItem.url;
-    thumbImg.alt = `${galleryItem.city} flyer thumbnail`;
-
-    const thumbLabel = document.createElement("span");
-    thumbLabel.className = "flyer-gallery-thumb-label";
-    thumbLabel.textContent = galleryItem.city;
-
-    thumbBtn.append(thumbImg, thumbLabel);
-    gallery.append(thumbBtn);
-  });
-}
-
-function stepFlyer(direction) {
-  if (!flyerGalleryItems.length) return;
-  jumpToFlyer(activeFlyerIndex + direction);
-}
-
-function openFlyerLightbox(url, cityName, options) {
-  if (!lightbox) buildFlyerOverlay();
-
-  if (Array.isArray(options)) {
-    flyerGalleryItems = options.filter((item) => item && item.url);
-  } else if (options && Array.isArray(options.items)) {
-    flyerGalleryItems = options.items.filter((item) => item && item.url);
-  }
-
-  if (!flyerGalleryItems.length) {
-    flyerGalleryItems = [{ city: cityName, url, venue: "", scheduleLabel: "", eventTime: "" }];
-  }
-
-  const matchIndex = flyerGalleryItems.findIndex((item) => item.url === url || item.city === cityName);
-  activeFlyerIndex = matchIndex >= 0 ? matchIndex : 0;
-  renderActiveFlyer();
-
-  lightbox.hidden = false;
-  document.body.style.overflow = "hidden";
-  document.body.classList.add("flyer-overlay-open");
-
-  if (flyerKeyHandler) {
-    document.removeEventListener("keydown", flyerKeyHandler);
-  }
-
-  flyerKeyHandler = (e) => {
-    if (e.key === "Escape") closeFlyerLightbox();
-    if (e.key === "ArrowLeft") stepFlyer(-1);
-    if (e.key === "ArrowRight") stepFlyer(1);
-  };
-  document.addEventListener("keydown", flyerKeyHandler);
-}
-
-function closeFlyerLightbox() {
-  if (lightbox) lightbox.hidden = true;
-  document.body.style.overflow = "";
-  document.body.classList.remove("flyer-overlay-open");
-  if (flyerKeyHandler) {
-    document.removeEventListener("keydown", flyerKeyHandler);
-    flyerKeyHandler = null;
-  }
-}
-
-window.openFlyerLightbox = openFlyerLightbox;
+// Flyer overlay lives in js/flyer-lightbox.js (shared, with the Easy to Share
+// bar). The legacy in-file lightbox was removed: a top-level `function
+// openFlyerLightbox()` declaration overwrites the shared window global at
+// load time (hoisting), which silently brought the old share-less modal back.
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -2210,12 +2144,23 @@ if (calendarViewLink) {
   async function loadPopups() {
     try {
       const res = await fetch("/.netlify/functions/get-popups");
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items = (data.items || []);
       if (!items.length) return;
       renderStrip(items);
-    } catch (_) {}
+    } catch (_) {
+      // Local-dev fallback: blobs only exist behind Netlify functions, so when
+      // the function is unreachable (e.g. plain http.server) render the sample
+      // manifest so the strip is still previewable. Never fires in production.
+      try {
+        const res = await fetch("./data/popups-sample.json");
+        if (!res.ok) return;
+        const data = await res.json();
+        const items = (data.items || []);
+        if (items.length) renderStrip(items);
+      } catch (_e) {}
+    }
   }
 
   // ── Render strip ──────────────────────────────────────────────────────────

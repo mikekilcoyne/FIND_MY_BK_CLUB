@@ -17,18 +17,19 @@
 
   // ── Single poster ─────────────────────────────────────────────────────────
 
+  // Wall is two-wide everywhere now — every poster is big, so request big thumbs.
   const SIZE_THUMB_W = {
     "flyer-poster--hero": 900,
     "flyer-poster--wide": 900,
-    "flyer-poster--tall": 700,
-    "flyer-poster--micro": 500,
+    "flyer-poster--tall": 900,
+    "flyer-poster--micro": 900,
   };
 
   function createPoster(f, galleryItems, index) {
     const sizeClass = sizePattern[index % sizePattern.length];
     const thumbW = SIZE_THUMB_W[sizeClass] || 480;
-    const fullUrl = `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
-    const thumbUrl = `${fullUrl}&w=${thumbW}`;
+    const fullUrl = f.localUrl || `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`;
+    const thumbUrl = f.localUrl ? f.localUrl : `${fullUrl}&w=${thumbW}`;
 
     const btn = document.createElement("button");
     btn.type = "button";
@@ -41,7 +42,9 @@
     img.loading = "lazy";
     img.alt = `${f.club} flyer`;
     img.src = thumbUrl;
-    img.srcset = `${thumbUrl} 1x, ${fullUrl}&w=${Math.min(thumbW * 2, 1600)} 2x`;
+    if (!f.localUrl) {
+      img.srcset = `${thumbUrl} 1x, ${fullUrl}&w=${Math.min(thumbW * 2, 1600)} 2x`;
+    }
     img.addEventListener("error", function () { btn.style.display = "none"; });
 
     const label = document.createElement("span");
@@ -161,7 +164,7 @@
     return flyers.map(function (f) {
       return {
         city: f.club,
-        url: `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`,
+        url: f.localUrl || `/.netlify/functions/get-flyer?key=${encodeURIComponent(f.key)}`,
         venue: "",
         scheduleLabel: f.flyerDate || "",
         eventTime: "",
@@ -227,6 +230,23 @@
 
   // ── Fetch & init ──────────────────────────────────────────────────────────
 
+  // Static manifest fallback — lets the wall render in local dev (no Netlify
+  // functions) and acts as a safety net if the flyer API is ever down.
+  async function loadStaticWall() {
+    const res = await fetch("./data/flyer-wall.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return (data.items || []).map(function (item) {
+      const m = (item.date || item.sourceFile || "").match(/(\d{4}-\d{2}-\d{2})/);
+      return {
+        key: item.sourceFile || item.url,
+        club: item.city || "Unknown",
+        flyerDate: item.date || (m ? m[1] : ""),
+        localUrl: item.url,
+      };
+    });
+  }
+
   async function init() {
     try {
       const res = await fetch(API_URL);
@@ -240,7 +260,11 @@
       });
       renderWall(deduped);
     } catch (_) {
-      status.textContent = "Could not load flyers right now";
+      try {
+        renderWall(await loadStaticWall());
+      } catch (_e) {
+        status.textContent = "Could not load flyers right now";
+      }
     }
   }
 

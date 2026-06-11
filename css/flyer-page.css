@@ -175,8 +175,8 @@ body.flyer-overlay-open .flyer-page-shell {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
   align-items: start;
 }
 
@@ -235,21 +235,14 @@ body.flyer-overlay-open .flyer-page-shell {
   transform: rotate(2deg);
 }
 
-.flyer-poster--hero {
-  grid-column: span 4;
+/* Two-wide everywhere — every poster takes half the wall, big and loud.
+   Size classes are kept (JS uses them for thumb resolution + rhythm). */
+.flyer-poster--hero,
+.flyer-poster--tall,
+.flyer-poster--wide,
+.flyer-poster--micro {
+  grid-column: span 1;
 }
-
-.flyer-poster--tall {
-  grid-column: span 3;
-}
-
-.flyer-poster--wide {
-  grid-column: span 5;
-}
-
-  .flyer-poster--micro {
-    grid-column: span 2;
-  }
 
 .flyer-poster__button {
   display: none;
@@ -303,25 +296,6 @@ body.flyer-overlay-open .flyer-page-shell {
   height: 24px;
   background: linear-gradient(180deg, rgba(45, 31, 20, 0.14), transparent 78%);
   filter: blur(10px);
-}
-
-@media (max-width: 1080px) {
-  .flyer-strip__grid {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-  }
-
-  .flyer-poster--hero,
-  .flyer-poster--wide {
-    grid-column: span 4;
-  }
-
-  .flyer-poster--tall {
-    grid-column: span 3;
-  }
-
-  .flyer-poster--micro {
-    grid-column: span 2;
-  }
 }
 
 @media (max-width: 720px) {
