@@ -90,14 +90,18 @@ async function getSession(authHeader) {
   const pin = raw.slice(colonIdx + 1).trim();
   if (!email || !pin) return null;
 
-  // hosts.json takes precedence — allows master to update their own PIN via UI
+  // hosts.json takes precedence — allows master to update their own PIN via UI.
+  // The ADMIN_EMAIL owner is ALWAYS master, even if their hosts.json entry
+  // lacks the master flag (a plain host entry must never shadow the owner).
+  const ownerEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
   try {
     const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
     const hosts = (await store.get("hosts.json", { type: "json" })) || {};
     const entry = hosts[email];
     if (entry && entry.pin === pin) {
-      const type = entry.master ? "master" : "host";
-      return { type, name: entry.name, clubs: entry.master ? null : entry.clubs, email, fromEnv: false };
+      const isMaster = Boolean(entry.master) || (ownerEmail && email === ownerEmail);
+      const type = isMaster ? "master" : "host";
+      return { type, name: entry.name, clubs: isMaster ? null : entry.clubs, email, fromEnv: false };
     }
   } catch (_) {}
 
