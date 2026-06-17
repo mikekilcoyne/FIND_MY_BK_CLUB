@@ -7,6 +7,9 @@ const POPUP_STORE = "bk-popups";
 const EMAIL_CONFIG_STORE = "host-email-config";
 const FROM_EMAIL = "set@breakfastclubbing.com";
 const FROM_NAME = "Breakfast Club Admin";
+// Site owner: always granted master role once authenticated (PIN still
+// required via hosts.json or ADMIN_PIN). Independent of the ADMIN_EMAIL env var.
+const OWNER_MASTER_EMAIL = "mk@yellowsatinjacket.com";
 
 async function sendConfirmEmail({ subject, text }) {
   const apiKey = process.env.SENDGRID_API_KEY;
@@ -93,23 +96,24 @@ async function getSession(authHeader) {
   // hosts.json takes precedence — allows master to update their own PIN via UI.
   // The ADMIN_EMAIL owner is ALWAYS master, even if their hosts.json entry
   // lacks the master flag (a plain host entry must never shadow the owner).
-  const ownerEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
+  const ownerEmails = new Set(
+    [OWNER_MASTER_EMAIL, (process.env.ADMIN_EMAIL || "").toLowerCase()].filter(Boolean)
+  );
   try {
     const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
     const hosts = (await store.get("hosts.json", { type: "json" })) || {};
     const entry = hosts[email];
     if (entry && entry.pin === pin) {
-      const isMaster = Boolean(entry.master) || (ownerEmail && email === ownerEmail);
+      const isMaster = Boolean(entry.master) || ownerEmails.has(email);
       const type = isMaster ? "master" : "host";
       return { type, name: entry.name, clubs: isMaster ? null : entry.clubs, email, fromEnv: false };
     }
   } catch (_) {}
 
   // Fall back to env-var master credentials
-  const masterEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
   const masterPin = process.env.ADMIN_PIN || "";
-  if (masterEmail && masterPin && email === masterEmail && pin === masterPin) {
-    return { type: "master", name: "Admin", clubs: null, email: masterEmail, fromEnv: true };
+  if (masterPin && ownerEmails.has(email) && pin === masterPin) {
+    return { type: "master", name: "Admin", clubs: null, email, fromEnv: true };
   }
 
   return null;
@@ -435,7 +439,7 @@ export async function handler(event) {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
       const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
       if (!siteUrl) return json(500, { error: "URL env var not set." });
-      const MASTER_EMAIL = "mk@yellowsatinjacket.com";
+      const MASTER_EMAIL = OWNER_MASTER_EMAIL;
       const extra = (payload.extraTo || "").trim().toLowerCase();
       const testTo = [MASTER_EMAIL, ...(extra ? [extra] : [])].join(",");
       try {
