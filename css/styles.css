@@ -1585,3 +1585,17 @@ body.club-update-modal-open #back-to-top {
     right: 14px;
   }
 }
+
+/* "This Week" region pill — green accent, distinct from the orange "New". */
+.region-pill[data-region="This Week"] {
+  border-color: #1f9d55;
+  background: linear-gradient(135deg, #e6f8ee 0%, #c9f0d8 100%);
+  color: #0c6b39;
+  font-weight: 700;
+}
+.region-pill[data-region="This Week"]:hover,
+.region-pill[data-region="This Week"].active {
+  border-color: #1f9d55;
+  background: #1f9d55;
+  color: #f1fff7;
+}

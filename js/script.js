@@ -1760,13 +1760,40 @@ function setupBackToTop() {
   syncBackToTop();
 }
 
+// Earliest known upcoming date for a club (from its specificDates), or null.
+function getClubNextDate(club) {
+  const dates = (club && club.specificDates) || [];
+  if (!dates.length) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const upcoming = dates
+    .map((v) => parseISODateAtNoon(compactText(v)))
+    .filter(Boolean)
+    .filter((d) => d >= today)
+    .sort((a, b) => a - b);
+  return upcoming[0] || null;
+}
+
+// True if the club's next occurrence falls within the next `windowDays` days.
+function isClubWithinDays(club, windowDays) {
+  const next = getClubNextDate(club);
+  if (!next) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const limit = new Date(today);
+  limit.setDate(limit.getDate() + windowDays);
+  return next >= today && next <= limit;
+}
+
 function getFilteredClubs() {
   const scoped =
     activeRegion === "All"
       ? clubs
       : activeRegion === "New"
         ? clubs.filter((c) => c.isNew)
-        : clubs.filter((c) => c.region === activeRegion);
+        : activeRegion === "This Week"
+          ? clubs.filter((c) => isClubWithinDays(c, 10))
+          : clubs.filter((c) => c.region === activeRegion);
 
   return scoped;
 }
@@ -1774,6 +1801,7 @@ function getFilteredClubs() {
 const REGION_HEADLINES = {
   "All": "Coming up this week around the world",
   "New": "New clubs on the map",
+  "This Week": "Coming up in the next 10 days",
   "Northeast US": "Coming up this week in the northeast",
   "Southeast US": "Coming up this week in the South (roughly)",
   "West Coast": "Coming up this week on the West Coast \uD83E\uDD18",
@@ -1799,7 +1827,9 @@ function setRegion(region) {
     ? GROWTH_TITLE_SUFFIX
     : activeRegion === "New"
       ? "new clubs"
-      : "clubs coming up this month";
+      : activeRegion === "This Week"
+        ? "clubs in the next 10 days"
+        : "clubs coming up this month";
   animateGrowthTitle(filtered.length, suffix);
   // Update word cloud topics to match selected region
   if (typeof window.updateWordCloud === "function") {
@@ -1812,7 +1842,7 @@ function renderRegionFilter() {
   regionFilter.innerHTML = "";
 
   if (window.innerWidth <= 960) {
-    ["All", "New"].forEach((region) => {
+    ["All", "New", "This Week"].forEach((region) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "region-pill" + (region === activeRegion ? " active" : "");
@@ -1866,7 +1896,7 @@ function renderRegionFilter() {
     return;
   }
 
-  ["All", "New", ...REGION_ORDER].forEach((region) => {
+  ["All", "New", "This Week", ...REGION_ORDER].forEach((region) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "region-pill" + (region === activeRegion ? " active" : "");

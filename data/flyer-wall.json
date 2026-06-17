@@ -299,6 +299,12 @@
       "url": "./assets/flyers/2026/MelbourneCBD_2026-06-26.jpg",
       "sourceFile": "MelbourneCBD_2026-06-26.jpg",
       "date": "2026-06-26"
+    },
+    {
+      "city": "Amsterdam, NL",
+      "url": "./assets/flyers/2026/Amsterdam_2026-06-19.gif",
+      "sourceFile": "Amsterdam_2026-06-19.gif",
+      "date": "2026-06-19"
     }
   ]
 }
