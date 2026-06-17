@@ -429,3 +429,28 @@
 .popup-transit-link:hover {
   color: #1c1710;
 }
+
+/* ── Pop-up drawer: green "Share Flyer" button (matches the card Share Flyer
+   chip — --sq-pop green / --sq-ink). Sits above the Host/RSVP button. ─────── */
+.popup-drawer-share {
+  background: var(--sq-pop, #25d366);
+  color: var(--sq-ink, #111111);
+  margin-top: 28px;
+}
+
+.popup-drawer-share:hover {
+  background: #1ebe5d;
+  color: var(--sq-ink, #111111);
+}
+
+/* When Share Flyer is showing, the Host/RSVP button tucks right beneath it. */
+.popup-drawer-share:not([hidden]) + .popup-drawer-rsvp {
+  margin-top: 10px;
+}
+
+/* .popup-drawer-rsvp sets display:flex, which would defeat the [hidden]
+   attribute — make hidden explicit so the Share Flyer button can toggle. */
+.popup-drawer-rsvp[hidden],
+.popup-drawer-share[hidden] {
+  display: none;
+}

@@ -260,6 +260,45 @@
       "url": "./assets/flyers/2026/WashingtonDC_2026-04-09.jpeg",
       "sourceFile": "WashingtonDC_2026-04-09.jpeg",
       "date": "2026-04-09"
+    },
+    {
+      "city": "Lisbon, PT",
+      "url": "./assets/flyers/2026/Lisbon_evergreen.jpg",
+      "sourceFile": "Lisbon_evergreen.jpg",
+      "evergreen": true,
+      "popup": true
+    },
+    {
+      "city": "Berlin, DE",
+      "url": "./assets/flyers/2026/Berlin_2026-06-18.jpg",
+      "sourceFile": "Berlin_2026-06-18.jpg",
+      "date": "2026-06-18",
+      "popup": true
+    },
+    {
+      "city": "Panama City, PA",
+      "url": "./assets/flyers/2026/Panama_2026-06-18.jpg",
+      "sourceFile": "Panama_2026-06-18.jpg",
+      "date": "2026-06-18",
+      "popup": true
+    },
+    {
+      "city": "Los Angeles, CA",
+      "url": "./assets/flyers/2026/LAWestside_2026-06-19.jpg",
+      "sourceFile": "LAWestside_2026-06-19.jpg",
+      "date": "2026-06-19"
+    },
+    {
+      "city": "Milano, IT",
+      "url": "./assets/flyers/2026/Milano_2026-06-23.jpg",
+      "sourceFile": "Milano_2026-06-23.jpg",
+      "date": "2026-06-23"
+    },
+    {
+      "city": "Melbourne - CBD, AU",
+      "url": "./assets/flyers/2026/MelbourneCBD_2026-06-26.jpg",
+      "sourceFile": "MelbourneCBD_2026-06-26.jpg",
+      "date": "2026-06-26"
     }
   ]
 }

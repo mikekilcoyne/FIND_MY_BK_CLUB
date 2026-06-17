@@ -2333,9 +2333,73 @@ if (calendarViewLink) {
     if (item.description) { desc.textContent = item.description; desc.hidden = false; }
     else desc.hidden = true;
 
+    // ── Actions: green "Share Flyer" (when a flyer exists) + correct Host/RSVP ──
     const rsvp = document.getElementById("popup-drawer-rsvp");
-    rsvp.href = item.hostInstagramURL || "https://www.instagram.com/themichaelkilcoyne/";
+
+    // Host / RSVP destination — label reflects where it actually goes, per club.
+    const hostUrl = item.rsvpURL || item.hostInstagramURL || "";
+    const hostLabel = (() => {
+      const s = hostUrl.toLowerCase();
+      if (s.includes("luma") || s.includes("lu.ma")) return "RSVP on Luma";
+      if (s.includes("eventbrite")) return "RSVP on Eventbrite";
+      if (s.includes("partiful")) return "RSVP on Partiful";
+      if (s.includes("instagram.com")) return "Contact Host";
+      if (hostUrl) return "RSVP";
+      return "Contact Host";
+    })();
+    rsvp.textContent = hostLabel;
+    rsvp.href = hostUrl || "https://www.instagram.com/themichaelkilcoyne/";
+    rsvp.target = "_blank";
+    rsvp.rel = "noopener";
+    rsvp.onclick = null;
     rsvp.hidden = false;
+
+    // Green "Share Flyer" button — one reused node, placed above the Host/RSVP
+    // button. Routes to the SAME shared lightbox / Easy-to-Share modal that every
+    // other Share Flyer button uses (openFlyerCollection -> openFlyerLightbox).
+    let shareBtn = document.getElementById("popup-drawer-share");
+    if (!shareBtn) {
+      shareBtn = document.createElement("a");
+      shareBtn.id = "popup-drawer-share";
+      shareBtn.className = "popup-drawer-rsvp popup-drawer-share";
+      shareBtn.href = "#";
+      rsvp.parentNode.insertBefore(shareBtn, rsvp);
+    }
+    shareBtn.hidden = true;
+    shareBtn.onclick = null;
+    (async () => {
+      try {
+        const manifest = await fetchFlyerWallManifestItems();
+        const key = normalizeFlyerCityKey(item.city || "");
+        let mine = null;
+        if (item.flyerURL) {
+          mine = manifest.find((f) => f.url === item.flyerURL) ||
+                 { city: item.city, url: item.flyerURL };
+        }
+        if (!mine && key) {
+          const matches = manifest
+            .filter((f) => normalizeFlyerCityKey(f.city) === key)
+            .sort((a, b) => String(b.flyerDate || "").localeCompare(String(a.flyerDate || "")));
+          if (matches.length) mine = matches[0];
+        }
+        if (!mine) return; // no flyer for this pop-up -> Host/RSVP button stands alone
+        shareBtn.textContent = "Share Flyer";
+        shareBtn.hidden = false;
+        shareBtn.onclick = (e) => {
+          e.preventDefault();
+          let items = manifest
+            .slice()
+            .sort((a, b) => String(b.flyerDate || "").localeCompare(String(a.flyerDate || "")));
+          if (!items.some((it) => it.url === mine.url)) items = [mine].concat(items);
+          // Drawer (z 1101) sits above the lightbox (z 1000); dismiss it instantly so
+          // the share modal isn't trapped behind it. Lightbox manages body scroll.
+          backdrop.classList.remove("open");
+          drawer.classList.remove("open");
+          drawer.hidden = true;
+          openFlyerCollection(items, mine);
+        };
+      } catch (_) { /* Host/RSVP button stands alone */ }
+    })();
 
     drawer.hidden = false;
     requestAnimationFrame(() => {
