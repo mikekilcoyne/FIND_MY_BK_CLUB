@@ -1774,15 +1774,22 @@ function getClubNextDate(club) {
   return upcoming[0] || null;
 }
 
-// True if the club's next occurrence falls within the next `windowDays` days.
+// True if the club is happening within the next `windowDays` days — either a
+// concrete upcoming date in range, or a recurring club with a fixed weekday
+// (which, by definition, recurs within any week-plus window).
+const THIS_WEEK_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 function isClubWithinDays(club, windowDays) {
+  if (!club || club.isActive === false) return false;
   const next = getClubNextDate(club);
-  if (!next) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const limit = new Date(today);
-  limit.setDate(limit.getDate() + windowDays);
-  return next >= today && next <= limit;
+  if (next) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const limit = new Date(today);
+    limit.setDate(limit.getDate() + windowDays);
+    if (next >= today && next <= limit) return true;
+  }
+  if (windowDays >= 7 && THIS_WEEK_WEEKDAYS.includes(compactText(club.day))) return true;
+  return false;
 }
 
 function getFilteredClubs() {
