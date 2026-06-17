@@ -2337,7 +2337,11 @@ if (calendarViewLink) {
     const rsvp = document.getElementById("popup-drawer-rsvp");
 
     // Host / RSVP destination — label reflects where it actually goes, per club.
-    const hostUrl = item.rsvpURL || item.hostInstagramURL || "";
+    // The link can be saved in any admin link field; prefer a known RSVP provider
+    // (Luma/Eventbrite/Partiful) wherever it appears, else the host/community link.
+    const linkFields = [item.rsvpURL, item.hostInstagramURL, item.communityLink].filter(Boolean);
+    const rsvpProvider = linkFields.find((u) => /luma|lu\.ma|eventbrite|partiful/i.test(u));
+    const hostUrl = rsvpProvider || item.rsvpURL || item.hostInstagramURL || item.communityLink || "";
     const hostLabel = (() => {
       const s = hostUrl.toLowerCase();
       if (s.includes("luma") || s.includes("lu.ma")) return "RSVP on Luma";
@@ -2359,6 +2363,17 @@ if (calendarViewLink) {
       // No host/RSVP link -> hide it. Never fall back to a personal IG.
       rsvp.hidden = true;
     }
+
+    // Capacity note under the button — shown when there's a real RSVP link.
+    let rsvpNote = document.getElementById("popup-drawer-rsvp-note");
+    if (!rsvpNote) {
+      rsvpNote = document.createElement("p");
+      rsvpNote.id = "popup-drawer-rsvp-note";
+      rsvpNote.className = "popup-drawer-rsvp-note";
+      rsvpNote.textContent = "RSVPs for pop-ups are encouraged, due to limited capacity.";
+      rsvp.parentNode.insertBefore(rsvpNote, rsvp.nextSibling);
+    }
+    rsvpNote.hidden = !(hostUrl && hostLabel.indexOf("RSVP") === 0);
 
     // Green "Share Flyer" button — one reused node, placed above the Host/RSVP
     // button. Routes to the SAME shared lightbox / Easy-to-Share modal that every

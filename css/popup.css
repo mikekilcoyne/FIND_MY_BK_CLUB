@@ -454,3 +454,15 @@
 .popup-drawer-share[hidden] {
   display: none;
 }
+
+/* RSVP capacity note under the pop-up drawer button. */
+.popup-drawer-rsvp-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #8a7030;
+}
+.popup-drawer-rsvp-note[hidden] { display: none; }
