@@ -2347,12 +2347,18 @@ if (calendarViewLink) {
       if (hostUrl) return "RSVP";
       return "Contact Host";
     })();
-    rsvp.textContent = hostLabel;
-    rsvp.href = hostUrl || "https://www.instagram.com/themichaelkilcoyne/";
-    rsvp.target = "_blank";
-    rsvp.rel = "noopener";
     rsvp.onclick = null;
-    rsvp.hidden = false;
+    if (hostUrl) {
+      // Only show the Host/RSVP button when there's a real link for this club.
+      rsvp.textContent = hostLabel;
+      rsvp.href = hostUrl;
+      rsvp.target = "_blank";
+      rsvp.rel = "noopener";
+      rsvp.hidden = false;
+    } else {
+      // No host/RSVP link -> hide it. Never fall back to a personal IG.
+      rsvp.hidden = true;
+    }
 
     // Green "Share Flyer" button — one reused node, placed above the Host/RSVP
     // button. Routes to the SAME shared lightbox / Easy-to-Share modal that every
