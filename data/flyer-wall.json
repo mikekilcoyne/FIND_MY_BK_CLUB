@@ -7,6 +7,12 @@
       "date": "2026-05-29"
     },
     {
+      "city": "Amsterdam, NL",
+      "url": "./assets/flyers/2026/Amsterdam_2026-06-19.gif",
+      "sourceFile": "Amsterdam_2026-06-19.gif",
+      "date": "2026-06-19"
+    },
+    {
       "city": "Austin, TX",
       "url": "./assets/flyers/2026/BC_Austin_April26_Flyer.png",
       "sourceFile": "BC_Austin_April26_Flyer.png",
@@ -25,6 +31,13 @@
       "evergreen": true
     },
     {
+      "city": "Berlin, DE",
+      "url": "./assets/flyers/2026/Berlin_2026-06-18.jpg",
+      "sourceFile": "Berlin_2026-06-18.jpg",
+      "date": "2026-06-18",
+      "popup": true
+    },
+    {
       "city": "Biarritz, FR",
       "url": "./assets/flyers/2026/Biarritz_2026-05-15.jpg",
       "sourceFile": "Biarritz_2026-05-15.jpg",
@@ -40,12 +53,6 @@
       "city": "Burlington, VT",
       "url": "./assets/flyers/2026/BurlingtonVT_2026-04-13.jpg",
       "sourceFile": "BurlingtonVT_2026-04-13.jpg"
-    },
-    {
-      "city": "CT",
-      "url": "./assets/flyers/2026/CT_2026-April-24_Flyer.png",
-      "sourceFile": "CT_2026-April-24_Flyer.png",
-      "date": "2026-04-24"
     },
     {
       "city": "Cambridge, MA",
@@ -74,6 +81,12 @@
       "date": "2026-06-10"
     },
     {
+      "city": "CT",
+      "url": "./assets/flyers/2026/CT_2026-April-24_Flyer.png",
+      "sourceFile": "CT_2026-April-24_Flyer.png",
+      "date": "2026-04-24"
+    },
+    {
       "city": "Denver, CO",
       "url": "./assets/flyers/2026/Denver_2026-05-07.png",
       "sourceFile": "Denver_2026-05-07.png"
@@ -89,6 +102,13 @@
       "url": "./assets/flyers/2026/HudsonNY_2026-05-13.jpg",
       "sourceFile": "HudsonNY_2026-05-13.jpg",
       "date": "2026-05-13"
+    },
+    {
+      "city": "Lisbon, PT",
+      "url": "./assets/flyers/2026/Lisbon_evergreen.jpg",
+      "sourceFile": "Lisbon_evergreen.jpg",
+      "evergreen": true,
+      "popup": true
     },
     {
       "city": "London, UK",
@@ -113,6 +133,17 @@
       "url": "./assets/flyers/2026/LosAngelesSilverlake_2026-05-08.jpeg",
       "sourceFile": "LosAngelesSilverlake_2026-05-08.jpeg",
       "date": "2026-05-08"
+    },
+    {
+      "city": "Los Angeles, CA",
+      "url": "./assets/flyers/2026/LAWestside_2026-06-19.jpg",
+      "sourceFile": "LAWestside_2026-06-19.jpg",
+      "date": "2026-06-19"
+    },
+    {
+      "city": "Manila, PH",
+      "url": "./assets/flyers/2026/00000006-PHOTO-2026-07-07-10-45-58.jpg",
+      "sourceFile": "00000006-PHOTO-2026-07-07-10-45-58.jpg"
     },
     {
       "city": "Maplewood, NJ",
@@ -147,6 +178,12 @@
       "date": "2026-05-22"
     },
     {
+      "city": "Melbourne - CBD, AU",
+      "url": "./assets/flyers/2026/MelbourneCBD_2026-06-26.jpg",
+      "sourceFile": "MelbourneCBD_2026-06-26.jpg",
+      "date": "2026-06-26"
+    },
+    {
       "city": "Melbourne - Richmond, AU",
       "url": "./assets/flyers/2026/MelbourneRichmond_2026.png",
       "sourceFile": "MelbourneRichmond_2026.png"
@@ -155,6 +192,12 @@
       "city": "Milano, IT",
       "url": "./assets/flyers/2026/Milano_2026-04-16.jpg",
       "sourceFile": "Milano_2026-04-16.jpg"
+    },
+    {
+      "city": "Milano, IT",
+      "url": "./assets/flyers/2026/Milano_2026-06-23.jpg",
+      "sourceFile": "Milano_2026-06-23.jpg",
+      "date": "2026-06-23"
     },
     {
       "city": "NY - Hamptons",
@@ -197,6 +240,13 @@
       "url": "./assets/flyers/2026/Williamsburg_2026-03-25.png",
       "sourceFile": "Williamsburg_2026-03-25.png",
       "date": "2026-03-25"
+    },
+    {
+      "city": "Panama City, PA",
+      "url": "./assets/flyers/2026/Panama_2026-06-18.jpg",
+      "sourceFile": "Panama_2026-06-18.jpg",
+      "date": "2026-06-18",
+      "popup": true
     },
     {
       "city": "Paris, FR",
@@ -260,51 +310,6 @@
       "url": "./assets/flyers/2026/WashingtonDC_2026-04-09.jpeg",
       "sourceFile": "WashingtonDC_2026-04-09.jpeg",
       "date": "2026-04-09"
-    },
-    {
-      "city": "Lisbon, PT",
-      "url": "./assets/flyers/2026/Lisbon_evergreen.jpg",
-      "sourceFile": "Lisbon_evergreen.jpg",
-      "evergreen": true,
-      "popup": true
-    },
-    {
-      "city": "Berlin, DE",
-      "url": "./assets/flyers/2026/Berlin_2026-06-18.jpg",
-      "sourceFile": "Berlin_2026-06-18.jpg",
-      "date": "2026-06-18",
-      "popup": true
-    },
-    {
-      "city": "Panama City, PA",
-      "url": "./assets/flyers/2026/Panama_2026-06-18.jpg",
-      "sourceFile": "Panama_2026-06-18.jpg",
-      "date": "2026-06-18",
-      "popup": true
-    },
-    {
-      "city": "Los Angeles, CA",
-      "url": "./assets/flyers/2026/LAWestside_2026-06-19.jpg",
-      "sourceFile": "LAWestside_2026-06-19.jpg",
-      "date": "2026-06-19"
-    },
-    {
-      "city": "Milano, IT",
-      "url": "./assets/flyers/2026/Milano_2026-06-23.jpg",
-      "sourceFile": "Milano_2026-06-23.jpg",
-      "date": "2026-06-23"
-    },
-    {
-      "city": "Melbourne - CBD, AU",
-      "url": "./assets/flyers/2026/MelbourneCBD_2026-06-26.jpg",
-      "sourceFile": "MelbourneCBD_2026-06-26.jpg",
-      "date": "2026-06-26"
-    },
-    {
-      "city": "Amsterdam, NL",
-      "url": "./assets/flyers/2026/Amsterdam_2026-06-19.gif",
-      "sourceFile": "Amsterdam_2026-06-19.gif",
-      "date": "2026-06-19"
     }
   ]
 }
