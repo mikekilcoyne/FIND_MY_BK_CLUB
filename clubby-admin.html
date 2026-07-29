@@ -1,0 +1,380 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clubby — Admin</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #ececec;
+    --card: #ffffff;
+    --ink: #111111;
+    --ink-soft: #4a4a4a;
+    --line: #d4d4d4;
+    --accent: #ffd700;
+    --accent-ink: #111111;
+    --pop: #25d366;
+    --err: #d64545;
+    --shadow: 4px 4px 0 var(--ink);
+    --shadow-sm: 3px 3px 0 var(--ink);
+    --shadow-lg: 8px 8px 0 var(--ink);
+    --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0a0f18; --card: #121a26; --ink: #f4f4f4; --ink-soft: #a9b3c1;
+      --line: #26313f; --shadow: 4px 4px 0 #000; --shadow-sm: 3px 3px 0 #000; --shadow-lg: 8px 8px 0 #000;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #ececec; --card: #ffffff; --ink: #111111; --ink-soft: #4a4a4a;
+    --line: #d4d4d4; --shadow: 4px 4px 0 var(--ink); --shadow-sm: 3px 3px 0 var(--ink); --shadow-lg: 8px 8px 0 var(--ink);
+  }
+  :root[data-theme="dark"] {
+    --paper: #0a0f18; --card: #121a26; --ink: #f4f4f4; --ink-soft: #a9b3c1;
+    --line: #26313f; --shadow: 4px 4px 0 #000; --shadow-sm: 3px 3px 0 #000; --shadow-lg: 8px 8px 0 #000;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: clamp(20px, 5vw, 56px) 20px 120px; display: flex; flex-direction: column; align-items: center; }
+  .lockup { text-align: center; line-height: 0.9; margin-top: clamp(8px, 4vh, 32px); user-select: none; }
+  .lockup .l1 { font-weight: 700; letter-spacing: -0.02em; text-transform: uppercase; font-size: clamp(1.8rem, 8vw, 3.6rem); white-space: nowrap; }
+  .lockup .l2 { display: block; font-weight: 700; text-transform: uppercase; white-space: nowrap; font-size: clamp(0.8rem, 3.2vw, 1.4rem); letter-spacing: 0.3em; color: var(--ink-soft); margin-top: 6px; }
+  .tagline { margin: 14px 0 clamp(26px, 5vh, 40px); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); text-align: center; }
+  #thread { width: 100%; display: flex; flex-direction: column; gap: 18px; }
+  .msg { display: flex; gap: 12px; align-items: flex-start; max-width: 100%; }
+  .msg.user { justify-content: flex-end; }
+  .avatar { flex: 0 0 auto; width: 46px; height: 46px; border: 2px solid var(--ink); background: var(--card); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+  .avatar svg { width: 34px; height: 34px; display: block; }
+  .bubble { border: 2px solid var(--ink); background: var(--card); box-shadow: var(--shadow-sm); padding: 14px 16px; max-width: 78%; font-size: 1.02rem; line-height: 1.45; }
+  .bubble.error { border-color: var(--err); }
+  .bubble p { margin: 0 0 8px; } .bubble p:last-child { margin-bottom: 0; }
+  .bubble b { font-weight: 700; } .bubble code { background: rgba(0,0,0,.06); padding: 1px 5px; }
+  .msg.user .bubble { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
+  .cursor { display: inline-block; width: 0.5ch; height: 1.05em; background: var(--ink); margin-left: 1px; vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  .club-card { border: 2px solid var(--ink); background: var(--card); box-shadow: var(--shadow); margin-top: 4px; width: 100%; overflow: hidden; }
+  .club-card__top { padding: 12px 16px; border-bottom: 2px solid var(--ink); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .club-card__city { font-weight: 700; text-transform: uppercase; letter-spacing: -0.01em; font-size: 1.2rem; line-height: 1; }
+  .club-card__rows { padding: 12px 16px; display: grid; gap: 9px; }
+  .row { display: grid; grid-template-columns: 84px 1fr; gap: 10px; font-size: 0.9rem; }
+  .row .k { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); padding-top: 3px; }
+  .row .v { line-height: 1.35; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; padding-left: 58px; }
+  .chips.center { padding-left: 0; justify-content: center; }
+  .chip { border: 2px solid var(--ink); background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); padding: 9px 14px; font-family: var(--font); font-size: 0.86rem; font-weight: 500; cursor: pointer; transition: transform .1s ease, box-shadow .1s ease; }
+  .chip:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--ink); }
+  .chip:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+  .chip.accent { background: var(--accent); color: var(--accent-ink); }
+  .composer { position: fixed; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, var(--paper) 70%, transparent); padding: 14px 20px 20px; display: flex; justify-content: center; }
+  .composer form { width: 100%; max-width: 680px; display: flex; gap: 10px; }
+  .composer input { flex: 1; border: 2px solid var(--ink); background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); padding: 14px 16px; font-family: var(--font); font-size: 1rem; outline: none; }
+  .composer input:focus { box-shadow: var(--shadow); }
+  .composer button { border: 2px solid var(--ink); background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-sm); padding: 0 20px; font-family: var(--font); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; font-size: 0.85rem; transition: transform .1s ease, box-shadow .1s ease; }
+  .composer button:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow); }
+  .theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 5; border: 2px solid var(--ink); background: var(--card); color: var(--ink); width: 40px; height: 40px; box-shadow: var(--shadow-sm); cursor: pointer; font-size: 1rem; }
+  .badge { position: fixed; top: 14px; left: 16px; z-index: 5; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); border: 2px solid var(--ink); background: var(--card); padding: 8px 12px; box-shadow: var(--shadow-sm); }
+  @media (max-width: 480px) { .bubble { max-width: 82%; } .chips { padding-left: 0; } .row { grid-template-columns: 64px 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } .chip, .composer button { transition: none; } }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark">◑</button>
+<div class="badge" id="whoBadge">not signed in</div>
+
+<div class="wrap">
+  <div class="lockup" aria-label="Breakfast Club International">
+    <span class="l1">CLUBBY</span>
+    <span class="l2">ADMIN · TEST BUILD</span>
+  </div>
+  <div class="tagline">Tell me what needs updating.</div>
+  <div id="thread"></div>
+</div>
+
+<div class="composer">
+  <form id="composer" autocomplete="off">
+    <input id="input" type="text" placeholder="Your email…" aria-label="Message Clubby" />
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+const API = '/.netlify/functions/admin-api';
+
+const CLUBBY_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true">
+  <path d="M20 4c6 0 8 4 11 6s5 5 3 9-1 6-3 9-6 6-11 6-9-2-12-5-4-6-3-10-1-6 2-9 7-6 11-6z" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="20" cy="21" r="8" fill="#ffd700" stroke="#111" stroke-width="2"/>
+  <circle cx="17.4" cy="20" r="1.5" fill="#111"/>
+  <circle cx="22.6" cy="20" r="1.5" fill="#111"/>
+  <path d="M16.5 24c1.4 1.6 5.6 1.6 7 0" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`;
+
+const thread = document.getElementById('thread');
+const input = document.getElementById('input');
+const whoBadge = document.getElementById('whoBadge');
+
+// ── conversation state machine ──────────────────────────────────────────
+const S = {
+  stage: 'ask_email',   // ask_email -> ask_pin -> ready
+  email: null,
+  pin: null,
+  session: null,        // { type, name, clubs, email }
+  clubsMap: null,       // cached clubs-map.json
+};
+
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
+function scrollDown() { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+
+function userMsg(text) {
+  const m = el('div', 'msg user');
+  m.appendChild(el('div', 'bubble', escapeHtml(text)));
+  thread.appendChild(m); scrollDown();
+}
+
+function clubbyMsg(html, opts = {}) {
+  const m = el('div', 'msg clubby');
+  m.appendChild(el('div', 'avatar', CLUBBY_SVG));
+  const b = el('div', 'bubble' + (opts.error ? ' error' : ''));
+  m.appendChild(b);
+  thread.appendChild(m);
+  typeInto(b, html, () => { if (opts.after) opts.after(m); scrollDown(); });
+  scrollDown();
+}
+
+function typeInto(node, html, done) {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { node.innerHTML = html; done && done(); return; }
+  const tokens = html.split(/(<[^>]+>)/).filter(Boolean);
+  const cursor = el('span', 'cursor');
+  node.appendChild(cursor);
+  let ti = 0;
+  function nextToken() {
+    if (ti >= tokens.length) { cursor.remove(); done && done(); return; }
+    const tok = tokens[ti++];
+    if (tok.startsWith('<')) { node.insertBefore(document.createRange().createContextualFragment(tok), cursor); nextToken(); return; }
+    let ci = 0;
+    (function ch() {
+      if (ci >= tok.length) { nextToken(); return; }
+      node.insertBefore(document.createTextNode(tok[ci++]), cursor);
+      setTimeout(ch, 6 + Math.random() * 14);
+    })();
+  }
+  nextToken();
+}
+
+function chipRow(items, opts = {}) {
+  const row = el('div', 'chips' + (opts.center ? ' center' : ''));
+  items.forEach(it => {
+    const c = el('button', 'chip' + (it.accent ? ' accent' : ''), it.label);
+    c.onclick = () => { if (opts.keepChips !== true) row.remove(); it.action(); };
+    row.appendChild(c);
+  });
+  thread.appendChild(row); scrollDown();
+  return row;
+}
+
+// ── backend calls ───────────────────────────────────────────────────────
+async function apiFetch({ action, method = 'GET', body }) {
+  const url = method === 'GET' && action ? `${API}?action=${encodeURIComponent(action)}` : API;
+  const res = await fetch(url, {
+    method,
+    headers: { 'Authorization': `Bearer ${S.email}:${S.pin}`, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let data;
+  try { data = await res.json(); } catch (_) { throw new Error(`Server sent back something unreadable (HTTP ${res.status}).`); }
+  if (!res.ok) throw new Error(data.error || `Request failed (HTTP ${res.status}).`);
+  return data;
+}
+
+async function getClubsMap() {
+  if (S.clubsMap) return S.clubsMap;
+  const res = await fetch('/data/clubs-map.json');
+  if (!res.ok) throw new Error(`Couldn't load the club roster (HTTP ${res.status}).`);
+  S.clubsMap = await res.json();
+  return S.clubsMap;
+}
+
+function findClub(clubs, needle) {
+  const n = String(needle).toLowerCase().trim();
+  return clubs.find(c => c.city === n || c.displayCity.toLowerCase() === n || c.displayCity.toLowerCase().includes(n) || c.city.includes(n));
+}
+
+// ── auth flow ────────────────────────────────────────────────────────────
+function beginAuth() {
+  clubbyMsg(`Hey, I'm <b>Clubby</b> — the Breakfast Club admin assistant. 🍳<br>What's your login email?`);
+}
+
+async function handleEmail(raw) {
+  const email = raw.trim().toLowerCase();
+  if (!email.includes('@')) { clubbyMsg(`That doesn't look like an email — try again?`, { error: true }); return; }
+  S.email = email;
+  S.stage = 'ask_pin';
+  input.placeholder = '4-digit PIN…';
+  input.type = 'password';
+  input.setAttribute('maxlength', '4');
+  clubbyMsg(`Got it. What's your 4-digit PIN? <i>(the one your host record was set up with — this test build doesn't email a fresh code yet, see note below)</i>`);
+}
+
+async function handlePin(raw) {
+  const pin = raw.trim();
+  if (!/^\d{4}$/.test(pin)) { clubbyMsg(`PINs are exactly 4 digits — try again?`, { error: true }); return; }
+  S.pin = pin;
+  clubbyMsg(`Checking… ☕`, { after: async () => {
+    try {
+      const data = await apiFetch({ action: 'session' });
+      S.session = data.session;
+      S.stage = 'ready';
+      input.type = 'text';
+      input.removeAttribute('maxlength');
+      input.placeholder = 'Tell me what to update…';
+      whoBadge.textContent = `${S.session.name || S.email} · ${S.session.type}`;
+      setTimeout(() => {
+        clubbyMsg(`You're in, <b>${escapeHtml(S.session.name || S.email)}</b>. ${S.session.type === 'master' ? "You've got master access — any club, plus pop-ups." : `You can update: <b>${(S.session.clubs || []).join(', ') || '(no clubs assigned)'}</b>.`}`, { after: () => showHelp() });
+      }, 300);
+    } catch (err) {
+      clubbyMsg(`⚠️ Couldn't sign you in — <b>${escapeHtml(err.message)}</b>. Want to try the email again?`, { error: true });
+      S.stage = 'ask_email'; S.email = null; S.pin = null;
+      input.type = 'text'; input.placeholder = 'Your email…';
+    }
+  }});
+}
+
+function showHelp() {
+  const lines = [
+    `<b>update venue for &lt;city&gt; to &lt;text&gt;</b>`,
+    `<b>update time for &lt;city&gt; to &lt;text&gt;</b>`,
+    `<b>update host for &lt;city&gt; to &lt;text&gt;</b>`,
+    `<b>show my club(s)</b>`,
+  ];
+  if (S.session.type === 'master') {
+    lines.push(`<b>list pop-ups</b>`);
+    lines.push(`<b>add a pop-up in &lt;city&gt; on YYYY-MM-DD called &lt;headline&gt;</b>`);
+    lines.push(`<b>pull the latest flyers</b>`);
+  }
+  clubbyMsg(`Here's what I can do right now:<br>${lines.join('<br>')}`);
+}
+
+// ── intents (post-auth) ──────────────────────────────────────────────────
+function normalize(s) { return s.toLowerCase().trim().replace(/[?.!]/g, ''); }
+
+async function showMyClubs() {
+  try {
+    const clubs = await getClubsMap();
+    const mine = S.session.type === 'master' ? clubs : clubs.filter(c => (S.session.clubs || []).map(x => x.toLowerCase()).includes(c.city));
+    if (!mine.length) { clubbyMsg(`⚠️ I couldn't find any clubs tied to your account. Flagging that for Michael to check your host record.`, { error: true }); return; }
+    clubbyMsg(`Here's what's on your roster:`, { after: () => {
+      mine.forEach(c => {
+        const m = el('div', 'msg clubby');
+        m.appendChild(el('div', 'avatar', CLUBBY_SVG));
+        const b = el('div', 'bubble');
+        b.innerHTML = `<div class="club-card"><div class="club-card__top"><span class="club-card__city">${escapeHtml(c.displayCity)}</span></div><div class="club-card__rows">
+          <div class="row"><span class="k">Host</span><span class="v">${escapeHtml(c.host || '—')}</span></div>
+          <div class="row"><span class="k">Venue</span><span class="v">${escapeHtml(c.venue || '—')}</span></div>
+          <div class="row"><span class="k">Next</span><span class="v">${escapeHtml(c.upcoming_date || '—')}</span></div>
+        </div></div>`;
+        m.appendChild(b); thread.appendChild(m);
+      });
+      scrollDown();
+    }});
+  } catch (err) {
+    clubbyMsg(`⚠️ Couldn't pull the roster — <b>${escapeHtml(err.message)}</b>. Try again in a moment?`, { error: true });
+  }
+}
+
+async function updateField(field, cityRaw, valueRaw) {
+  try {
+    const clubs = await getClubsMap();
+    const club = findClub(clubs, cityRaw);
+    if (!club) { clubbyMsg(`⚠️ I don't see "<b>${escapeHtml(cityRaw)}</b>" on the roster — check the spelling? Try "show my clubs" to see exact names.`, { error: true }); return; }
+    const patch = { [field]: valueRaw.trim() };
+    const data = await apiFetch({ method: 'POST', body: { action: 'update_club', club: club.city, patch } });
+    clubbyMsg(`✅ Updated <b>${escapeHtml(club.displayCity)}</b> — ${field} is now "<b>${escapeHtml(valueRaw.trim())}</b>". Live on the site now.`);
+  } catch (err) {
+    clubbyMsg(`⚠️ That update didn't go through — <b>${escapeHtml(err.message)}</b>. Nothing was changed.`, { error: true });
+  }
+}
+
+async function listPopups() {
+  try {
+    const data = await apiFetch({ action: 'list_popups' });
+    const items = data.items || [];
+    if (!items.length) { clubbyMsg(`No pop-ups in the system right now.`); return; }
+    clubbyMsg(`${items.length} pop-up${items.length === 1 ? '' : 's'} on file:<br>` + items.map(p => `• <b>${escapeHtml(p.headline)}</b> — ${escapeHtml(p.date)} · ${escapeHtml(p.status)}`).join('<br>'));
+  } catch (err) {
+    clubbyMsg(`⚠️ Couldn't load pop-ups — <b>${escapeHtml(err.message)}</b>.`, { error: true });
+  }
+}
+
+async function addPopup(city, date, headline) {
+  try {
+    const data = await apiFetch({ method: 'POST', body: { action: 'save_popup', headline: headline.trim(), date: date.trim(), city: city.trim(), status: 'active' } });
+    clubbyMsg(`✅ Pop-up created: <b>${escapeHtml(headline.trim())}</b> in ${escapeHtml(city.trim())} on ${escapeHtml(date.trim())}. It's live — add venue/host details any time by editing it in the admin panel.`);
+  } catch (err) {
+    clubbyMsg(`⚠️ Couldn't create that pop-up — <b>${escapeHtml(err.message)}</b>.`, { error: true });
+  }
+}
+
+async function pullLatestFlyers() {
+  try {
+    const data = await apiFetch({ action: 'flyers' });
+    const items = data.items || data.flyers || [];
+    if (!Array.isArray(items) || !items.length) { clubbyMsg(`⚠️ The flyers endpoint responded but I didn't get a usable list back — flagging this, something's off with that action's response shape.`, { error: true }); return; }
+    clubbyMsg(`Pulled <b>${items.length}</b> flyers. Most recent few:<br>` + items.slice(0, 8).map(f => `• ${escapeHtml(f.city || f.sourceFile || 'unknown')}`).join('<br>'));
+  } catch (err) {
+    clubbyMsg(`⚠️ Couldn't pull flyers — <b>${escapeHtml(err.message)}</b>. Flagging this rather than showing stale data.`, { error: true });
+  }
+}
+
+// ── router ───────────────────────────────────────────────────────────────
+function route(raw) {
+  const n = normalize(raw);
+
+  if (/^(show|list) my clubs?$/.test(n)) { showMyClubs(); return; }
+  if (/^help$|^what can you do$/.test(n)) { showHelp(); return; }
+
+  let m = n.match(/^update (venue|time|host|community link|flyer) (?:for|at) (.+?) to (.+)$/);
+  if (m) {
+    const fieldMap = { venue: 'venue', time: 'eventTime', host: 'hostDisplay', 'community link': 'communityLink', flyer: 'flyerURL' };
+    updateField(fieldMap[m[1]], m[2], m[3]);
+    return;
+  }
+
+  if (S.session.type === 'master') {
+    if (/^list pop-?ups$/.test(n)) { listPopups(); return; }
+    if (/^pull (the )?latest flyers$/.test(n)) { pullLatestFlyers(); return; }
+    m = n.match(/^add (?:a )?pop-?up in (.+) on (\d{4}-\d{2}-\d{2}) called (.+)$/);
+    if (m) { addPopup(m[1], m[2], m[3]); return; }
+  }
+
+  clubbyMsg(`Not sure how to do that yet — type <b>help</b> to see what I support so far. This is a test build, so the command list is intentionally short.`);
+}
+
+// ── boot ─────────────────────────────────────────────────────────────────
+document.getElementById('composer').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = input.value;
+  if (!v.trim()) return;
+  const isPinStage = S.stage === 'ask_pin';
+  userMsg(isPinStage ? '••••' : v);
+  input.value = '';
+  setTimeout(() => {
+    if (S.stage === 'ask_email') handleEmail(v);
+    else if (S.stage === 'ask_pin') handlePin(v);
+    else route(v);
+  }, 200);
+});
+
+window.addEventListener('load', () => { setTimeout(beginAuth, 300); });
+
+const root = document.documentElement;
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+});
+</script>
+</body>
+</html>
