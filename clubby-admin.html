@@ -221,6 +221,29 @@ async function getClubsMap() {
   return S.clubsMap;
 }
 
+// live edits made through the admin panel (or Clubby itself) sit in an
+// overrides layer on top of the sheet-synced base — merge them the same
+// way admin.html does so Clubby shows exactly what the site shows.
+function normalizeKey(v) {
+  return String(v || '').toLowerCase().replace(/[—–]/g, '-').replace(/\s+/g, ' ').replace(/\s*-\s*/g, ' - ').trim();
+}
+
+function effectiveClub(base) {
+  const override = (S.overrides || {})[normalizeKey(base.city)] || {};
+  const patch = override.patch || {};
+  return {
+    ...base,
+    venue: patch.venue ?? base.venue ?? '',
+    upcoming_date: (patch.specificDates && patch.specificDates[0]) ?? base.upcoming_date ?? '',
+    eventTime: patch.eventTime ?? base.eventTime ?? '',
+    communityLink: patch.communityLink ?? base.communityLink ?? '',
+    flyerURL: patch.flyerURL ?? base.flyerURL ?? '',
+    host: patch.hostDisplay ?? base.host ?? '',
+    featured: patch.featured ?? base.featured ?? false,
+    isNew: patch.isNew ?? base.isNew ?? false,
+  };
+}
+
 function findClub(clubs, needle) {
   const n = String(needle).toLowerCase().trim();
   return clubs.find(c => c.city === n || c.displayCity.toLowerCase() === n || c.displayCity.toLowerCase().includes(n) || c.city.includes(n));
@@ -250,6 +273,7 @@ async function handlePin(raw) {
     try {
       const data = await apiFetch({ action: 'session' });
       S.session = data.session;
+      S.overrides = data.overrides || {};
       S.stage = 'ready';
       input.type = 'text';
       input.removeAttribute('maxlength');
@@ -259,7 +283,7 @@ async function handlePin(raw) {
         clubbyMsg(`You're in, <b>${escapeHtml(S.session.name || S.email)}</b>. ${S.session.type === 'master' ? "You've got master access — any club, plus pop-ups." : `You can update: <b>${(S.session.clubs || []).join(', ') || '(no clubs assigned)'}</b>.`}`, { mood: 'happy', after: () => showHelp() });
       }, 300);
     } catch (err) {
-      clubbyMsg(`Heads up — Couldn't sign you in — <b>${escapeHtml(err.message)}</b>. Want to try the email again?`, { error: true });
+      clubbyMsg(`Heads up: couldn't sign you in — <b>${escapeHtml(err.message)}</b>. Want to try the email again?`, { error: true });
       S.stage = 'ask_email'; S.email = null; S.pin = null;
       input.type = 'text'; input.placeholder = 'Your email…';
     }
@@ -268,14 +292,15 @@ async function handlePin(raw) {
 
 function showHelp() {
   const lines = [
-    `<b>update venue for &lt;city&gt; to &lt;text&gt;</b>`,
-    `<b>update time for &lt;city&gt; to &lt;text&gt;</b>`,
-    `<b>update host for &lt;city&gt; to &lt;text&gt;</b>`,
-    `<b>show my club(s)</b>`,
+    `<b>update venue for CITY to NEW VENUE</b>`,
+    `<b>update time for CITY to NEW TIME</b>`,
+    `<b>update host for CITY to NEW HOST</b>`,
+    `<b>show me CITY</b>`,
+    `<b>show my clubs</b>`,
   ];
   if (S.session.type === 'master') {
     lines.push(`<b>list pop-ups</b>`);
-    lines.push(`<b>add a pop-up in &lt;city&gt; on YYYY-MM-DD called &lt;headline&gt;</b>`);
+    lines.push(`<b>add a pop-up in CITY on YYYY-MM-DD called HEADLINE</b>`);
     lines.push(`<b>pull the latest flyers</b>`);
   }
   clubbyMsg(`Here's what I can do right now:<br>${lines.join('<br>')}`);
@@ -284,27 +309,42 @@ function showHelp() {
 // ── intents (post-auth) ──────────────────────────────────────────────────
 function normalize(s) { return s.toLowerCase().trim().replace(/[?.!]/g, ''); }
 
+function renderClubCard(base) {
+  const c = effectiveClub(base);
+  const m = el('div', 'msg clubby');
+  m.appendChild(el('div', 'avatar', CLUBBY_SVG));
+  const b = el('div', 'bubble');
+  b.innerHTML = `<div class="club-card"><div class="club-card__top"><span class="club-card__city">${escapeHtml(c.displayCity)}</span></div><div class="club-card__rows">
+    <div class="row"><span class="k">Host</span><span class="v">${escapeHtml(c.host || '—')}</span></div>
+    <div class="row"><span class="k">Venue</span><span class="v">${escapeHtml(c.venue || '—')}</span></div>
+    <div class="row"><span class="k">Next</span><span class="v">${escapeHtml(c.upcoming_date || '—')}</span></div>
+  </div></div>`;
+  m.appendChild(b); thread.appendChild(m); scrollDown();
+}
+
 async function showMyClubs() {
   try {
     const clubs = await getClubsMap();
-    const mine = S.session.type === 'master' ? clubs : clubs.filter(c => (S.session.clubs || []).map(x => x.toLowerCase()).includes(c.city));
-    if (!mine.length) { clubbyMsg(`Heads up — I couldn't find any clubs tied to your account. Flagging that for Michael to check your host record.`, { error: true }); return; }
-    clubbyMsg(`Here's what's on your roster:`, { mood: 'happy', after: () => {
-      mine.forEach(c => {
-        const m = el('div', 'msg clubby');
-        m.appendChild(el('div', 'avatar', CLUBBY_SVG));
-        const b = el('div', 'bubble');
-        b.innerHTML = `<div class="club-card"><div class="club-card__top"><span class="club-card__city">${escapeHtml(c.displayCity)}</span></div><div class="club-card__rows">
-          <div class="row"><span class="k">Host</span><span class="v">${escapeHtml(c.host || '—')}</span></div>
-          <div class="row"><span class="k">Venue</span><span class="v">${escapeHtml(c.venue || '—')}</span></div>
-          <div class="row"><span class="k">Next</span><span class="v">${escapeHtml(c.upcoming_date || '—')}</span></div>
-        </div></div>`;
-        m.appendChild(b); thread.appendChild(m);
-      });
-      scrollDown();
-    }});
+    if (S.session.type === 'master') {
+      clubbyMsg(`You've got master access to all <b>${clubs.length}</b> clubs — naming all of them would just be noise. Tell me a city (e.g. "show me Amsterdam") and I'll pull that one up, or jump straight to an update.`, { mood: 'thinking' });
+      return;
+    }
+    const mine = clubs.filter(c => (S.session.clubs || []).map(x => x.toLowerCase()).includes(c.city));
+    if (!mine.length) { clubbyMsg(`Heads up: I couldn't find any clubs tied to your account. Flagging that for Michael to check your host record.`, { error: true }); return; }
+    clubbyMsg(`Here's what's on your roster:`, { mood: 'happy', after: () => { mine.forEach(renderClubCard); scrollDown(); } });
   } catch (err) {
-    clubbyMsg(`Heads up — Couldn't pull the roster — <b>${escapeHtml(err.message)}</b>. Try again in a moment?`, { error: true });
+    clubbyMsg(`Heads up: couldn't pull the roster — <b>${escapeHtml(err.message)}</b>. Try again in a moment?`, { error: true });
+  }
+}
+
+async function showOneClub(cityRaw) {
+  try {
+    const clubs = await getClubsMap();
+    const club = findClub(clubs, cityRaw);
+    if (!club) { clubbyMsg(`Heads up: I don't see "<b>${escapeHtml(cityRaw)}</b>" on the roster — check the spelling?`, { error: true }); return; }
+    clubbyMsg(`Here's ${escapeHtml(club.displayCity)}:`, { mood: 'happy', after: () => renderClubCard(club) });
+  } catch (err) {
+    clubbyMsg(`Heads up: couldn't pull that club — <b>${escapeHtml(err.message)}</b>.`, { error: true });
   }
 }
 
@@ -312,12 +352,18 @@ async function updateField(field, cityRaw, valueRaw) {
   try {
     const clubs = await getClubsMap();
     const club = findClub(clubs, cityRaw);
-    if (!club) { clubbyMsg(`Heads up — I don't see "<b>${escapeHtml(cityRaw)}</b>" on the roster — check the spelling? Try "show my clubs" to see exact names.`, { error: true }); return; }
+    if (!club) { clubbyMsg(`Heads up: I don't see "<b>${escapeHtml(cityRaw)}</b>" on the roster — check the spelling? Try "show my clubs" to see exact names.`, { error: true }); return; }
     const patch = { [field]: valueRaw.trim() };
     const data = await apiFetch({ method: 'POST', body: { action: 'update_club', club: club.city, patch } });
-    clubbyMsg(`Done — Updated <b>${escapeHtml(club.displayCity)}</b> — ${field} is now "<b>${escapeHtml(valueRaw.trim())}</b>". Live on the site now.`, { mood: 'happy' });
+    // keep the local overrides cache in sync so the card we show next reflects the write we just made
+    S.overrides = S.overrides || {};
+    S.overrides[normalizeKey(club.city)] = data.record || { patch: { ...(S.overrides[normalizeKey(club.city)]?.patch || {}), ...patch } };
+    clubbyMsg(`Done — updated <b>${escapeHtml(club.displayCity)}</b>. Here's how it reads now:`, { mood: 'happy', after: () => {
+      renderClubCard(club);
+      setTimeout(() => clubbyMsg(`Anything else you need for ${escapeHtml(club.displayCity)}, or another club?`), 400);
+    }});
   } catch (err) {
-    clubbyMsg(`Heads up — That update didn't go through — <b>${escapeHtml(err.message)}</b>. Nothing was changed.`, { error: true });
+    clubbyMsg(`Heads up: that update didn't go through — <b>${escapeHtml(err.message)}</b>. Nothing was changed.`, { error: true });
   }
 }
 
@@ -328,7 +374,7 @@ async function listPopups() {
     if (!items.length) { clubbyMsg(`No pop-ups in the system right now.`); return; }
     clubbyMsg(`${items.length} pop-up${items.length === 1 ? '' : 's'} on file:<br>` + items.map(p => `• <b>${escapeHtml(p.headline)}</b> — ${escapeHtml(p.date)} · ${escapeHtml(p.status)}`).join('<br>'));
   } catch (err) {
-    clubbyMsg(`Heads up — Couldn't load pop-ups — <b>${escapeHtml(err.message)}</b>.`, { error: true });
+    clubbyMsg(`Heads up: couldn't load pop-ups — <b>${escapeHtml(err.message)}</b>.`, { error: true });
   }
 }
 
@@ -337,7 +383,7 @@ async function addPopup(city, date, headline) {
     const data = await apiFetch({ method: 'POST', body: { action: 'save_popup', headline: headline.trim(), date: date.trim(), city: city.trim(), status: 'active' } });
     clubbyMsg(`Done — Pop-up created: <b>${escapeHtml(headline.trim())}</b> in ${escapeHtml(city.trim())} on ${escapeHtml(date.trim())}. It's live — add venue/host details any time by editing it in the admin panel.`, { mood: 'happy' });
   } catch (err) {
-    clubbyMsg(`Heads up — Couldn't create that pop-up — <b>${escapeHtml(err.message)}</b>.`, { error: true });
+    clubbyMsg(`Heads up: couldn't create that pop-up — <b>${escapeHtml(err.message)}</b>.`, { error: true });
   }
 }
 
@@ -345,10 +391,10 @@ async function pullLatestFlyers() {
   try {
     const data = await apiFetch({ action: 'flyers' });
     const items = data.items || data.flyers || [];
-    if (!Array.isArray(items) || !items.length) { clubbyMsg(`Heads up — The flyers endpoint responded but I didn't get a usable list back — flagging this, something's off with that action's response shape.`, { error: true }); return; }
+    if (!Array.isArray(items) || !items.length) { clubbyMsg(`Heads up: the flyers endpoint responded but I didn't get a usable list back — flagging this, something's off with that action's response shape.`, { error: true }); return; }
     clubbyMsg(`Pulled <b>${items.length}</b> flyers. Most recent few:<br>` + items.slice(0, 8).map(f => `• ${escapeHtml(f.city || f.sourceFile || 'unknown')}`).join('<br>'));
   } catch (err) {
-    clubbyMsg(`Heads up — Couldn't pull flyers — <b>${escapeHtml(err.message)}</b>. Flagging this rather than showing stale data.`, { error: true });
+    clubbyMsg(`Heads up: couldn't pull flyers — <b>${escapeHtml(err.message)}</b>. Flagging this rather than showing stale data.`, { error: true });
   }
 }
 
@@ -362,6 +408,8 @@ function route(raw) {
   }
   if (/^(show|list) my clubs?$/.test(n)) { showMyClubs(); return; }
   if (/^help$|^what can you do$/.test(n)) { showHelp(); return; }
+  let showMatch = n.match(/^show me (.+)$/);
+  if (showMatch) { showOneClub(showMatch[1]); return; }
 
   let m = n.match(/^update (venue|time|host|community link|flyer) (?:for|at) (.+?) to (.+)$/);
   if (m) {
