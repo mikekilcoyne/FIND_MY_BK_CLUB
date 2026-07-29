@@ -61,6 +61,12 @@
   .row { display: grid; grid-template-columns: 84px 1fr; gap: 10px; font-size: 0.9rem; }
   .row .k { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); padding-top: 3px; }
   .row .v { line-height: 1.35; }
+  .club-card__foot { display: flex; border-top: 2px solid var(--ink); }
+  .club-card__foot a { flex: 1; text-align: center; padding: 12px 8px; font-weight: 700; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; text-decoration: none; color: var(--ink); background: var(--card); border-right: 2px solid var(--ink); }
+  .club-card__foot a:last-child { border-right: 0; }
+  .club-card__foot a.pop { background: var(--pop); color: #072b13; }
+  .club-card__foot a:hover { background: var(--accent); color: var(--accent-ink); }
+  .club-card__foot a.pop:hover { filter: brightness(1.06); background: var(--pop); }
   .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; padding-left: 58px; }
   .chips.center { padding-left: 0; justify-content: center; }
   .chip { border: 2px solid var(--ink); background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); padding: 9px 14px; font-family: var(--font); font-size: 0.86rem; font-weight: 500; cursor: pointer; transition: transform .1s ease, box-shadow .1s ease; }
@@ -167,6 +173,9 @@ function clubbyMsg(html, opts = {}) {
   scrollDown();
 }
 
+const _entityDecoder = document.createElement('textarea');
+function decodeEntities(s) { _entityDecoder.innerHTML = s; return _entityDecoder.value; }
+
 function typeInto(node, html, done) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) { node.innerHTML = html; done && done(); return; }
@@ -178,10 +187,11 @@ function typeInto(node, html, done) {
     if (ti >= tokens.length) { cursor.remove(); done && done(); return; }
     const tok = tokens[ti++];
     if (tok.startsWith('<')) { node.insertBefore(document.createRange().createContextualFragment(tok), cursor); nextToken(); return; }
+    const decoded = decodeEntities(tok);
     let ci = 0;
     (function ch() {
-      if (ci >= tok.length) { nextToken(); return; }
-      node.insertBefore(document.createTextNode(tok[ci++]), cursor);
+      if (ci >= decoded.length) { nextToken(); return; }
+      node.insertBefore(document.createTextNode(decoded[ci++]), cursor);
       setTimeout(ch, 6 + Math.random() * 14);
     })();
   }
@@ -314,11 +324,18 @@ function renderClubCard(base) {
   const m = el('div', 'msg clubby');
   m.appendChild(el('div', 'avatar', CLUBBY_SVG));
   const b = el('div', 'bubble');
+  const mapsURL = c.mapsURL || (c.venue ? `https://maps.google.com/?q=${encodeURIComponent(c.venue + ' ' + c.displayCity)}` : '');
+  const hostUrl = c.communityLink || c.link || '';
+  const foot = [
+    mapsURL ? `<a href="${escapeHtml(mapsURL)}" target="_blank" rel="noopener">Map</a>` : '',
+    c.flyerURL ? `<a href="${escapeHtml(c.flyerURL)}" target="_blank" rel="noopener">Share Flyer</a>` : '',
+    hostUrl ? `<a class="pop" href="${escapeHtml(hostUrl)}" target="_blank" rel="noopener">Host / RSVP</a>` : '',
+  ].filter(Boolean).join('');
   b.innerHTML = `<div class="club-card"><div class="club-card__top"><span class="club-card__city">${escapeHtml(c.displayCity)}</span></div><div class="club-card__rows">
     <div class="row"><span class="k">Host</span><span class="v">${escapeHtml(c.host || '—')}</span></div>
     <div class="row"><span class="k">Venue</span><span class="v">${escapeHtml(c.venue || '—')}</span></div>
     <div class="row"><span class="k">Next</span><span class="v">${escapeHtml(c.upcoming_date || '—')}</span></div>
-  </div></div>`;
+  </div>${foot ? `<div class="club-card__foot">${foot}</div>` : ''}</div>`;
   m.appendChild(b); thread.appendChild(m); scrollDown();
 }
 
