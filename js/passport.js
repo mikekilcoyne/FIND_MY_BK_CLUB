@@ -212,8 +212,18 @@
     const stat = results[1].status === "fulfilled" ? results[1].value : [];
     if (!blob.length && !stat.length) throw new Error("no fly-er source available");
 
+    const all = blob.concat(stat);
+
+    // Undated blob uploads are the same mornings the manifest already has, just
+    // dumped through /admin without a date — and a card with no date can't be a
+    // morning anyway. Drop them where the city has dated fly-ers; keep them
+    // where they're all a club has, so nobody gets locked out over metadata.
+    const datedCities = new Set();
+    all.forEach(function (f) { if (f.date) datedCities.add(loose(f.city)); });
+
     const seen = new Set();
-    return blob.concat(stat).filter(function (f) {
+    return all.filter(function (f) {
+      if (!f.date && datedCities.has(loose(f.city))) return false;
       const key = loose(f.city) + "|" + (f.date || f.key);
       if (seen.has(key)) return false;
       seen.add(key);
@@ -309,14 +319,15 @@
       usedIds.add(id);
       citiesWithFlyers.add(loose(f.city));
 
+      const club = findClub(f.city);
       return {
         id: id,
         locked: false,
-        city: f.city,
+        city: (club && (club.displayCity || club.city)) || f.city,
         date: f.date,
         url: f.url,
         thumb: f.thumb,
-        club: findClub(f.city),
+        club: club,
         topics: findTopics(f.city),
       };
     });
