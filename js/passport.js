@@ -48,7 +48,34 @@
   }
 
   function blankPassport() {
-    return { v: 1, id: newPassportId(), createdAt: new Date().toISOString(), holder: "", stamps: [] };
+    return { v: 2, id: newPassportId(), createdAt: new Date().toISOString(), holder: "", stamps: [] };
+  }
+
+  // v1 stamped a card per fly-er ("ny-williamsburg__2026-03-25") and stored the
+  // fly-er's date. v2 stamps a club and stores the day you actually turned up.
+  // Without this, anyone who stamped before the change keeps orphaned stamps
+  // that inflate their tally and can never be undone.
+  function migratePassport(p) {
+    if (!p || !Array.isArray(p.stamps)) return p;
+    const seen = new Set();
+    p.stamps = p.stamps
+      .map(function (s) {
+        const next = Object.assign({}, s);
+        const parts = String(s.cardId || "").split("__");
+        if (parts.length === 2 && /^\d{4}-\d{2}-\d{2}/.test(parts[1])) next.cardId = parts[0];
+        next.visited = s.visited || s.date || String(s.stampedAt || "").slice(0, 10);
+        delete next.date;
+        return next;
+      })
+      .filter(function (s) {
+        if (!s.cardId || !/^\d{4}-\d{2}-\d{2}$/.test(s.visited)) return false;
+        const key = s.cardId + "|" + s.visited;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    p.v = 2;
+    return p;
   }
 
   function loadPassport() {
@@ -56,7 +83,7 @@
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.stamps)) return parsed;
+        if (parsed && Array.isArray(parsed.stamps)) return migratePassport(parsed);
       }
     } catch (_e) {}
     return blankPassport();
