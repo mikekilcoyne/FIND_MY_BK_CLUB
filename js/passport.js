@@ -70,8 +70,30 @@
     } catch (_e) {}
   }
 
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+  }
+
+  function stampsFor(cardId) {
+    return passport.stamps.filter(function (s) { return s.cardId === cardId; });
+  }
+
   function isStamped(cardId) {
-    return passport.stamps.some(function (s) { return s.cardId === cardId; });
+    return stampsFor(cardId).length > 0;
+  }
+
+  function stampedToday(cardId) {
+    const t = todayKey();
+    return passport.stamps.some(function (s) { return s.cardId === cardId && s.visited === t; });
+  }
+
+  function lastVisit(cardId) {
+    return stampsFor(cardId)
+      .map(function (s) { return s.visited || ""; })
+      .sort()
+      .pop() || "";
   }
 
   // ── City keys ─────────────────────────────────────────────────────────────
@@ -88,6 +110,22 @@
     "NY - UWS",                 // weekly, Wed
     "Maplewood, NJ",            // weekly, Fri — most fly-ers of any club
   ];
+
+  // One name per club, used everywhere on the page. The roster spells these six
+  // inconsistently (NY - LES, NY - UWS, Maplewood, NJ); the passport shows a
+  // single "Neighborhood, State" form so the booklet reads as one list.
+  const DISPLAY_NAMES = {
+    "ny - hamptons": "Hamptons, NY",
+    "ny - williamsburg": "Williamsburg, NY",
+    "ny - downtown brooklyn": "Downtown Brooklyn, NY",
+    "ny - les": "Lower East Side, NY",
+    "ny - uws": "Upper West Side, NY",
+    "maplewood, nj": "Maplewood, NJ",
+  };
+
+  function displayName(city, fallback) {
+    return DISPLAY_NAMES[loose(city)] || fallback || city;
+  }
 
   // The roster and the fly-er filenames name the same place differently.
   // Declared here, never parsed — same rule as Clubby's GEO table. A club that
@@ -313,9 +351,7 @@
     const flyerCards = flyers.filter(function (f) {
       return inLaunchScope(f.city);
     }).map(function (f) {
-      let id = slug(f.city) + "__" + (f.date || slug(f.key) || "undated");
-      let n = 2;
-      while (usedIds.has(id)) id = slug(f.city) + "__" + (f.date || "undated") + "-" + n++;
+      const id = slug(f.city);
       usedIds.add(id);
       citiesWithFlyers.add(loose(f.city));
 
@@ -323,7 +359,8 @@
       return {
         id: id,
         locked: false,
-        city: (club && (club.displayCity || club.city)) || f.city,
+        key: loose(f.city),
+        city: displayName(f.city, club && (club.displayCity || club.city)),
         date: f.date,
         url: f.url,
         thumb: f.thumb,
@@ -336,6 +373,19 @@
     flyerCards.sort(function (a, b) {
       return (b.date || "0").localeCompare(a.date || "0");
     });
+
+    // One card per club for the pilot — the club's most recent morning. Every
+    // fly-er still exists on the wall; the passport just isn't a fly-er archive.
+    const oneEach = [];
+    const claimed = new Set();
+    flyerCards.forEach(function (card) {
+      const key = loose(card.city);
+      if (claimed.has(key)) return;
+      claimed.add(key);
+      oneEach.push(card);
+    });
+    flyerCards.length = 0;
+    Array.prototype.push.apply(flyerCards, oneEach);
 
     // A club with no fly-er at all gets a locked card. This is the nudge:
     // no fly-er, no cards, no reason for anyone to collect your city.
@@ -352,7 +402,8 @@
         return {
           id: "locked__" + slug(label),
           locked: true,
-          city: label,
+          key: loose(label),
+          city: displayName(label, label),
           date: "",
           club: club,
           topics: [],
@@ -454,9 +505,6 @@
     const hostName = String(club.host || "").replace(/\s*\(@[^)]*\)\s*$/, "").trim();
     if (hostName) facts.append(fact("Host", hostName));
     if (club.venue) facts.append(fact("Table", club.venue));
-    if (card.topics && card.topics.length) {
-      facts.append(fact("At the table", card.topics.slice(0, 3).join(" · ")));
-    }
 
     const actions = document.createElement("div");
     actions.className = "pcard__back-actions";
@@ -522,23 +570,31 @@
   }
 
   function syncStampUI(card, el) {
-    const stamped = isStamped(card.id);
-    el.classList.toggle("is-stamped", stamped);
+    const visits = stampsFor(card.id).length;
+    el.classList.toggle("is-stamped", visits > 0);
+
+    const mark = el.querySelector(".pcard__stamp-date");
+    if (mark) mark.textContent = visits > 1 ? "\u00d7" + visits : (shortDate(lastVisit(card.id)) || "BC");
+
     const btn = el.querySelector(".pcard__btn--stamp");
     if (btn && !card.locked) {
-      btn.textContent = stamped ? "Stamped — undo" : "I was here";
-      btn.classList.toggle("pcard__btn--undo", stamped);
+      const today = stampedToday(card.id);
+      btn.textContent = today ? "Stamped today — undo" : (visits ? "Here again" : "I was here");
+      btn.classList.toggle("pcard__btn--undo", today);
     }
   }
 
   function toggleStamp(card, el) {
-    if (isStamped(card.id)) {
-      passport.stamps = passport.stamps.filter(function (s) { return s.cardId !== card.id; });
+    const t = todayKey();
+    if (stampedToday(card.id)) {
+      passport.stamps = passport.stamps.filter(function (s) {
+        return !(s.cardId === card.id && s.visited === t);
+      });
     } else {
       passport.stamps.push({
         cardId: card.id,
         city: card.city,
-        date: card.date || "",
+        visited: t,
         stampedAt: new Date().toISOString(),
         source: "self",
       });
@@ -553,7 +609,7 @@
     const el = document.createElement("article");
     el.className = "pcard" + (card.locked ? " pcard--locked" : "");
     el.dataset.cardId = card.id;
-    el.dataset.city = loose(card.city);
+    el.dataset.city = card.key;
 
     const inner = document.createElement("div");
     inner.className = "pcard__inner";
@@ -573,7 +629,7 @@
   // ── Tally, serial, share ──────────────────────────────────────────────────
 
   function cityCount() {
-    return new Set(passport.stamps.map(function (s) { return loose(s.city); })).size;
+    return new Set(passport.stamps.map(function (s) { return s.cardId; })).size;
   }
 
   function renderTally() {
@@ -673,7 +729,7 @@
         filter === "all" ? true :
         filter === "stamped" ? stamped :
         card.locked;
-      if (visible && cityFilter) visible = loose(card.city) === cityFilter;
+      if (visible && cityFilter) visible = card.key === cityFilter;
       card.el.hidden = !visible;
       if (visible) shown++;
     });
@@ -743,10 +799,10 @@
     if (byId) return byId;
 
     const key = loose(wanted.replace(/-/g, " "));
-    const inCity = cards.filter(function (c) { return !c.locked && loose(c.city) === key; });
+    const inCity = cards.filter(function (c) { return !c.locked && c.key === key; });
 
     if (!inCity.length) {
-      const lockedHit = cards.find(function (c) { return c.locked && loose(c.city) === key; });
+      const lockedHit = cards.find(function (c) { return c.locked && c.key === key; });
       return lockedHit || null;
     }
 
@@ -788,12 +844,12 @@
       return;
     }
 
-    const already = isStamped(card.id);
+    const already = stampedToday(card.id);
     if (!already) {
       passport.stamps.push({
         cardId: card.id,
         city: card.city,
-        date: card.date || "",
+        visited: todayKey(),
         stampedAt: new Date().toISOString(),
         source: params.get("via") || "tap",
       });
@@ -814,8 +870,8 @@
     }
     toast(
       already
-        ? "Already stamped — " + card.city + (card.date ? ", " + longDate(card.date) : "")
-        : "Stamped — " + card.city + (card.date ? ", " + longDate(card.date) : "")
+        ? "Already stamped today — " + card.city
+        : "Stamped — " + card.city + ", " + longDate(todayKey())
     );
   }
 
