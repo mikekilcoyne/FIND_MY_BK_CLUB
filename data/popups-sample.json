@@ -1,43 +1,4 @@
 {
-  "_note": "Local-dev fallback only. Production pop-ups live in Netlify blobs via get-popups; this file is served when that function is unreachable (e.g. python3 -m http.server). Upcoming + recurring pop-ups from the hosts chat, refreshed 2026-06-17.",
-  "items": [
-    {
-      "headline": "Berlin Pop-Up",
-      "subheadline": "Breakfast Club lands in Berlin",
-      "date": "2026-06-18",
-      "time": "9:00 \u2013 11:00 am",
-      "venue": "Lucy's The Deli, Torstra\u00dfe 116",
-      "city": "Berlin, DE",
-      "host": "Amy & Sabine Koppe",
-      "flyerURL": "./assets/flyers/2026/Berlin_2026-06-18.jpg",
-      "rsvpURL": "https://luma.com/ijslbfgc"
-    },
-    {
-      "headline": "El After Work",
-      "subheadline": "by The Breakfast Club \u00b7 Panama Chapter",
-      "date": "2026-06-18",
-      "time": "6:00 PM",
-      "venue": "Lalitta, Calle 54 Este, Marbella",
-      "city": "Panama City, PA",
-      "description": "Soft networking \u00b7 free cover \u00b7 meet new friends.",
-      "flyerURL": "./assets/flyers/2026/Panama_2026-06-18.jpg"
-    },
-    {
-      "headline": "Breakfast Club Biarritz",
-      "subheadline": "A one-morning pop-up \u00b7 espresso edition",
-      "date": "2026-06-19",
-      "time": "9h \u2013 10h30",
-      "venue": "hino, 3 rue de Larralde",
-      "city": "Biarritz, FR",
-      "flyerURL": "./assets/flyers/2026/Biarritz_2026-06-19.jpg"
-    },
-    {
-      "headline": "Breakfast Club Lisbon",
-      "subheadline": "Every Friday \u2014 everyone's invited, especially you",
-      "time": "Fridays \u00b7 9:00 AM",
-      "venue": "Raffi's, Campo de Ourique",
-      "city": "Lisbon, PT",
-      "flyerURL": "./assets/flyers/2026/Lisbon_evergreen.jpg"
-    }
-  ]
+  "_note": "Local-dev fallback only. Production pop-ups live in Netlify blobs via get-popups; this file is served when that function is unreachable (e.g. python3 -m http.server). Cleared 2026-08-20 — Berlin, El After Work (Panama), Biarritz and Lisbon were all stale. The strip stays hidden while this is empty.",
+  "items": []
 }

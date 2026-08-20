@@ -19,8 +19,12 @@ http.createServer(async (req, res) => {
   try {
     let rel = decodeURIComponent(new URL(req.url, "http://x").pathname);
     if (rel.endsWith("/")) rel += "index.html";
-    const full = path.join(ROOT, rel);
+    let full = path.join(ROOT, rel);
     if (!full.startsWith(ROOT)) { res.writeHead(403).end("Forbidden"); return; }
+    // Match Netlify's clean URLs locally: /passport serves passport.html.
+    if (!path.extname(full)) {
+      try { await readFile(full); } catch { full += ".html"; }
+    }
     const body = await readFile(full);
     res.writeHead(200, { "Content-Type": TYPES[path.extname(full)] || "application/octet-stream" });
     res.end(body);

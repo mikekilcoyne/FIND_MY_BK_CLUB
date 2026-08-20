@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Passport | Breakfast Club</title>
+    <meta
+      name="description"
+      content="Every flyer is a card. Every morning you show up is a stamp. Collect your Breakfast Club passport."
+    />
+    <meta name="theme-color" content="#f3f1ec" />
+    <link rel="icon" type="image/svg+xml" href="./assets/bk-club-icon.svg" />
+    <link rel="shortcut icon" href="./assets/bk-club-icon.svg" />
+    <link rel="stylesheet" href="./css/design-tokens.css" />
+    <link rel="stylesheet" href="./css/responsive-framework.css" />
+    <link rel="stylesheet" href="./css/passport.css" />
+  </head>
+  <body class="passport-body">
+    <main class="passport-shell">
+      <div class="passport-chrome">
+        <a href="./index.html" class="passport-chip">Back to Find My Club</a>
+        <a href="./fly-er.html" class="passport-chip">The Fly-Er Wall</a>
+      </div>
+
+      <header class="passport-hero">
+        <p class="passport-eyebrow">Breakfast Club International</p>
+        <h1 class="passport-title">Passport</h1>
+        <p class="passport-copy">
+          Every fly-er is a card. Every morning you show up is a stamp.
+          Starting with the weekly clubs in the Northeast.
+        </p>
+      </header>
+
+      <section class="passport-book" aria-label="Your passport">
+        <div class="passport-book__row">
+          <div class="passport-book__id">
+            <span class="passport-book__label">Passport holder</span>
+            <button type="button" id="passport-holder" class="passport-book__holder">
+              Add your name
+            </button>
+          </div>
+          <dl class="passport-tally">
+            <div class="passport-tally__item">
+              <dd id="tally-cities">0</dd>
+              <dt>Cities</dt>
+            </div>
+            <div class="passport-tally__item">
+              <dd id="tally-mornings">0</dd>
+              <dt>Mornings</dt>
+            </div>
+          </dl>
+        </div>
+        <p id="passport-serial" class="passport-book__serial">No. —</p>
+      </section>
+
+      <div class="passport-share" id="passport-share" hidden>
+        <span class="passport-share__eyebrow">Show it off</span>
+        <button type="button" class="passport-share__btn passport-share__btn--native" id="share-native" hidden>
+          Share My Passport
+        </button>
+        <a class="passport-share__btn passport-share__btn--whatsapp" id="share-whatsapp" target="_blank" rel="noopener">
+          Send on WhatsApp
+        </a>
+        <a class="passport-share__btn passport-share__btn--sms" id="share-sms">Text It</a>
+        <button type="button" class="passport-share__btn passport-share__btn--copy" id="share-copy">
+          Copy Link
+        </button>
+      </div>
+
+      <nav class="passport-filters" aria-label="Filter cards">
+        <button type="button" class="passport-filter is-active" data-filter="all">All</button>
+        <button type="button" class="passport-filter" data-filter="stamped">My Stamps</button>
+        <button type="button" class="passport-filter" data-filter="locked">Locked</button>
+      </nav>
+
+      <p id="passport-status" class="passport-status" aria-live="polite">Loading cards...</p>
+
+      <div class="passport-booklet">
+        <div class="passport-booklet__spine" aria-hidden="true">
+          <span class="passport-booklet__spine-text">Breakfast Club International</span>
+        </div>
+        <section id="passport-deck" class="passport-deck" aria-label="Cards"></section>
+      </div>
+
+      <footer class="passport-footer">
+        <p class="passport-footer__note">
+          Prototype. Stamps live on this device only — nothing is sent anywhere yet.
+        </p>
+        <button type="button" id="passport-reset" class="passport-footer__reset">Reset passport</button>
+      </footer>
+    </main>
+
+    <script src="./js/club-overrides.js"></script>
+    <script src="./js/club-data.js"></script>
+    <script src="./js/passport.js"></script>
+  </body>
+</html>

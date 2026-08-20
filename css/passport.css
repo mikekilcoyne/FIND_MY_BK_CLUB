@@ -1,0 +1,812 @@
+/* ────────────────────────────────────────────────────────────────────────────
+   PASSPORT — trading-card collection page (P0 prototype, Aug 2026)
+
+   Design language is deliberately NOT new. Tokens come from design-tokens.css;
+   the local names below mirror the set already used by clubby.html so the
+   passport, Clubby and the square-style club cards stay one system:
+   hard corners, 2px ink borders, offset block shadows, ALL CAPS Helvetica.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.passport-body {
+  --card: #ffffff;
+  --ink-soft: #4a4a4a;
+  --pop: #25d366;
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow: 4px 4px 0 var(--ink);
+  --shadow-lg: 8px 8px 0 var(--ink);
+  --locked-ink: #8b8b8b;
+  --locked-paper: #e3e1dc;
+  --scrim-rgb: 255, 255, 255;
+
+  color-scheme: light dark;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .passport-body {
+    --paper: #0a0f18;
+    --card: #121a26;
+    --ink: #f4f4f4;
+    --ink-soft: #a9b3c1;
+    --line: #26313f;
+    --shadow-sm: 3px 3px 0 #000;
+    --shadow: 4px 4px 0 #000;
+    --shadow-lg: 8px 8px 0 #000;
+    --locked-ink: #6c7787;
+    --locked-paper: #161f2c;
+    --scrim-rgb: 18, 26, 38;
+  }
+}
+
+.passport-shell {
+  width: min(1180px, calc(100vw - 28px));
+  margin: 0 auto;
+  padding-bottom: 64px;
+}
+
+/* ── Chrome ──────────────────────────────────────────────────────────────── */
+
+.passport-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 0 0;
+}
+
+.passport-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.passport-chip:hover,
+.passport-chip:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow);
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+
+.passport-hero {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  padding: 36px 0 22px;
+}
+
+.passport-eyebrow {
+  margin: 0;
+  font-size: var(--eyebrow-size);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.passport-title {
+  margin: 0;
+  font-size: clamp(46px, 11vw, 104px);
+  font-weight: var(--weight-bold);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.passport-copy {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ── The book: holder + tally ────────────────────────────────────────────── */
+
+.passport-book {
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+
+.passport-book__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.passport-book__label {
+  display: block;
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.passport-book__holder {
+  border: 0;
+  border-bottom: 2px dashed var(--line);
+  background: none;
+  padding: 2px 2px 4px;
+  font-family: inherit;
+  font-size: clamp(19px, 4vw, 26px);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.passport-book__holder.is-empty {
+  color: var(--ink-soft);
+}
+
+.passport-tally {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+.passport-tally__item {
+  min-width: 78px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  padding: 7px 10px 8px;
+  text-align: center;
+}
+
+.passport-tally__item dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.passport-tally__item dt {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.passport-book__serial {
+  margin: 12px 0 0;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ── Share bar — same language as the fly-er "Easy to Share" bar ─────────── */
+
+.passport-share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.passport-share__eyebrow {
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  width: 100%;
+}
+
+.passport-share__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.passport-share__btn--whatsapp,
+.passport-share__btn--native {
+  background: var(--pop);
+  color: #04140a;
+}
+
+.passport-share__btn:hover,
+.passport-share__btn:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow);
+}
+
+.passport-share__btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.passport-share__btn.is-copied {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ── Filters ─────────────────────────────────────────────────────────────── */
+
+.passport-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 12px;
+}
+
+.passport-filter {
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.passport-filter.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+
+.passport-filter:hover,
+.passport-filter:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow);
+}
+
+.passport-status {
+  margin: 0 0 16px;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ── The booklet ─────────────────────────────────────────────────────────── */
+
+.passport-booklet {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+}
+
+.passport-booklet__spine {
+  border-right: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 0;
+}
+
+.passport-booklet__spine-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.passport-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: 16px;
+  padding: 18px;
+}
+
+@media (max-width: 640px) {
+  .passport-booklet {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .passport-booklet__spine-text {
+    letter-spacing: 0.22em;
+    font-size: 8px;
+  }
+
+  .passport-deck {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+/* ── One card — square, clean, fly-er only as a backdrop ─────────────────── */
+
+.pcard {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 1;
+  perspective: 1200px;
+}
+
+/* Only the face that's showing is clickable (backface-visibility hides the
+   other one visually, but it would still catch taps). */
+.pcard:not(.is-flipped) .pcard__face--back,
+.pcard.is-flipped .pcard__face--front {
+  pointer-events: none;
+}
+
+.pcard__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 460ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.pcard.is-flipped .pcard__inner {
+  transform: rotateY(180deg);
+}
+
+.pcard__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.pcard__face--front {
+  padding: 0;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.pcard:not(.is-flipped) .pcard__face--front:hover,
+.pcard:not(.is-flipped) .pcard__face--front:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow);
+}
+
+.pcard__face--back {
+  transform: rotateY(180deg);
+  padding: 13px 13px 12px;
+  gap: 7px;
+}
+
+/* The fly-er, ghosted back behind the type. It's the flavour, not the subject. */
+
+.pcard__backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pcard__backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.22;
+  filter: grayscale(0.35) contrast(1.05);
+}
+
+/* Keep the type on paper no matter how busy the fly-er behind it is. */
+.pcard__backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--scrim-rgb), 0.74) 0%,
+    rgba(var(--scrim-rgb), 0.28) 46%,
+    rgba(var(--scrim-rgb), 0.8) 100%
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  .pcard__backdrop-img {
+    opacity: 0.24;
+    filter: grayscale(0.5) invert(1) contrast(0.9);
+  }
+}
+
+.pcard__front-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 13px 12px;
+}
+
+.pcard__page {
+  font-size: 8px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pcard__city {
+  margin: 0;
+  font-size: clamp(15px, 11cqw, 30px);
+  font-weight: var(--weight-bold);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.pcard__date {
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pcard__rule {
+  margin-top: auto;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.12;
+}
+
+/* The stamp itself */
+
+.pcard__stamp {
+  position: absolute;
+  right: 8%;
+  bottom: 9%;
+  width: 42%;
+  aspect-ratio: 1;
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  text-align: center;
+  border: 3px solid var(--accent-ink);
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.9);
+  color: var(--accent-ink);
+  transform: rotate(-13deg);
+  pointer-events: none;
+  opacity: 0;
+  scale: 1.7;
+  transition: opacity 180ms ease, scale 220ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+.pcard.is-stamped .pcard__stamp {
+  opacity: 1;
+  scale: 1;
+}
+
+.pcard__stamp-mark {
+  font-size: clamp(8px, 5cqw, 12px);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+.pcard__stamp-date {
+  font-size: clamp(6px, 3.6cqw, 9px);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Back of card */
+
+.pcard__back-city {
+  margin: 0;
+  font-size: clamp(13px, 8cqw, 19px);
+  font-weight: var(--weight-bold);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.pcard__back-date {
+  margin: 0;
+  font-size: 8px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pcard__facts {
+  margin: 0;
+  display: grid;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.3;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Square cards are tight — clamp each fact rather than letting it push the
+   stamp button off the card. */
+.pcard__fact-value {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pcard__fact-label {
+  display: block;
+  font-size: 7px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.pcard__back-actions {
+  margin-top: auto;
+  display: grid;
+  gap: 5px;
+}
+
+.pcard__btn {
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.pcard__btn--stamp {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+
+.pcard__btn--undo {
+  background: var(--card);
+  color: var(--ink-soft);
+}
+
+.pcard__btn:hover,
+.pcard__btn:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow);
+}
+
+.pcard__btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.pcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pcard__link {
+  color: var(--ink-soft);
+  font-size: 7px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.pcard__flip-hint {
+  border: 0;
+  background: none;
+  padding: 1px 0 0;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* ── Locked card — no fly-er for this club yet ───────────────────────────── */
+
+.pcard--locked .pcard__face {
+  border-style: dashed;
+  border-color: var(--locked-ink);
+  background: var(--locked-paper);
+  color: var(--locked-ink);
+}
+
+.pcard--locked .pcard__city {
+  color: var(--locked-ink);
+}
+
+.pcard__locked-note {
+  margin: 0;
+  font-size: 8px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+/* ── Empty state + footer ────────────────────────────────────────────────── */
+
+.passport-empty {
+  grid-column: 1 / -1;
+  border: 2px dashed var(--line);
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.passport-footer {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 2px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.passport-footer__note {
+  margin: 0;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.passport-footer__reset {
+  border: 2px solid var(--line);
+  background: none;
+  padding: 9px 13px;
+  min-height: 40px;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* ── Tap-to-stamp toast (NFC / QR arrivals) ──────────────────────────────── */
+
+.passport-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(8px);
+  z-index: 60;
+  width: min(420px, calc(100vw - 28px));
+  border: 2px solid var(--ink);
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-lg);
+  padding: 13px 15px;
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.passport-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard__inner,
+  .pcard__stamp,
+  .passport-toast,
+  .passport-share__btn,
+  .passport-filter,
+  .pcard__btn,
+  .pcard__face--front {
+    transition: none;
+  }
+}
+
+/* [hidden] must win over the display rules above. */
+.passport-share[hidden],
+.passport-share__btn[hidden],
+.pcard[hidden] {
+  display: none;
+}
+
+/* Narrow cards (phone, two-up): the back only has room for the headline facts.
+   Drop to host-only at one line rather than clipping a label with no value. */
+@container (max-width: 165px) {
+  .pcard__face--back {
+    padding: 10px 10px 9px;
+    gap: 5px;
+  }
+
+  .pcard__facts {
+    gap: 3px;
+    font-size: 9px;
+  }
+
+  .pcard__fact-value {
+    -webkit-line-clamp: 1;
+  }
+
+  .pcard__facts > div + div {
+    display: none;
+  }
+}
