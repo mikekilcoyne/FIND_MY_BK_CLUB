@@ -99,6 +99,20 @@
     "williamsburg, ny": "ny - williamsburg",
     "hamptons, ny": "ny - hamptons",
     "panama city, pa": "panama city, panama",  // PA here is Panama, not Pennsylvania
+    // Admin-uploaded blob flyers use short names that don't match the roster.
+    // "New York" on its own is deliberately NOT aliased — too ambiguous to guess.
+    "williamsburg": "ny - williamsburg",
+    "new york - les": "ny - les",
+    "les": "ny - les",
+    "hamptons": "ny - hamptons",
+    "downtown brooklyn": "ny - downtown brooklyn",
+    "brooklyn": "ny - downtown brooklyn",
+    "uws": "ny - uws",
+    "upper west side": "ny - uws",
+    "kingston": "ny - kingston",
+    "hudson": "ny - hudson",
+    "maplewood": "maplewood, nj",
+    "soma": "maplewood, nj",
   };
 
   function norm(value) {
@@ -154,37 +168,57 @@
 
   // Same dual-source pattern as the fly-er wall: live blob index when the
   // Netlify function answers, static manifest when it doesn't (local dev).
-  async function loadFlyers() {
-    try {
-      const res = await fetch(FLYER_API);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      const seen = new Set();
-      return (data.items || [])
-        .filter(function (f) {
-          if (!f.key || !f.club || f.club === "Unknown" || seen.has(f.key)) return false;
-          seen.add(f.key);
-          return true;
-        })
-        .map(function (f) {
-          const full = "/.netlify/functions/get-flyer?key=" + encodeURIComponent(f.key);
-          return { key: f.key, city: f.club, date: f.flyerDate || "", url: full, thumb: full + "&w=600" };
-        });
-    } catch (_e) {
-      const res = await fetch(WALL_URL);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      return (data.items || []).map(function (item) {
-        const m = (item.date || item.sourceFile || "").match(/(\d{4}-\d{2}-\d{2})/);
-        return {
-          key: item.sourceFile || item.url,
-          city: item.city || "Unknown",
-          date: item.date || (m ? m[1] : ""),
-          url: item.url,
-          thumb: item.url,
-        };
+  async function loadBlobFlyers() {
+    const res = await fetch(FLYER_API);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const seen = new Set();
+    return (data.items || [])
+      .filter(function (f) {
+        if (!f.key || !f.club || f.club === "Unknown" || seen.has(f.key)) return false;
+        seen.add(f.key);
+        return true;
+      })
+      .map(function (f) {
+        const full = "/.netlify/functions/get-flyer?key=" + encodeURIComponent(f.key);
+        return { key: f.key, city: f.club, date: f.flyerDate || "", url: full, thumb: full + "&w=600" };
       });
-    }
+  }
+
+  async function loadStaticFlyers() {
+    const res = await fetch(WALL_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    return (data.items || []).map(function (item) {
+      const m = (item.date || item.sourceFile || "").match(/(\d{4}-\d{2}-\d{2})/);
+      return {
+        key: item.sourceFile || item.url,
+        city: item.city || "Unknown",
+        date: item.date || (m ? m[1] : ""),
+        url: item.url,
+        thumb: item.url,
+      };
+    });
+  }
+
+  // Merge, don't fall back. The blob index is what /admin has uploaded; the
+  // static manifest is the older archive, and it still holds mornings the blob
+  // never got (every Hamptons fly-er, for one). A passport is a record of what
+  // happened, so it wants both. Blob wins on a collision — it's the one an
+  // admin curated most recently.
+  async function loadFlyers() {
+    const results = await Promise.allSettled([loadBlobFlyers(), loadStaticFlyers()]);
+    const blob = results[0].status === "fulfilled" ? results[0].value : [];
+    const stat = results[1].status === "fulfilled" ? results[1].value : [];
+    if (!blob.length && !stat.length) throw new Error("no fly-er source available");
+
+    const seen = new Set();
+    return blob.concat(stat).filter(function (f) {
+      const key = loose(f.city) + "|" + (f.date || f.key);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   async function loadClubs() {
