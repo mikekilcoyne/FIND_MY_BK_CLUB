@@ -457,14 +457,14 @@
   {
     "city": "new york - les",
     "displayCity": "NY - LES",
-    "latitude": 40.715,
-    "longitude": -73.9843,
+    "latitude": 40.7146073,
+    "longitude": -73.9913792,
     "region": "Northeast US",
     "host": "Heidi Hartwig (@friendsfromnewyork @heidiheartsclub)",
     "email": "heidi@friendsfromnewyork.com",
-    "venue": "Rule 257, 234 Eldridge St",
+    "venue": "Forget Me Not, 138 Division St",
     "upcoming_date": "",
-    "mapsURL": "https://maps.google.com/?q=Rule+257+234+Eldridge+St+New+York+NY",
+    "mapsURL": "https://maps.google.com/?q=138+Division+St+New+York+NY",
     "link": "https://breakfastclubbing.com",
     "schedule": {
       "type": "weekly",
