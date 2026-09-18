@@ -1,3 +1,7 @@
+> **Session log — June 2026. Stale.** Kept for archaeology, not as instructions. The
+> "uncommitted" and "not pushed" notes below no longer apply — that work is committed and
+> live. For current project state see [docs/STATUS.md](./docs/STATUS.md).
+
 # Claude Hand-Off
 
 ## Read This First

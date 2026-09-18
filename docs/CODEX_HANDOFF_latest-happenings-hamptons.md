@@ -1,3 +1,6 @@
+> **Session log — April 2026. Stale.** Kept for archaeology, not as instructions. For
+> current project state see [STATUS.md](./STATUS.md).
+
 # Codex Handoff — Latest Happenings: Hamptons Photo Update
 
 **Date:** 2026-04-09  

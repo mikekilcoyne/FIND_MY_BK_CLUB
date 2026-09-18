@@ -1,3 +1,6 @@
+> **Session log — April 2026. Stale.** Kept for archaeology, not as instructions. For
+> current project state see [STATUS.md](./STATUS.md).
+
 # Frequent Fly-Ers Handoff
 
 Updated: 2026-04-19 11:53:56 EDT
