@@ -1,0 +1,568 @@
+{
+  "_README": [
+    "SEO control panel. One file, every switch. Nothing here is parsed out of club names —",
+    "if a city needs a different label or URL, you declare it here.",
+    "",
+    "HOW TO USE:",
+    "  1. Edit this file.",
+    "  2. Run `npm run build:seo` — regenerates robots.txt and sitemap.xml.",
+    "  3. Commit both generated files along with your change.",
+    "",
+    "THE FLAGS:",
+    "  indexed        false = the page is blocked in robots.txt AND left out of the sitemap.",
+    "  publish        (clubs) false = no page, no sitemap entry. Default for thin clubs.",
+    "  title/desc     null = fall back to the template in `defaults`. A string overrides it.",
+    "  priority       sitemap hint, 0.0-1.0. Relative, not absolute. Homepage is 1.0.",
+    "",
+    "MASTER SWITCH: `clubPages.enabled` is false until per-city pages actually exist.",
+    "Flip it to true only once the pages are live, or the sitemap will advertise 404s.",
+    "",
+    "See docs/SEO.md for the why."
+  ],
+  "site": {
+    "baseUrl": "https://breakfastclubbing.com",
+    "name": "Breakfast Club",
+    "defaultImage": "/assets/og-default.png",
+    "locale": "en"
+  },
+  "defaults": {
+    "titleTemplate": "{name} Breakfast Club — {schedule}",
+    "descriptionTemplate": "Breakfast Club in {name}. {schedule} at {venue}. Everyone's invited. Especially you.",
+    "fallbackDescription": "A global directory of Breakfast Club meetups — find your nearest one, see when it meets, and just show up."
+  },
+  "clubPages": {
+    "enabled": false,
+    "urlPattern": "/{slug}",
+    "note": "Per-city landing pages are not built yet. See docs/STATUS.md -> Discoverability."
+  },
+  "pages": [
+    {
+      "path": "/",
+      "indexed": true,
+      "priority": 1.0,
+      "changefreq": "daily",
+      "title": "Breakfast Club — Find Your Nearest One",
+      "description": "A global directory of Breakfast Club meetups. 47 clubs across 20+ countries. Find your nearest one, see when it meets, and just show up."
+    },
+    {
+      "path": "/calendar-view.html",
+      "indexed": true,
+      "priority": 0.7,
+      "changefreq": "daily",
+      "title": "Breakfast Club Calendar — Every Club, Every Morning",
+      "description": "Every Breakfast Club meetup as a month-by-month calendar. See what's on this week, anywhere in the world."
+    },
+    {
+      "path": "/map-view.html",
+      "indexed": true,
+      "priority": 0.8,
+      "changefreq": "weekly",
+      "title": "Breakfast Club Map — Find a Club Near You",
+      "description": "An interactive world map of every Breakfast Club. Filter by region, tap a city, and plan a morning around it."
+    },
+    {
+      "path": "/fly-er.html",
+      "indexed": true,
+      "priority": 0.6,
+      "changefreq": "weekly",
+      "title": "Frequent Fly-Ers — Breakfast Club Flyer Wall",
+      "description": "Every Breakfast Club flyer, newest first. Grab one, share it, bring someone."
+    },
+    {
+      "path": "/what-we-talked-about.html",
+      "indexed": true,
+      "priority": 0.6,
+      "changefreq": "weekly",
+      "title": "Latest Happenings — What Breakfast Club Talked About",
+      "description": "What tables actually talked about this week, city by city."
+    },
+    {
+      "path": "/passport.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "monthly",
+      "title": null,
+      "description": null,
+      "noindexReason": "P0 pilot. Deliberately unlinked — a link you send to ten people, not a nav item."
+    },
+    {
+      "path": "/flyers.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "yearly",
+      "title": null,
+      "description": null,
+      "noindexReason": "Redirect shim to /fly-er.html. Should never rank on its own."
+    },
+    {
+      "path": "/admin.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "never",
+      "title": null,
+      "description": null,
+      "noindexReason": "Admin panel. Must never be indexed."
+    },
+    {
+      "path": "/clubby-admin.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "never",
+      "title": null,
+      "description": null,
+      "noindexReason": "Admin prototype. Must never be indexed."
+    },
+    {
+      "path": "/copy.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "never",
+      "title": null,
+      "description": null,
+      "noindexReason": "Internal copy editor."
+    },
+    {
+      "path": "/typeout.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "never",
+      "title": null,
+      "description": null,
+      "noindexReason": "Unlinked experiment."
+    },
+    {
+      "path": "/journey-home.html",
+      "indexed": false,
+      "priority": 0.0,
+      "changefreq": "never",
+      "title": null,
+      "description": null,
+      "noindexReason": "Unlinked experiment."
+    }
+  ],
+  "clubs": {
+    "amsterdam, nl": {
+      "publish": true,
+      "name": "Amsterdam",
+      "slug": "breakfast-club-amsterdam",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "atlanta, ga": {
+      "publish": false,
+      "name": "Atlanta",
+      "slug": "breakfast-club-atlanta",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "barcelona, spain": {
+      "publish": true,
+      "name": "Barcelona",
+      "slug": "breakfast-club-barcelona",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "bassano del grappa, italy": {
+      "publish": false,
+      "name": "Bassano del Grappa",
+      "slug": "breakfast-club-bassano-del-grappa",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "berlin": {
+      "publish": false,
+      "name": "Berlin",
+      "slug": "breakfast-club-berlin",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "biarritz, fr": {
+      "publish": true,
+      "name": "Biarritz",
+      "slug": "breakfast-club-biarritz",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "boston": {
+      "publish": false,
+      "name": "Boston",
+      "slug": "breakfast-club-boston",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "brighton, uk": {
+      "publish": false,
+      "name": "Brighton",
+      "slug": "breakfast-club-brighton",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "burlington, vermont": {
+      "publish": false,
+      "name": "Burlington, VT",
+      "slug": "breakfast-club-burlington-vt",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "cambridge, ma": {
+      "publish": false,
+      "name": "Cambridge, MA",
+      "slug": "breakfast-club-cambridge-ma",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "chicago, usa": {
+      "publish": false,
+      "name": "Chicago",
+      "slug": "breakfast-club-chicago",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "copenhagen": {
+      "publish": true,
+      "name": "Copenhagen",
+      "slug": "breakfast-club-copenhagen",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "ct, usa": {
+      "publish": true,
+      "name": "Connecticut",
+      "slug": "breakfast-club-connecticut",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "denver": {
+      "publish": false,
+      "name": "Denver",
+      "slug": "breakfast-club-denver",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "detroit, mi, usa": {
+      "publish": true,
+      "name": "Detroit",
+      "slug": "breakfast-club-detroit",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "ibiza, spain": {
+      "publish": false,
+      "name": "Ibiza",
+      "slug": "breakfast-club-ibiza",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "london, uk": {
+      "publish": true,
+      "name": "London",
+      "slug": "breakfast-club-london",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "los angeles": {
+      "publish": false,
+      "name": "Los Angeles",
+      "slug": "breakfast-club-los-angeles",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "lugano, switzerland": {
+      "publish": false,
+      "name": "Lugano",
+      "slug": "breakfast-club-lugano",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "manila, philippines": {
+      "publish": false,
+      "name": "Manila",
+      "slug": "breakfast-club-manila",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "melbourne - fitzroy": {
+      "publish": false,
+      "name": "Melbourne — Fitzroy",
+      "slug": "breakfast-club-melbourne-fitzroy",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "melbourne - richmond": {
+      "publish": false,
+      "name": "Melbourne — Richmond",
+      "slug": "breakfast-club-melbourne-richmond",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "mexico city": {
+      "publish": true,
+      "name": "Mexico City",
+      "slug": "breakfast-club-mexico-city",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "miami": {
+      "publish": true,
+      "name": "Miami",
+      "slug": "breakfast-club-miami",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "milan": {
+      "publish": true,
+      "name": "Milan",
+      "slug": "breakfast-club-milan",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "new york - downtown brooklyn": {
+      "publish": true,
+      "name": "Downtown Brooklyn, NYC",
+      "slug": "breakfast-club-downtown-brooklyn-nyc",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "new york - hamptons": {
+      "publish": true,
+      "name": "The Hamptons, NY",
+      "slug": "breakfast-club-the-hamptons-ny",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "new york - hudson": {
+      "publish": false,
+      "name": "Hudson, NY",
+      "slug": "breakfast-club-hudson-ny",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "new york - kingston": {
+      "publish": false,
+      "name": "Kingston, NY",
+      "slug": "breakfast-club-kingston-ny",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "new york - les": {
+      "publish": true,
+      "name": "Lower East Side, NYC",
+      "slug": "breakfast-club-lower-east-side-nyc",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "new york - upper west": {
+      "publish": true,
+      "name": "Upper West Side, NYC",
+      "slug": "breakfast-club-upper-west-side-nyc",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "new york - williamsburg": {
+      "publish": true,
+      "name": "Williamsburg, Brooklyn",
+      "slug": "breakfast-club-williamsburg-brooklyn",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "panama city": {
+      "publish": true,
+      "name": "Panama City",
+      "slug": "breakfast-club-panama-city",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "paris, france": {
+      "publish": false,
+      "name": "Paris",
+      "slug": "breakfast-club-paris",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "perth": {
+      "publish": false,
+      "name": "Perth",
+      "slug": "breakfast-club-perth",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "portland, maine": {
+      "publish": false,
+      "name": "Portland, Maine",
+      "slug": "breakfast-club-portland-maine",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "portland, or": {
+      "publish": true,
+      "name": "Portland, Oregon",
+      "slug": "breakfast-club-portland-oregon",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "san francisco, ca": {
+      "publish": true,
+      "name": "San Francisco",
+      "slug": "breakfast-club-san-francisco",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "seattle, washington": {
+      "publish": true,
+      "name": "Seattle",
+      "slug": "breakfast-club-seattle",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "singapore": {
+      "publish": true,
+      "name": "Singapore",
+      "slug": "breakfast-club-singapore",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "soma, nj, usa": {
+      "publish": true,
+      "name": "Maplewood & South Orange, NJ",
+      "slug": "breakfast-club-maplewood-nj",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "surf coast - torquay": {
+      "publish": true,
+      "name": "Torquay, Surf Coast",
+      "slug": "breakfast-club-torquay-surf-coast",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "sydney, au": {
+      "publish": true,
+      "name": "Sydney",
+      "slug": "breakfast-club-sydney",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "toronto": {
+      "publish": true,
+      "name": "Toronto",
+      "slug": "breakfast-club-toronto",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "vienna": {
+      "publish": false,
+      "name": "Vienna",
+      "slug": "breakfast-club-vienna",
+      "title": null,
+      "description": null,
+      "priority": 0.5,
+      "note": "THIN — missing a confirmed schedule and/or venue. Fix the data before publishing."
+    },
+    "washington dc": {
+      "publish": true,
+      "name": "Washington, DC",
+      "slug": "breakfast-club-washington-dc",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    },
+    "wilmington, nc, usa": {
+      "publish": true,
+      "name": "Wilmington, NC",
+      "slug": "breakfast-club-wilmington-nc",
+      "title": null,
+      "description": null,
+      "priority": 0.8,
+      "note": ""
+    }
+  }
+}

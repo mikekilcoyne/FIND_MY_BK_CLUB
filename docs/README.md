@@ -7,6 +7,7 @@ and a few things worth picking up. It's the doc that's kept current.
 
 - [STATUS.md](./STATUS.md) — project state, roadmap, open threads, good first tasks
 - [../PASSPORT.md](../PASSPORT.md) — Passport design decisions and the open problem
+- [SEO.md](./SEO.md) — search/discovery, the `data/seo.json` control panel, and what's left
 - [resources/mobile-guidelines.md](./resources/mobile-guidelines.md) — layout + card rules
 - [resources/branding.md](./resources/branding.md) — visual direction + copy tone
 - [style_guide.md](./style_guide.md) — type, color, component language

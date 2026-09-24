@@ -5,7 +5,9 @@
     "check:release": "bash scripts/release-smoke-check.sh",
     "import:whatsapp": "node scripts/import-whatsapp-export.mjs",
     "sync:whatsapp-media": "node scripts/sync-whatsapp-media.mjs",
-    "sync:latest-happenings": "node scripts/sync-latest-happenings-folder.mjs"
+    "sync:latest-happenings": "node scripts/sync-latest-happenings-folder.mjs",
+    "build:seo": "node scripts/build-seo.mjs",
+    "check:seo": "node scripts/build-seo.mjs --check"
   },
   "dependencies": {
     "@netlify/blobs": "10.7.4",

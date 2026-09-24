@@ -135,6 +135,7 @@ House rules that matter more than they look:
 |---|---|
 | [`docs/STATUS.md`](./docs/STATUS.md) | **Start here.** Live / in-flight / brewing, and open threads |
 | [`PASSPORT.md`](./PASSPORT.md) | The Passport's design decisions and open problems |
+| [`docs/SEO.md`](./docs/SEO.md) | Search/discovery: the `data/seo.json` control panel and what's left |
 | [`docs/resources/mobile-guidelines.md`](./docs/resources/mobile-guidelines.md) | Layout + card rules |
 | [`docs/resources/branding.md`](./docs/resources/branding.md) | Visual direction, copy tone |
 | [`docs/style_guide.md`](./docs/style_guide.md) | Type, color, component language |
