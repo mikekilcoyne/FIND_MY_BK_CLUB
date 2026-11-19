@@ -1,17 +1,29 @@
-# Greg's new design vs what we settled — the delta
+# Greg's build vs what we settled — the delta
+
+> **Corrected 2026-11-19 (later the same day).** The first version of this
+> file read Greg's live build as the new direction and declared the
+> 2026-11-18 decisions dead. That was backwards. **The design language settled
+> on 2026-11-18 is the target** — the kit in `zany-kit.css`, the preview in
+> `zany-preview.html`, and the Clubby icon in `clubby-icon.svg` (the egg with
+> specs that blinks, double-blinks and gets bored). Greg's build is the older
+> styling that gets brought up to it.
+>
+> The measurements in §1 and the Clubby findings in §3 are still accurate as a
+> record of what Greg's build looks like today. Read them as *what his build
+> has to change*, not as a spec to rebuild the kit against. **Do not rewrite
+> `zany-kit.css` or redraw `clubby-icon.svg` from this file.**
 
 **Measured 2026-11-19** off the live
 `breakfast-club-rebuild.vercel.app`, from computed styles, not screenshots.
 
-**Read this before touching `zany-kit.css`, `clubby-icon.svg` or
-`CLUBBY_VOICE.md`.** Most of the 2026-11-18 design decisions were made against
-the *old* Netlify site and do not survive contact with the new one.
+Use this as the change list for Greg's build. The kit files are the source
+of truth for the design itself.
 
 ---
 
 ## 1. The measurements
 
-| | Settled 2026-11-18 (old site) | Greg's live design |
+| | Settled 2026-11-18 — the target | Greg's build today |
 |---|---|---|
 | Typeface | Helvetica Neue | **Instrument Sans** |
 | Headline case | ALL CAPS | **Sentence case** |
@@ -23,43 +35,26 @@ the *old* Netlify site and do not survive contact with the new one.
 | Accent | **`#ffd700` gold** | **`#b87649` terracotta** — no gold anywhere |
 | Ink | `#111111` | `#111111` ✅ |
 
-Ink is the only token that survives unchanged.
-
-**So the square style is gone.** Hard corners, 2px ink borders and offset block
-shadows — the thing `CLAUDE.md` describes and `css/square-style.css` implements
-— are the old site's language. The new one is soft, rounded, white and warm.
-
-`CLAUDE.md` is not wrong; it describes *this* repo, which still looks like that.
-It is just no longer describing where the site is going.
+Ink is the only token the two already share. Everything else in the right
+column is something Greg's build changes to match the left.
 
 ---
 
-## 2. What survives, what gets re-expressed, what is dead
+## 2. What Greg's build needs, in order
 
-**Survives untouched**
+1. **Clubby** — swap his placeholder trigger for the settled launcher
+   (`.bc-clubby` + inline `clubby-icon.svg`). See §3.
+2. **Buttons, tags and panels** — the square system in `zany-kit.css` §§2, 7,
+   10, 11 replaces his pills and 1px borders.
+3. **Accent** — `#ffd700` replaces `#b87649`.
+4. **"Find your club"** — his button still reads "Find a club". Copy change.
 
-- **"Everyone's invited." / "Especially you."** — Greg's hero already does the
-  offset, exactly as asked for. Nothing to do.
-- **The flyer stocks** (paper / fabric / sandstone, `zany-kit.css` §13). They are
-  poster textures, not UI chrome, and are independent of the button language.
-- **The poster-maker rules** — locale-appropriate stock, the three vibes, the
-  "taped on, never composited" rule for personal elements.
+Already right on his build, nothing to do:
 
-**Needs re-expressing in the new language**
-
-- **Clubby's icon.** The character is right; the execution is for the wrong
-  system. See §3 — the slot is already cut and it is more specific than assumed.
-- **The doodles.** Hand-drawn marks still fit a warm editorial site, but they
-  were tuned against `#efefef` and gold. Retune to white and `#b87649`.
-- **"Find your club"** — Greg's button still reads "Find a club". Still just a
-  copy change, and still worth making.
-
-**Dead — do not port**
-
-- Square buttons, the 3px/2px offset shadow pair, the shadow-contrasts-fill
-  rule, the 2px ink borders. All of `zany-kit.css` §§1–12 that encodes them.
-- ALL CAPS headers and the Helvetica Neue Medium decision.
-- `#ffd700` as the accent.
+- **"Everyone's invited." / "Especially you."** — the hero already does the
+  offset.
+- **The flyer stocks, tape and polaroid** (`zany-kit.css` §§13–14) are poster
+  materials and drop in as they are.
 
 ---
 
@@ -85,16 +80,15 @@ with three chips — *Clubs near Sydney* · *What happens at a breakfast?* ·
 
 ### What this means
 
-1. **`clubby.html` in this repo is superseded.** It was never deployed (404 on
-   `breakfastclubbing.com`) and the new site has its own implementation. Do not
-   spend more time on it; the work to carry across is the *character*, not the
-   code.
-2. **The egg icon has a real, specific slot.** `clubby-icon.svg` is drawn at
-   48×48 with a `fill`ed shell and multiple stroke widths. The slot wants
-   **24×24, stroke-only, `currentColor`, on a dark circle** — so it needs
-   redrawing at that size, not scaling. At 24px the glasses, the crack, the
-   highlights and the double-blink will not all survive; decide which two
-   details carry the character and drop the rest.
+1. **`clubby.html` in this repo is superseded as code.** It was never
+   deployed (404 on `breakfastclubbing.com`) and the new site has its own chat
+   panel. What carries across is the character and the icon, not the page.
+2. **Replace the trigger, not just the icon.** His slot is a 56×56 black
+   circle sized for a 24×24 stroke icon. The settled Clubby is the 48×48 egg
+   with a filled shell, specs, blink, double-blink and bored state — it does
+   not go into that slot. The button is swapped for `.bc-clubby` (`zany-kit.css`
+   §8) with `clubby-icon.svg` inlined, keeping his `aria-label` and click
+   handler. **Do not redraw the icon to fit his slot.**
 3. **The voice does not match `CLUBBY_VOICE.md`.** "Hi! I'm Clubby. Ask me about
    a club, venue, or confirmed event." is the bland register that document
    exists to fix — and it opens with an exclamation mark, which the tone dial
@@ -108,17 +102,11 @@ with three chips — *Clubs near Sydney* · *What happens at a breakfast?* ·
 
 ## 4. What to do next
 
-1. **Confirm the design is final** before rebuilding anything against it. It
-   was described as "wholly updated"; this records it as measured on
-   2026-11-19, and a moving target is not worth chasing twice.
-2. **Rewrite the kit's chrome** against the measured tokens above, keeping
-   §§13–14 (stocks, tape, polaroid) as they are.
-3. **Redraw the Clubby mark at 24×24 stroke-only** for the existing trigger.
-4. **Send Greg the voice doc** — the panel's copy is the gap, and it is the
-   cheapest improvement on this list.
-5. Leave `clubby.html`, `zany-preview.html` and the square-style work in the
-   repo as reference. They are the record of what was decided and why, even
-   where the execution no longer applies.
+1. **Send Greg §2 as the change list**, with `zany-kit.css`, `zany.js`,
+   `ZanyLayer.tsx` and `clubby-icon.svg` as the drop-ins.
+2. **Send Greg the voice doc** — the panel's copy is the gap, and it is the
+   cheapest improvement on this list. `CLUBBY_VOICE.md` §§1–2 and §4.
+3. **Check "Clubs near Sydney"** before promising geolocation (§3 item 4).
 
 ---
 

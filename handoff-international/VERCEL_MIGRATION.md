@@ -5,9 +5,11 @@ Everything factual here was checked against the live sites, not assumed. Where
 something depends on Greg's repo, which this has no access to, it says so
 instead of guessing.
 
-**Design:** see `DESIGN-DELTA.md` — Greg's new design is measured there, and
-Clubby already has a live trigger and panel on the new site, so `clubby.html`
-in this repo is superseded the same way the PIN admin is.
+**Design:** the language settled on 2026-11-18 is the target — `zany-kit.css`,
+`zany-preview.html`, `clubby-icon.svg`. `DESIGN-DELTA.md` lists what Greg's
+build has to change to match it. Clubby already has a live trigger and panel
+on the new site, so `clubby.html` in this repo is superseded as code (the
+character and icon carry over).
 
 **Decisions taken 2026-11-19, which this plan is now built around:**
 

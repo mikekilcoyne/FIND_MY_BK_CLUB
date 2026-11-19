@@ -390,9 +390,9 @@ haven't done and wouldn't without you asking.
 
 ---
 
-> **Design:** `DESIGN-DELTA.md` measures Greg's new Vercel design against what
-> was settled on 2026-11-18. Most of the button/type decisions in this file do
-> not survive it — read that first before rebuilding anything visual.
+> **Design:** the 2026-11-18 decisions in this file are the settled design
+> language and stand. `DESIGN-DELTA.md` measures Greg's Vercel build against
+> them — it is the change list for his build, not a new direction.
 >
 > **Where this is going:** `VERCEL_MIGRATION.md` holds the plan for moving to
 > Vercel, written after the 2026-11-19 decisions (Supabase is the roster; the
