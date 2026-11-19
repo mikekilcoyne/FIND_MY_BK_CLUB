@@ -32,10 +32,17 @@ if you haven't.
 
 ### Which email to use
 
-Use **`mk@breakfastclubbing.com`**, not a personal address, on all three. If
-these accounts ever need to outlive a laptop or a handover, they should be tied
-to the business identity. (Phase C makes that address work at the new domain
-too, so it stays correct after the rename.)
+**`kilcoyne.michael@gmail.com`** on all three — Mike's call, 2026-11-19.
+
+An earlier draft suggested the business address. The practical argument runs
+the other way: an invitation has to go to the address the account already uses,
+and the existing Vercel account is on the Gmail one. Inviting anything else
+creates a second account rather than granting access to the existing one. It
+also signs in cleanly via Google on all three platforms.
+
+Worth revisiting only if these accounts ever need to survive a handover — at
+that point transfer them to a business address rather than trying to rename
+them.
 
 ---
 
@@ -45,7 +52,7 @@ too, so it stays correct after the rename.)
 > DNS/domain stuff.
 >
 > **Vercel:** can you add me as a Member on the project? That's enough for
-> domains and env vars, which is all I need. `mk@breakfastclubbing.com`.
+> domains and env vars, which is all I need. `kilcoyne.michael@gmail.com`.
 >
 > **GitHub:** collaborator on the repo, same address — then I can put the design
 > changes up as a PR rather than sending you a list to apply by hand. It's four
