@@ -5,6 +5,10 @@ Everything factual here was checked against the live sites, not assumed. Where
 something depends on Greg's repo, which this has no access to, it says so
 instead of guessing.
 
+**Design:** see `DESIGN-DELTA.md` — Greg's new design is measured there, and
+Clubby already has a live trigger and panel on the new site, so `clubby.html`
+in this repo is superseded the same way the PIN admin is.
+
 **Decisions taken 2026-11-19, which this plan is now built around:**
 
 1. **Supabase is the roster.** Not the Sheet. §5.1 is settled; what remains is

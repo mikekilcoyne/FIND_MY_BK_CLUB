@@ -390,6 +390,10 @@ haven't done and wouldn't without you asking.
 
 ---
 
+> **Design:** `DESIGN-DELTA.md` measures Greg's new Vercel design against what
+> was settled on 2026-11-18. Most of the button/type decisions in this file do
+> not survive it — read that first before rebuilding anything visual.
+>
 > **Where this is going:** `VERCEL_MIGRATION.md` holds the plan for moving to
 > Vercel, written after the 2026-11-19 decisions (Supabase is the roster; the
 > passport and other half-finished features wait; the Clubby poster ships at
