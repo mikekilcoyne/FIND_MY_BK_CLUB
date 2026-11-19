@@ -243,23 +243,44 @@ Nothing is published today, but the UI sometimes keeps parking rows.
 
 TTL is 30 minutes, so give it a few.
 
-### Why not Vercel's nameservers
+### Vercel's nameservers — conditional, not forbidden
 
-They are `ns1.vercel-dns.com` and `ns2.vercel-dns.com` (both resolve — 198.51.44.13
-and 198.51.45.13). **Don't use them.** They're the *alternative* to the records
-above, not a companion to them — you pick one approach, and Greg sending A/CNAME
-records means the DNS-stays-at-Namecheap approach.
+**Revised 2026-11-19** after Namecheap refused to save the records. The earlier
+version of this section said "don't use them" flatly. That was overstated, and
+it blurred two very different domains.
 
-The decisive reason is access. **You don't have Vercel access yet.** If this
-domain's DNS moves to Vercel, you can't add the Workspace verification TXT or
-swap the MX in Phase C without going through Greg each time — so your own mail
-setup would be blocked on him indefinitely. Keeping DNS at Namecheap keeps the
-Vercel records and the Google MX in one panel you already control.
+They are `ns1.vercel-dns.com` and `ns2.vercel-dns.com` (both resolve —
+198.51.44.13 and 198.51.45.13). They are the *alternative* to the A/CNAME
+records above, never a companion — you pick one approach.
 
-Also, switching nameservers drops the five `eforward` MX records the moment it
-propagates, so any forwarding currently set up on that domain breaks with no
-warning. Worth checking what's configured there before Phase C touches it
-anyway.
+**The two domains are not the same question:**
+
+| | breakfastclubbing.com | breakfastclubinternational.com |
+|---|---|---|
+| Switching nameservers is | **destructive, never do it** | a trade-off |
+| What's lost | Workspace mail (ben@, mk@, set@), Google DKIM, `_dmarc`, 2 site-verification TXT, SendGrid DKIM, the site's A records — which serve `/passport` and its physical NFC tags, `/what-we-talked-about`, `/admin`, 14 functions | five `eforward` MX that Phase C replaces with Google's anyway |
+
+So on the **new** domain the objection was never destruction — there's almost
+nothing there to destroy. It's **control**:
+
+- **If Greg has added you to the Vercel project** → switching is fine, and
+  actually convenient: Vercel auto-manages the A/CNAME once the domain is added
+  there, so a broken Namecheap panel stops mattering. Phase C's verification TXT
+  and MX swap happen in Vercel's DNS panel instead.
+- **If he hasn't** → don't. You'd be unable to add the Workspace verification
+  TXT or point MX at Google without going through him for each one, so your own
+  mail setup would be blocked on him indefinitely.
+
+**Before switching either way**, check Namecheap → Domain → **Redirect Email**
+for any live forwarding on this domain. It stops the moment the nameservers
+change. If nothing is configured there, the five MX records cost nothing to
+lose.
+
+**If Namecheap stays broken and Greg hasn't granted access yet**, the better
+escape hatch is **Netlify DNS** (`dns1-4.p06.nsone.net`) — you already control
+it, breakfastclubbing.com already lives there, and Netlify will host DNS for a
+domain whose site is somewhere else. One panel you own, for both domains, and
+you can add the Vercel records and the Google MX yourself.
 
 ### B4 · Verify — *me*
 
