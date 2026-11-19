@@ -26,7 +26,8 @@ of truth for the design itself.
 | | Settled 2026-11-18 — the target | Greg's build today |
 |---|---|---|
 | Typeface | Helvetica Neue | **Instrument Sans** |
-| Headline case | ALL CAPS | **Sentence case** |
+| Headline case | sentence case | sentence case ✅ |
+| Stickers / eyebrows / labels | **ALL CAPS** | mixed |
 | Headline weight | Medium (500) | **Regular (400)** |
 | Headline tracking | normal | **−4.29px at 64px** — very tight |
 | Body copy | lowercase, opt-in via `.bc-lower` | sentence case |
@@ -56,7 +57,15 @@ Three of those rows are easy to lose, and each was a specific call on
   `text-transform` is blind: on a whole page it also lowercases city names,
   venue names and host names. Lowercase the voice, leave proper nouns alone.
 
-**Correction:** an earlier version of this table listed the target page
+**Correction (2):** an earlier version of this table had the target headline
+case as ALL CAPS. It is not. The kit's `h1` sets no `text-transform` — headlines
+render sentence case, exactly as Greg's build already does. Uppercase in the kit
+is for **stickers, eyebrows and panel labels** (`.bc-sticker`,
+`.bc-panel-label`), not for headlines. The ALL CAPS rule belongs to the old
+`css/design-tokens.css` and `CLAUDE.md`, which describe the Netlify site, not
+this kit. Telling Greg to uppercase his headlines would have been a regression.
+
+**Correction (1):** an earlier version of this table listed the target page
 background as `#efefef`. That is the old `css/design-tokens.css` value, not the
 kit's — `zany-kit.css` sets `--bc-paper: #ffffff`. Greg's build is already
 white, so that row is not a change he has to make.
