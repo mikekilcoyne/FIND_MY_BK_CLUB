@@ -4,55 +4,58 @@
 I'll setup resend to handle automatic emails but didn't know if there was email
 address to list."*
 
-All DNS claims below were checked against the authoritative nameservers, not
-assumed. §3 has the raw records.
+**Revised the same day:** SendGrid is being retired — Supabase + Vercel is the
+backend. The first draft offered reusing SendGrid since it's already
+domain-authenticated. That option is gone, so this now sets both domains up in
+Resend from scratch. §3 has the raw DNS either way.
 
 ---
 
 ## The message *(send this)*
 
 > Yeah — breakfastclubbing.com is on Google Workspace, so there are real
-> mailboxes:
+> mailboxes: `ben@`, `set@` and `mk@`. The new domain has no mailbox, just
+> Namecheap forwarding at the DNS level, but I'm fixing that this week by adding
+> it as a Workspace domain alias — so `ben@breakfastclubinternational.com` will
+> land in the same inbox as `ben@breakfastclubbing.com`.
 >
-> - `ben@breakfastclubbing.com` — host-facing, Ben reads it
-> - `set@breakfastclubbing.com` — what the current system mail already sends as
-> - `mk@breakfastclubbing.com` — me
->
-> **breakfastclubinternational.com has no real mailboxes** — just Namecheap
-> forwarding at the DNS level. So I'd send from breakfastclubbing.com even
-> though the site itself lives on the new domain. Two reasons: the hosts
-> recognise it, and a brand-new domain has zero sending reputation — the first
-> thing out of it would be 48 invites in one go, which is precisely the shape
-> of a spam run.
->
-> So for Resend:
+> **Verify both domains in Resend, not one.** They do different jobs:
 >
 > ```
-> From:     Breakfast Club <set@breakfastclubbing.com>
-> Reply-To: ben@breakfastclubbing.com
+> Magic links, invite-accepted, anything a user triggers
+>   → from  hello@breakfastclubinternational.com
+>
+> The one bulk send — the 48 "claim your club" invites
+>   → from  ben@breakfastclubbing.com
+>
+> Reply-To on both: ben@breakfastclubbing.com
 > ```
 >
-> `set@` is already the system sender on the current site, so it keeps one
-> pattern rather than inventing a second. Reply-To on `ben@` means anyone who
-> just hits reply reaches a human instead of a void.
+> The reason for the split: those 48 hosts have had mail from
+> breakfastclubbing.com before, so it's the safer domain for a single 48-message
+> send — a brand-new domain whose first act is a bulk send to 48 people looks
+> exactly like a spam run, and these are the people we can least afford to land
+> in junk. Meanwhile the magic links warm the new domain properly, because
+> they're requested by the recipient and actually get opened, which is the best
+> reputation signal going. Both authenticated from day one, so there's no second
+> migration later.
 >
-> Two things before you add the DNS:
+> Two things on the DNS:
 >
-> **1. That domain's DNS isn't at Namecheap** — it's on NS1 (Netlify DNS). Send
-> me Resend's records and I'll add them. One caution: **don't let anything add
-> a root SPF record unasked.** There isn't one today, and both Google Workspace
-> and SendGrid send from that domain — so a fresh `v=spf1` covering only Resend
-> would be worse than having none at all. Resend's `send.` subdomain setup puts
-> SPF on the subdomain and sidesteps the whole problem, so that's the one I'd use.
+> **1. The two domains have different DNS hosts.** breakfastclubbing.com is on
+> NS1 (Netlify DNS) and breakfastclubinternational.com is at Namecheap — so
+> send me both record sets and I'll add them in the right places. I'll confirm
+> each one resolves before you hit verify in Resend.
 >
-> **2. SendGrid is already domain-authenticated on breakfastclubbing.com** —
-> `s1`/`s2` DKIM are live and it's what sends the weekly host reminders right
-> now. Not saying switch; Resend is probably nicer to work with. Just so you
-> know you're not starting from zero if you'd rather reuse it. Either way: one
-> sender, not two.
+> **2. Don't let the wizard add a root SPF record to breakfastclubbing.com.**
+> There isn't one today — I checked the authoritative nameservers, there's no
+> `v=spf1` at all. Google Workspace sends from that domain, so a fresh SPF
+> covering only Resend would be worse than having none. Resend's `send.`
+> subdomain setup puts SPF on the subdomain and sidesteps it entirely — use
+> that one.
 >
-> And the bit that's easiest to miss — **Supabase → Authentication → SMTP has
-> to point at Resend as well.** Supabase's built-in mailer is rate-limited to a
+> And the bit that's easiest to miss: **Supabase → Authentication → SMTP has to
+> point at Resend as well.** Supabase's built-in mailer is rate-limited to a
 > handful an hour and explicitly isn't for production, so magic links and
 > invitations will stall silently somewhere inside the 48 if that's left on
 > default.
@@ -63,9 +66,8 @@ assumed. §3 has the raw records.
 
 ## Optional paragraph — folds in the email-login ask
 
-This is the natural moment for it: he's wiring mail anyway, and the SMTP point
-above only matters *because* of magic links. Append this if you want it in the
-same message rather than a separate one. Full version is in `ASK-FOR-GREG.md`.
+The natural moment for it: he's wiring mail anyway, and the SMTP point above
+only matters *because* of magic links. Full version in `ASK-FOR-GREG.md`.
 
 > Related, while you're in there: the only auth call in the app right now is
 > `signInWithOAuth` — Google and Apple. No `signInWithOtp` anywhere. That's
@@ -95,62 +97,58 @@ Checked 2026-11-19 against the authoritative nameservers.
 | Nameservers | `dns1–4.p06.nsone.net` — **NS1, i.e. Netlify DNS** |
 | MX | `1 smtp.google.com` — Google Workspace |
 | SPF | **none.** No `v=spf1` record exists at the root |
-| DKIM | `google._domainkey` (Workspace) + `s1`/`s2._domainkey` → `u60720214.wl215.sendgrid.net` |
+| DKIM | `google._domainkey` + `s1`/`s2._domainkey` → `u60720214.wl215.sendgrid.net` |
 | DMARC | `v=DMARC1; p=none;` |
 
-So: Workspace mailboxes for inbound, and **SendGrid already fully
-domain-authenticated** for outbound. The repo backs that up — `SENDGRID_API_KEY`
-is used by `admin-api.js`, `submit-club-update.js`,
-`send-host-reminder-background.js` and `weekly-host-reminder.js`, with
-`FROM_EMAIL` set to `set@` in the first two and `ben@` in the reminders.
+The SendGrid DKIM records are live and still authenticate the domain. They're
+now legacy — four Netlify functions send through them (`admin-api.js`,
+`submit-club-update.js`, `send-host-reminder-background.js`,
+`weekly-host-reminder.js`) and all four are on the way out. **Leave the records
+in place until those functions stop sending**, then remove them; pulling them
+early just bounces the weekly reminders in the meantime.
 
-### breakfastclubinternational.com — forwarding only
+### breakfastclubinternational.com — forwarding only, no website yet
 
 | | |
 |---|---|
 | Nameservers | `dns1/2.registrar-servers.com` — Namecheap BasicDNS |
-| MX | five `eforward1–5.registrar-servers.com` — Namecheap email forwarding |
+| A / CNAME | **none.** The domain does not resolve at all |
+| MX | five `eforward1–5.registrar-servers.com` — Namecheap forwarding |
 | SPF | `v=spf1 include:spf.efwd.registrar-servers.com ~all` |
 | DKIM / DMARC | none |
 
-Forwarding is enabled at the DNS level; whether any address is actually
-configured is only visible in the Namecheap dashboard. Either way it's a
-forwarder, not a mailbox, and it has never sent anything.
+A forwarder, not a mailbox, and it has never sent anything. Phase C of
+`LAUNCH-CHECKLIST.md` replaces the MX with Google's as part of the domain alias.
 
 ---
 
-## The SPF gap, separately
+## The SPF gap on breakfastclubbing.com
 
-**breakfastclubbing.com has no SPF record.** Not Resend's doing — it's been
-that way. With DMARC at `p=none` nothing is being rejected, so mail delivers
-and this has been invisible. But it means outbound from that domain passes on
-DKIM alone.
+**No SPF record exists.** Not Resend's doing — it's been that way. DMARC is at
+`p=none` so nothing is being rejected and this has stayed invisible, but it
+means outbound from that domain passes on DKIM alone.
 
-Worth fixing, and the right time is while Resend's records are going in anyway,
-because it has to cover every sender at once:
+Fix it once, at the end, when you know what still sends. Not launch-blocking.
+While the Netlify functions are still alive:
 
 ```
 v=spf1 include:_spf.google.com include:sendgrid.net ~all
 ```
 
-Add Resend only if its setup asks for a root SPF rather than the `send.`
-subdomain. **One SPF record per domain, ever** — a second one makes SPF fail
-outright rather than merging, which is the trap here.
-
-Don't do this in the same change as the Vercel DNS work. One mail change at a
-time, so if something bounces you know which edit caused it.
+Drop the `sendgrid.net` include once they're retired. **One SPF record per
+domain, ever** — a second one makes SPF fail outright rather than merging, which
+is the trap here. And don't bundle this with the Vercel DNS work; one mail change
+at a time, so a bounce tells you which edit caused it.
 
 ---
 
 ## Notes for Mike, not for sending
 
-- **Resend vs SendGrid is genuinely a toss-up.** SendGrid is already
-  authenticated and already sends the reminders; Resend is Greg's preference and
-  fits the Vercel/Supabase side better. The thing that matters is that it's
-  *one* of them, not both — two senders on one domain means two reputations and
-  two places to look when mail goes missing.
-- If Greg goes with Resend, the Netlify functions still send via SendGrid. That
-  is two senders. Fine as a transition, not fine as a resting state — the
-  functions move to Supabase eventually anyway (`VERCEL_MIGRATION.md`).
+- The split-sending recommendation is the one thing here Greg might push back
+  on, since one domain is simpler. The counter is that it costs nothing — Resend
+  verifies as many domains as you like — and the 48-host send is the single
+  highest-stakes email this project will ever send.
+- During the transition there really are two senders on breakfastclubbing.com
+  (Resend and SendGrid). Fine as a transition, not as a resting state.
 - `receive-club-update-email.js` is an inbound webhook, and there's no
   inbound-parse subdomain in DNS, so nothing Resend adds will disturb it.

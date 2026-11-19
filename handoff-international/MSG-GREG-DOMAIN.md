@@ -68,9 +68,12 @@ breakfastclubinternational.com live today.
 - **If he adds you as Owner**, do the three things yourself in this order:
   domains → DNS at Namecheap → Supabase URL config. The Supabase step is the
   one people skip.
-- **Namecheap:** delete the parking A record (`@` → `192.64.119.117`) and the
-  www CNAME to `parkingpage.namecheap.com`. **Keep all five MX records and the
-  SPF TXT** or email forwarding on that domain stops.
+- **Namecheap:** ~~delete the parking A record and the www CNAME~~ —
+  **corrected 2026-11-19:** there is nothing to delete. The domain has no A
+  record and no www record at all today; it doesn't resolve. Just add Vercel's
+  two records. **Keep all five MX records and the SPF TXT** for now — Phase C of
+  `LAUNCH-CHECKLIST.md` replaces them deliberately when the Workspace domain
+  alias goes in.
 - **Don't** switch nameservers to Vercel. Same reason.
 - The redirect from breakfastclubbing.com is separate and comes after — the
   rules are written in `netlify.toml` on the `backend-hardening-2026-11`

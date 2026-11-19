@@ -180,92 +180,111 @@
   to = "/what-we-talked-about.html"
   status = 200
 
-# --- 3. Marketing pages -> the new site ------------------------------------
-# force = true because each of these still exists as a file in this repo and
-# would otherwise be served instead of redirected.
+# =============================================================================
+# GATED 2026-11-19 — DO NOT UNCOMMENT UNTIL THE NEW DOMAIN RESOLVES.
+#
+# Every rule in section 3 below 301s to breakfastclubinternational.com, which
+# has no A record yet (dig +short A breakfastclubinternational.com -> empty).
+# Deploying them now would send this site's homepage and every browse path to
+# a domain that does not answer. The rest of this file — the security denies,
+# the function passthrough and the kept pages — is safe to deploy today, which
+# is why these are commented rather than held back on a branch.
+#
+# To re-enable, in this order:
+#   1. curl -sI https://breakfastclubinternational.com | head -1   -> expect 200
+#   2. strip the leading '# ' from section 3 only
+#   3. redeploy, then: curl -sI https://breakfastclubbing.com | head -1 -> 301
+#
+# Email is unaffected either way: these are HTTP redirects, the mailboxes are
+# MX records. ben@breakfastclubbing.com keeps working.
+# =============================================================================
 
-[[redirects]]
-  from = "/"
-  to = "https://breakfastclubinternational.com/"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/index.html"
-  to = "https://breakfastclubinternational.com/"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/map-view"
-  to = "https://breakfastclubinternational.com/clubs"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/calendar-view"
-  to = "https://breakfastclubinternational.com/clubs"
-  status = 301
-  force = true
-
-# Query string is preserved automatically, so ?city=paris survives the hop.
-[[redirects]]
-  from = "/typeout"
-  to = "https://breakfastclubinternational.com/clubs"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/flyers"
-  to = "https://breakfastclubinternational.com/gallery"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/fly-er"
-  to = "https://breakfastclubinternational.com/gallery"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/journey-home"
-  to = "https://breakfastclubinternational.com/start"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/copy"
-  to = "https://breakfastclubinternational.com/"
-  status = 301
-  force = true
-
-# --- 4. New-site routes linked from the old domain -------------------------
-# So a shared breakfastclubbing.com/clubs link lands correctly instead of 404ing.
-
-[[redirects]]
-  from = "/clubs"
-  to = "https://breakfastclubinternational.com/clubs"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/gallery"
-  to = "https://breakfastclubinternational.com/gallery"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/host-guide"
-  to = "https://breakfastclubinternational.com/host-guide"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/start"
-  to = "https://breakfastclubinternational.com/start"
-  status = 301
-  force = true
-
+# # --- 3. Marketing pages -> the new site ------------------------------------
+# # force = true because each of these still exists as a file in this repo and
+# # would otherwise be served instead of redirected.
+#
+# [[redirects]]
+#   from = "/"
+#   to = "https://breakfastclubinternational.com/"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/index.html"
+#   to = "https://breakfastclubinternational.com/"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/map-view"
+#   to = "https://breakfastclubinternational.com/clubs"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/calendar-view"
+#   to = "https://breakfastclubinternational.com/clubs"
+#   status = 301
+#   force = true
+#
+# # Query string is preserved automatically, so ?city=paris survives the hop.
+# [[redirects]]
+#   from = "/typeout"
+#   to = "https://breakfastclubinternational.com/clubs"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/flyers"
+#   to = "https://breakfastclubinternational.com/gallery"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/fly-er"
+#   to = "https://breakfastclubinternational.com/gallery"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/journey-home"
+#   to = "https://breakfastclubinternational.com/start"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/copy"
+#   to = "https://breakfastclubinternational.com/"
+#   status = 301
+#   force = true
+#
+# # --- 4. New-site routes linked from the old domain -------------------------
+# # So a shared breakfastclubbing.com/clubs link lands correctly instead of 404ing.
+#
+# [[redirects]]
+#   from = "/clubs"
+#   to = "https://breakfastclubinternational.com/clubs"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/gallery"
+#   to = "https://breakfastclubinternational.com/gallery"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/host-guide"
+#   to = "https://breakfastclubinternational.com/host-guide"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "/start"
+#   to = "https://breakfastclubinternational.com/start"
+#   status = 301
+#   force = true
+#
 [[headers]]
   for = "/*"
   [headers.values]
