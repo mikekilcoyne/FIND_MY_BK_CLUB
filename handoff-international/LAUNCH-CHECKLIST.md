@@ -124,13 +124,27 @@ npx netlify-cli@latest deploy --prod --skip-functions-cache
 
 The login opens a browser once and is remembered after that.
 
-**Or skip the CLI entirely** if this Netlify site auto-deploys from the GitHub
-repo — in that case pushing `main` is the deploy, and the CLI never comes into
-it. You'll know from Netlify → Site configuration → Build & deploy whether a
-repo is connected. Worth checking before installing anything, because that path
-is better long-term anyway.
+**Confirmed 2026-11-19: the Netlify site auto-deploys from GitHub, so ignore
+the CLI entirely.** Pushing `main` *is* the deploy:
 
-If you push: `main` is 16 commits ahead of `origin/main` and not yet pushed.
+```bash
+git push origin main
+```
+
+`origin` is `github.com/mikekilcoyne/FIND_MY_BK_CLUB`, Netlify publishes `.`
+with no build command, so the push lands as a static deploy.
+
+**Set A2's env vars before pushing**, so the first build is already correct.
+
+**This does not touch Vercel.** Two unrelated repos on two unrelated hosts:
+
+| | repo | host | domain |
+|---|---|---|---|
+| this one | `mikekilcoyne/FIND_MY_BK_CLUB` | Netlify | breakfastclubbing.com |
+| Greg's | his `breakfast-club-rebuild` | Vercel | breakfastclubinternational.com |
+
+Nothing pushed here can reach the new site. The only work that goes into
+Greg's repo is the design delta, Phase F.
 
 ### A4 · Verify — *me, but here they are*
 
@@ -188,11 +202,16 @@ Settings → Domains → add both, apex canonical so www redirects to it:
 - `breakfastclubinternational.com`
 - `www.breakfastclubinternational.com`
 
-### B2 · Get the records back — *Greg*
+### B2 · Get the records back — *done, Greg sent them 2026-11-19*
 
-Vercel shows an A record for the apex and a CNAME for www. Usually
-`76.76.21.21` and `cname.vercel-dns.com`, **but use whatever his dashboard
-shows** — Vercel issues per-project values now.
+Verified before use — both IPs are Vercel-owned and serving, and his CNAME
+target resolves to exactly those two:
+
+```
+cd5a8014391d12fc.vercel-dns-016.com  ->  216.150.16.1, 216.150.1.1
+216.150.1.1   ->  VERCEL-09, Vercel, Inc (ZEITI)   HTTP/2 200, server: Vercel
+216.150.16.1  ->  VERCEL-08, Vercel, Inc (ZEITI)   HTTP/2 200, server: Vercel
+```
 
 **Do not switch nameservers to Vercel.** Greg suggested this for
 breakfastclubbing.com, which would take down Google Workspace mail (`ben@`,
@@ -201,12 +220,46 @@ and all 14 functions. We're keeping DNS where it is and adding records.
 
 ### B3 · Add them at Namecheap — *you*
 
-Domain List → breakfastclubinternational.com → Manage → **Advanced DNS**.
+Domain List → breakfastclubinternational.com → Manage → **Advanced DNS** →
+Add New Record, three times:
 
-Add the A record for `@` and the CNAME for `www`. **Keep all five MX records and
-the SPF TXT** — Phase C needs them until it replaces them deliberately.
+| Type | Host | Value | TTL |
+|---|---|---|---|
+| A Record | `@` | `216.150.1.1` | Automatic |
+| A Record | `@` | `216.150.16.1` | Automatic |
+| CNAME Record | `www` | `cd5a8014391d12fc.vercel-dns-016.com.` | Automatic |
+
+**Both A records**, not one — the pair is Vercel's redundancy, not a choice.
+
+**Leave Nameservers set to "Namecheap BasicDNS."** Do not switch to Custom DNS.
+See below.
+
+**Keep all five MX records and the SPF TXT.** Phase C replaces them
+deliberately; losing them early kills forwarding on that domain with no
+warning.
+
+If the Advanced DNS panel shows any existing `@` or `www` row, delete it first.
+Nothing is published today, but the UI sometimes keeps parking rows.
 
 TTL is 30 minutes, so give it a few.
+
+### Why not Vercel's nameservers
+
+They are `ns1.vercel-dns.com` and `ns2.vercel-dns.com` (both resolve — 198.51.44.13
+and 198.51.45.13). **Don't use them.** They're the *alternative* to the records
+above, not a companion to them — you pick one approach, and Greg sending A/CNAME
+records means the DNS-stays-at-Namecheap approach.
+
+The decisive reason is access. **You don't have Vercel access yet.** If this
+domain's DNS moves to Vercel, you can't add the Workspace verification TXT or
+swap the MX in Phase C without going through Greg each time — so your own mail
+setup would be blocked on him indefinitely. Keeping DNS at Namecheap keeps the
+Vercel records and the Google MX in one panel you already control.
+
+Also, switching nameservers drops the five `eforward` MX records the moment it
+propagates, so any forwarding currently set up on that domain breaks with no
+warning. Worth checking what's configured there before Phase C touches it
+anyway.
 
 ### B4 · Verify — *me*
 
