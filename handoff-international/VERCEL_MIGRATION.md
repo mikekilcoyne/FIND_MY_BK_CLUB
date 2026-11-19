@@ -12,7 +12,10 @@ instead of guessing.
    — see §5.1.
 2. **The passport and the other half-finished features are for later.** They
    stay on Netlify, untouched, and nothing in this plan waits on them.
-3. **The Clubby poster ships deliberately unfinished.** V1 gives someone
+3. **Host confirmation happens through login on the new site**, and email
+   login gets added alongside Google and Apple. Almost all of this turned out
+   to be built already — see `HOST-CONFIRMATION.md`.
+4. **The Clubby poster ships deliberately unfinished.** V1 gives someone
    info, text and texture to carry into Canva — roughly 80% of a poster. V1.1
    of the site is where that becomes 90–95%. See §6.1.
 
@@ -293,9 +296,13 @@ guarded, so it degrades rather than breaking, but it wants the real link.
    once rather than synced. Worth one sentence of confirmation before the Sheet
    is restricted at the end of §5.1 — the failure, if there is a sync, looks
    like nothing at all until the roster goes stale.
-3. **What is the RLS policy on `host_applications` and `club_hosts`?**
+3. **What is the RLS policy on `host_applications`, `club_hosts` and
+   `club_invitations`?** See `HOST-CONFIRMATION.md` §4 — the host confirmation
+   model rests on who is allowed to call `create_club_invitation`.
 4. **Does `/host` already cover the flyer upload and WWTA entry that hosts do on
-   `/admin`?** That is the gate on §5.3.
+   `/admin`?** That is the gate on §5.3. Note that `/host` turns out to be far
+   more complete than assumed: it already has the full invite, co-host and
+   club-editing surface. See `HOST-CONFIRMATION.md` §1.
 5. **Where should `bk-flyers` live?** Supabase Storage is the obvious answer if
    Supabase is already in the stack.
 

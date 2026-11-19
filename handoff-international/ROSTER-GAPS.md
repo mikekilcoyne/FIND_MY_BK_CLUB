@@ -122,26 +122,26 @@ Two are not drift:
   not Supabase, not the Sheet, not `clubs-map.json`. Only a flyer, and an
   "evergreen" one, which means someone made it to last.
 
-### Lisbon is the 18th country
+### Lisbon — not a club *(settled 2026-11-19)*
 
-This is the one that answers the headline question in `README.md` §12.7, which
-concluded that **"53 clubs · 18 countries" was not reachable** — every held-back
-club was in a country already counted, so 17 was the ceiling.
+**Inactive.** So the flyer is exactly what it looked like: artwork without a
+club behind it.
 
-Portugal is not already counted. So:
+That closes the question `README.md` §12.7 opened. With Lisbon out, every
+remaining held-back club is in a country already counted — Norwich (UK), Las
+Vegas, Austin, Boulder, Philadelphia (all USA), Houston, LA Westside (USA),
+San Miguel de Allende (Mexico). Riyadh is the only one that adds a country.
 
 | | Clubs | Countries |
 |---|---|---|
 | Live today | 48 | 16 |
 | + fix the `United States` cell | 48 | 16 *(the count stops lying)* |
-| + activate Riyadh | 49 | **17** — Saudi Arabia |
-| + **Lisbon** | 50 | **18** — Portugal |
-| + the 5 other held-back rows | **55** | **18** |
+| + activate Riyadh | 49 | **17** |
+| + the 5 other held-back rows | **54** | **17** |
 
-So 18 countries is reachable, and **"53 clubs · 18 countries" is honest** with
-Riyadh, Lisbon and three of the held-back rows live.
+**So "53 clubs · 18 countries" is not reachable, and 17 is the ceiling** until
+there is a club in a genuinely new country. I briefly had this at 18 on the
+strength of the Lisbon flyer; that was wrong.
 
-The catch: a flyer is not a club. Before counting Lisbon, someone has to confirm
-there is a host, a venue and a day — the flyer may be aspirational, or the club
-may have quietly folded. Worth one message to find out, because it is the
-difference between a true headline and a nearly-true one.
+The honest options stand as: **"48 clubs · 16 countries"** today, or
+**"53 clubs · 17 countries"** with Riyadh and four more activated.

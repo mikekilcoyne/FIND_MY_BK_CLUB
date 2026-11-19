@@ -57,10 +57,14 @@ EU/UK, so it's a GDPR thing, not just untidiness.
 One ask lands; a list gets deferred. These are real but none of them is
 blocking, and two aren't Greg's problem.
 
-**For Greg, later:**
-- **RLS on `host_applications` and `club_hosts`.** Worth confirming a policy
-  exists. The difference between "a host edits their own club" and "any
-  signed-in user edits any club" doesn't show up in the UI.
+**For Greg, later** — all four are in `HOST-CONFIRMATION.md` §4 with context:
+- **Email login.** Google and Apple are the only two options in the app;
+  `signInWithOtp` appears nowhere. Magic link rather than a password, and it
+  needs SMTP pointed at the existing SendGrid or it cannot send at volume.
+- **Who can call `create_club_invitation`?** The host confirmation model rests
+  on it. Plus RLS on `club_hosts` and `club_invitations` — the difference
+  between "a host edits their own club" and "any signed-in user edits any club"
+  doesn't show up in the UI.
 - **`poster_url` is empty on 28 of 48 clubs**, so the gallery is running at
   about 40% coverage. The Netlify flyer wall has more flyers than Supabase
   knows about — probably worth a second pass at the seed.
