@@ -29,14 +29,37 @@ of truth for the design itself.
 | Headline case | ALL CAPS | **Sentence case** |
 | Headline weight | Medium (500) | **Regular (400)** |
 | Headline tracking | normal | **−4.29px at 64px** — very tight |
-| Buttons | 7px radius + `3px 3px 0` ink shadow | **`border-radius: 999px`, no shadow** |
+| Body copy | lowercase, opt-in via `.bc-lower` | sentence case |
+| Buttons | 7px radius + `3px 3px 0` shadow | **`border-radius: 999px`, no shadow** |
+| Tags | 3px radius + `2px 2px 0` shadow | — |
+| Button shadow colour | **accent**, flipping to ink on accent buttons | n/a (no shadows) |
 | Borders | 2px ink | **1px transparent** |
-| Page background | `#efefef` | **`#ffffff`** (panels `#f2f2f2`) |
+| Page background | `#ffffff` | `#ffffff` ✅ (panels `#f2f2f2`) |
 | Accent | **`#ffd700` gold** | **`#b87649` terracotta** — no gold anywhere |
 | Ink | `#111111` | `#111111` ✅ |
 
-Ink is the only token the two already share. Everything else in the right
-column is something Greg's build changes to match the left.
+Ink and the white page are already shared. Everything else in the right column
+is something Greg's build changes to match the left.
+
+Three of those rows are easy to lose, and each was a specific call on
+2026-11-18 rather than a default:
+
+- **Tags differ from buttons** — `--bc-radius-tag: 3px` / `--bc-shadow-tag:
+  2px 2px 0` against `7px` / `3px 3px 0` for buttons. A club tag like "Popup"
+  and a "Find your club" button are deliberately not the same object.
+- **The shadow contrasts the fill.** `.bc-btn` sets `--bc-btn-shadow` to the
+  **accent**, and `.bc-btn--accent` flips it back to ink. This was the fix for
+  a dark button whose dark shadow disappeared behind it — a single ink shadow
+  everywhere looks right in isolation and muddy on a black button.
+- **Lowercase is opt-in, never on `<body>`.** `.bc-lower` is applied per block,
+  with `.bc-keepcase` for anything inside it that must keep its capitals.
+  `text-transform` is blind: on a whole page it also lowercases city names,
+  venue names and host names. Lowercase the voice, leave proper nouns alone.
+
+**Correction:** an earlier version of this table listed the target page
+background as `#efefef`. That is the old `css/design-tokens.css` value, not the
+kit's — `zany-kit.css` sets `--bc-paper: #ffffff`. Greg's build is already
+white, so that row is not a change he has to make.
 
 ---
 
