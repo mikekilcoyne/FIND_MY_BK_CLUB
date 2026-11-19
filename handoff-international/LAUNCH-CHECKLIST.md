@@ -105,9 +105,32 @@ of it being a list.
 
 ### A3 · Deploy — *you*
 
+**Corrected 2026-11-19:** `npm run deploy` runs `netlify deploy --prod
+--skip-functions-cache`, and **the Netlify CLI isn't installed on this
+machine** — not globally, not as a local dep, not in your login shell. It would
+fail with "command not found." The site itself is still linked
+(`.netlify/state.json`, siteId `75fd9acb-ca00-45e3-bcb9-9e0906ea82b0`), so only
+the binary is missing.
+
+Use npx, which needs no install:
+
 ```bash
-npm run deploy
+npx netlify-cli@latest login
 ```
+
+```bash
+npx netlify-cli@latest deploy --prod --skip-functions-cache
+```
+
+The login opens a browser once and is remembered after that.
+
+**Or skip the CLI entirely** if this Netlify site auto-deploys from the GitHub
+repo — in that case pushing `main` is the deploy, and the CLI never comes into
+it. You'll know from Netlify → Site configuration → Build & deploy whether a
+repo is connected. Worth checking before installing anything, because that path
+is better long-term anyway.
+
+If you push: `main` is 16 commits ahead of `origin/main` and not yet pushed.
 
 ### A4 · Verify — *me, but here they are*
 
