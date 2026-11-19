@@ -48,26 +48,19 @@ them.
 
 ## The message *(send this)*
 
-> Hey Greg — couple of access bits so I can stop being a bottleneck on the
-> DNS/domain stuff.
+> Hey Greg — couple of access bits so I'm not a bottleneck on the DNS stuff.
+> All on `kilcoyne.michael@gmail.com`:
 >
-> **Vercel:** can you add me as a Member on the project? That's enough for
-> domains and env vars, which is all I need. `kilcoyne.michael@gmail.com`.
+> - **Vercel** — add me as a Member? Just need domains + env vars.
+> - **GitHub** — collaborator, so I can put the design changes up as a PR
+>   instead of sending you a list to apply.
+> - **Supabase** — access is org-wide there, so adding me means sharing
+>   everything else in your org too. Easier to transfer the project to an org
+>   on my side and add you straight back as Admin. Settings → General →
+>   Transfer project.
 >
-> **GitHub:** collaborator on the repo, same address — then I can put the design
-> changes up as a PR rather than sending you a list to apply by hand. It's four
-> changes plus a few drop-in files.
->
-> **Supabase** is the awkward one, because access is org-wide rather than
-> per-project — so adding me would give me sight of anything else you've got in
-> there, which neither of us probably wants. Easiest fix is to transfer the
-> project into an org on my side and add you straight back as Administrator.
-> Settings → General → Transfer project. Nothing changes for you day to day, it
-> just means the club data and host records sit under the business account.
-> I'll get an org set up so it's ready for you.
->
-> Totally fine if any of these need to wait until after we're live — just let me
-> know which, so I know what to route through you in the meantime.
+> Fine if any of it waits till after we're live — just say which and I'll route
+> through you meanwhile.
 >
 > Cheers 🙏
 
