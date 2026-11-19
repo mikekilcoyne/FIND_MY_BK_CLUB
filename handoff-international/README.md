@@ -390,6 +390,12 @@ haven't done and wouldn't without you asking.
 
 ---
 
+> **Where this is going:** `VERCEL_MIGRATION.md` holds the plan for moving to
+> Vercel, written after the 2026-11-19 decisions (Supabase is the roster; the
+> passport and other half-finished features wait; the Clubby poster ships at
+> ~80% with Canva as the finishing step). Where it and this section disagree,
+> the migration plan is newer.
+
 ## 12. Back-end debug pass — 2026-11-18
 
 A full sweep of the Netlify back end, Clubby, the roster pipeline and the host
@@ -439,9 +445,11 @@ matter, not just an untidiness one.
 from the browser, so locking it without preparing the fallback takes the map and
 calendar down. The safe sequence is in 12.9.
 
-Once that is prepared: **File → Share → Publish to web → Stop publishing**, then
-set **Share** to "Restricted" (the `/export?format=csv` URL returned real CSV
-unauthenticated too, so link-sharing is on as well), then put the URL in Netlify
+Once that is prepared: **File → Share → Publish to web → Stop publishing**. Do
+not also set **Share** to "Restricted" yet — see 12.10 step 3 and
+`VERCEL_MIGRATION.md` §5.0; it breaks `get-clubs` until the Netlify side reads
+Supabase. Link-sharing stays on for now, which is a partial fix and known to be
+one. Then put the URL in Netlify
 → Site settings → Environment variables as `SHEET_CSV_URL`. The hardcoded
 fallbacks are gone from the source, so with it unset the reminder functions fall
 through to `FALLBACK_HOSTS` rather than to a public URL. They keep sending; they
@@ -713,9 +721,14 @@ and renders 84 occurrences, with no addresses anywhere on the page.
    `SHEET_CSV_URL` = the Sheet's CSV export URL.
 2. Deploy. Check `/.netlify/functions/get-clubs` returns CSV with no `Emails`
    column, and that the map and calendar still fill.
-3. **Then** lock the Sheet: Share → Restricted, and Publish to web → Stop
-   publishing. Both, not one — they are separate switches and each one on its
-   own leaves the data readable.
+3. **Publish to web → Stop publishing.** Do this one now; it kills the
+   `/d/e/2PACX-…/pub?output=csv` link, which needs no file ID and no sign-in.
+
+   **Do NOT set Share → Restricted yet** — superseded by `VERCEL_MIGRATION.md`
+   §5.0. `get-clubs` fetches the Sheet anonymously, so restricting it makes the
+   function 502 and the site falls back to the frozen snapshot: no outage, but
+   the roster silently stops updating. Restricted becomes safe once `get-clubs`
+   reads Supabase instead (migration plan §5.1).
 4. Re-run `node scripts/snapshot-clubs.mjs` after meaningful Sheet edits. It
    only surfaces when the function is down, so a little stale is fine; months
    stale is not.

@@ -140,10 +140,35 @@ Do you have a flyer? If not, I can make you one you can make your own.
 ```
 `[ I've got one ]` `[ Make me one ]`
 
-**The bar:** what comes out should make them go *"oh, that's rad"* — good
-enough to post with no edits. The Canva hand-off below is an escape hatch for
-people who want to fiddle, **not** the place the flyer gets finished. If the
-default output needs editing to be good, this step has failed.
+**The bar — revised 2026-11-19, and lowered on purpose for V1.**
+
+| | What comes out | Canva is |
+|---|---|---|
+| **V1 (ship this)** | info, text and texture, laid out properly — roughly **80%** of a poster | where it gets **finished**, expected and normal |
+| **V1.1** | **90–95%** — postable as-is for most clubs | an escape hatch again, for people who want to fiddle |
+
+The earlier bar was *"oh, that's rad", good enough to post with no edits*, with
+Canva as an escape hatch rather than the finishing step. That is the V1.1 goal
+now, not the V1 goal. Trying to hit it first time is what keeps this feature
+from shipping at all, and a host with a real flyer they finished themselves
+beats a host with no flyer.
+
+**What this changes in practice:** Clubby must be straight about the hand-off
+rather than presenting the output as done. Something like *"here's the bones of
+it — the details are right, the look is yours. Open it in Canva and make it
+yours."* Honest framing is the difference between a useful 80% and a
+disappointing one; promise "rad" and deliver 80% and it reads as broken.
+
+**What V1 must still get right**, because these are the parts a host cannot
+easily fix in Canva and the parts that are actually wrong on a bad flyer:
+
+- the city, venue, day, time and cadence, correct and legible
+- *"Everyone's invited, especially you."* on every poster — non-negotiable
+- a stock texture that suits the locale (§Q1), since that is the thing that
+  makes it look like Breakfast Club rather than a generic template
+
+Getting those three right at 80% is worth more than a prettier 80% that has the
+wrong Thursday on it.
 
 Three questions, one per turn, same as everywhere else.
 
