@@ -1,3 +1,7 @@
+> **Session log — March 2026. Stale.** Kept for archaeology, not as instructions. Its
+> "next steps" are mostly resolved or abandoned. For current project state see
+> [STATUS.md](./STATUS.md).
+
 # Handoff — Breakfast Clubbing
 
 > Keep this file current. Update it before ending any session.

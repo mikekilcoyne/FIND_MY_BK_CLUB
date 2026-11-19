@@ -147,9 +147,9 @@ window.CLUB_OVERRIDES = {
     displayCity: "NY - LES",
     verified: true,
     cadence: "Weekly",
-    time: "Thursdays, 9:00am",
-    eventTime: "9:00 AM",
-    venue: "Sunday to Sunday, 88 Orchard St",
+    time: "Thursdays, 9:30am",
+    eventTime: "9:30 AM",
+    venue: "Forget Me Not, 138 Division St",
   },
   "new york - williamsburg": {
     displayCity: "NY - Williamsburg",
