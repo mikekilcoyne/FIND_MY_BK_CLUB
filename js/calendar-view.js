@@ -11,6 +11,7 @@ const {
   extractLinkedInURL: sharedExtractLinkedInURL,
   extractEmail: sharedExtractEmail,
   parseSheetUpcomingDate: sharedParseSheetUpcomingDate,
+  communityLinkLabel: sharedCommunityLinkLabel,
   toISODate: sharedToISODate,
   loadLiveClubOverrides: sharedLoadLiveClubOverrides,
   loadLatestHappeningsRegistry: sharedLoadLatestHappeningsRegistry,
@@ -868,7 +869,7 @@ function renderDayDetails(isoDate, monthEvents) {
         chatBtn.target = "_blank";
         chatBtn.rel = "noreferrer";
         chatBtn.className = "community-link-btn";
-        chatBtn.textContent = "Join the Chat";
+        chatBtn.textContent = sharedCommunityLinkLabel(club.communityLink) || "Join the Chat";
         util.append(chatBtn);
       }
       if (util.children.length) card.append(util);

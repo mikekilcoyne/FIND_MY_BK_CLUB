@@ -1,0 +1,65 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "_comment": [
+    "Drop into the ROOT of the breakfast-club-rebuild repo.",
+    "If a vercel.json already exists, merge the `redirects` array into it rather",
+    "than replacing the file — `cleanUrls`/`trailingSlash` may already be set.",
+    "",
+    "Two jobs:",
+    "  1. Old breakfastclubbing.com marketing paths -> the matching new route,",
+    "     so links already in the wild (Instagram bios, host emails, LinkedIn",
+    "     recaps) land somewhere real instead of a 404.",
+    "  2. App paths that do NOT exist here -> back to breakfastclubbing.com,",
+    "     which still serves them from Netlify. Without these, someone who",
+    "     edits a bookmarked /passport or /admin URL to the new domain gets a",
+    "     dead end."
+  ],
+
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+
+    { "source": "/map-view", "destination": "/clubs", "permanent": true },
+    { "source": "/map-view.html", "destination": "/clubs", "permanent": true },
+    { "source": "/calendar-view", "destination": "/clubs", "permanent": true },
+    { "source": "/calendar-view.html", "destination": "/clubs", "permanent": true },
+    { "source": "/typeout", "destination": "/clubs", "permanent": true },
+    { "source": "/typeout.html", "destination": "/clubs", "permanent": true },
+
+    { "source": "/flyers", "destination": "/gallery", "permanent": true },
+    { "source": "/flyers.html", "destination": "/gallery", "permanent": true },
+    { "source": "/fly-er.html", "destination": "/gallery", "permanent": true },
+
+    { "source": "/journey-home", "destination": "/start", "permanent": true },
+    { "source": "/journey-home.html", "destination": "/start", "permanent": true },
+    { "source": "/copy", "destination": "/", "permanent": true },
+    { "source": "/copy.html", "destination": "/", "permanent": true },
+
+    {
+      "_note": "App surface still hosted on Netlify. Query strings are forwarded, which matters: the NFC tags are /passport?stamp=<club>&via=nfc.",
+      "source": "/passport",
+      "destination": "https://breakfastclubbing.com/passport",
+      "permanent": false
+    },
+    {
+      "source": "/admin",
+      "destination": "https://breakfastclubbing.com/admin",
+      "permanent": false
+    },
+    {
+      "source": "/clubby-admin",
+      "destination": "https://breakfastclubbing.com/clubby-admin",
+      "permanent": false
+    },
+    {
+      "source": "/what-we-talked-about",
+      "destination": "https://breakfastclubbing.com/what-we-talked-about",
+      "permanent": false
+    },
+    {
+      "source": "/assets/breakfast-club-starter-kit-hosts.pdf",
+      "destination": "https://breakfastclubbing.com/assets/breakfast-club-starter-kit-hosts.pdf",
+      "permanent": false
+    }
+  ]
+}

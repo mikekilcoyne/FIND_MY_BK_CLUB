@@ -463,20 +463,32 @@ document.getElementById('composer').addEventListener('submit', (e) => {
 function fitLockup() {
   const l1 = document.getElementById('l1');
   const l2 = document.getElementById('l2');
-  const target = l1.getBoundingClientRect().width;
+  // l1/l2 are block-level, so getBoundingClientRect() returns the container
+  // width, not the text width. Measure the text itself with a Range.
+  const textWidth = (node) => {
+    const r = document.createRange();
+    r.selectNodeContents(node);
+    return r.getBoundingClientRect().width;
+  };
+  const target = textWidth(l1);
   const base = parseFloat(getComputedStyle(l1).fontSize) * 0.5;
   l2.style.fontSize = base + 'px';
   l2.style.letterSpacing = '0px';
-  const natural = l2.getBoundingClientRect().width;
-  const letters = 'INTERNATIONAL'.length - 1;
-  const extra = (target - natural) / letters;
-  l2.style.letterSpacing = Math.max(0, extra) + 'px';
+  l2.style.paddingLeft = '0px';
+  const natural = textWidth(l2);
+  if (!target || !natural) return;
   if (natural > target) {
-    l2.style.letterSpacing = '0px';
     l2.style.fontSize = (base * (target / natural)) + 'px';
+    return;
   }
+  // letter-spacing adds a gap after every glyph (including the last), so
+  // divide by the full character count and pad the left to re-center.
+  const extra = (target - natural) / 'INTERNATIONAL'.length;
+  l2.style.letterSpacing = extra + 'px';
+  l2.style.paddingLeft = extra + 'px';
 }
 window.addEventListener('resize', fitLockup);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLockup);
 
 window.addEventListener('load', () => { fitLockup(); setTimeout(beginAuth, 300); });
 

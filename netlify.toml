@@ -5,6 +5,30 @@
 [functions]
   node_bundler = "esbuild"
 
+# ---------------------------------------------------------------------------
+# DOMAIN MODEL (2026-11)
+#
+#   breakfastclubinternational.com  -> Vercel, the new public front door.
+#   breakfastclubbing.com           -> STAYS on Netlify. It keeps serving the
+#                                      host/app surface (admin, passport, the
+#                                      functions API, the starter kit) and
+#                                      redirects only the public marketing
+#                                      pages onward to the new domain.
+#   findmybreakfast.club            -> breakfastclubbing.com (unchanged), so it
+#                                      inherits every rule below.
+#
+# Why breakfastclubbing.com is NOT repointed at Vercel wholesale: the app paths
+# below have no equivalent on the new site, and two of them cannot be changed
+# after the fact -- locked NFC tags and printed QR codes point at /passport, and
+# host reminder emails already in inboxes point at /what-we-talked-about and at
+# the starter-kit PDF. Moving the apex to Vercel 404s all of it at once.
+#
+# ORDER MATTERS. Netlify takes the first matching rule. Every "keep" rule must
+# stay above the marketing redirects.
+# ---------------------------------------------------------------------------
+
+# --- 1. Canonicalise host/scheme (unchanged) -------------------------------
+
 [[redirects]]
   from = "https://findmybreakfast.club/*"
   to = "https://breakfastclubbing.com/:splat"
@@ -26,6 +50,219 @@
 [[redirects]]
   from = "https://www.breakfastclubbing.com/*"
   to = "https://breakfastclubbing.com/:splat"
+  status = 301
+  force = true
+
+# --- 1b. DENY source disclosure. Must stay above every other path rule. ----
+#
+# publish = "." serves the whole repo root, so until these rules existed every
+# git-tracked file was downloadable as a static asset -- including the server
+# source under netlify/functions/. That is not where the functions are invoked
+# from (that is /.netlify/functions/*, with the leading dot, matched further
+# down and unaffected by these rules), so serving it gained nothing and gave
+# away: the admin auth scheme, the owner's master email, every action name and
+# its role gate, the Blobs store names, the FALLBACK_HOSTS roster with ~41 host
+# email addresses in it, and the published Google Sheet CSV URL -- which needs
+# no Google sign-in and lists every host's email.
+#
+# Verified exposed before this block existed:
+#   /netlify/functions/admin-api.js                -> 200, 29 KB
+#   /netlify/functions/send-host-reminder-background.js -> 200, 41 host emails
+#   /scripts/import-whatsapp-export.mjs            -> 200, 14 KB
+#
+# 404 rather than 403 so the path is indistinguishable from one that was never
+# there. Blocking the static path does NOT un-publish the Google Sheet; that is
+# a manual step in Google Sheets and is still outstanding. See README section 12.
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/scripts/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# WhatsApp intake. These folders are raw material from the private hosts group:
+# photos people shared there, and a review.json naming 37 senders. All of it was
+# downloadable (verified 200), which nobody in that group would expect.
+#
+# Checked before blocking: no site data or code references /downloads/ at all.
+# The club photos the site actually serves live under assets/photos/club_updates/
+# as separate copies, so this breaks nothing.
+
+[[redirects]]
+  from = "/downloads/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Internal working docs. Untracked files are not in the last deploy, but
+# `npm run deploy` uploads the working directory rather than a git tree, so
+# whether these ship depends on local state rather than on anything reviewed.
+# CLAUDE_HANDOFF.md was already reachable at 200. Closed explicitly instead.
+
+# Listed one by one rather than as /CLUBBY* on purpose: Netlify does not treat
+# redirect paths as reliably case-sensitive, so a /CLUBBY* glob sitting above
+# the keep rules could swallow /clubby -- 404-ing the visitor front door the day
+# it ships, from a rule meant only to hide a markdown file. Add a line here when
+# a new internal doc lands; do not turn these back into a wildcard.
+
+[[redirects]]
+  from = "/CLAUDE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/CLAUDE_HANDOFF.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/CLUBBY.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/CLUBBY_VOICE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/CLUBBY_START_A_CLUB.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# --- 2. KEEP ON NETLIFY. Do not add rules above this block. ----------------
+# These are served from this site. Listed explicitly so that a future catch-all
+# can never swallow them. 200 = serve in place, no redirect.
+
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/passport"
+  to = "/passport.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/clubby-admin"
+  to = "/clubby-admin.html"
+  status = 200
+
+# Visitor-facing Clubby. This rule had no counterpart, and clubby.html is not in
+# git -- so /clubby and /clubby.html are both 404 on the live site today and the
+# visitor front door has never actually shipped. The rule is here so the clean
+# URL works the moment the file is deployed; it does nothing until then.
+
+[[redirects]]
+  from = "/clubby"
+  to = "/clubby.html"
+  status = 200
+
+[[redirects]]
+  from = "/what-we-talked-about"
+  to = "/what-we-talked-about.html"
+  status = 200
+
+# --- 3. Marketing pages -> the new site ------------------------------------
+# force = true because each of these still exists as a file in this repo and
+# would otherwise be served instead of redirected.
+
+[[redirects]]
+  from = "/"
+  to = "https://breakfastclubinternational.com/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "https://breakfastclubinternational.com/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/map-view"
+  to = "https://breakfastclubinternational.com/clubs"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/calendar-view"
+  to = "https://breakfastclubinternational.com/clubs"
+  status = 301
+  force = true
+
+# Query string is preserved automatically, so ?city=paris survives the hop.
+[[redirects]]
+  from = "/typeout"
+  to = "https://breakfastclubinternational.com/clubs"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/flyers"
+  to = "https://breakfastclubinternational.com/gallery"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/fly-er"
+  to = "https://breakfastclubinternational.com/gallery"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/journey-home"
+  to = "https://breakfastclubinternational.com/start"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/copy"
+  to = "https://breakfastclubinternational.com/"
+  status = 301
+  force = true
+
+# --- 4. New-site routes linked from the old domain -------------------------
+# So a shared breakfastclubbing.com/clubs link lands correctly instead of 404ing.
+
+[[redirects]]
+  from = "/clubs"
+  to = "https://breakfastclubinternational.com/clubs"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/gallery"
+  to = "https://breakfastclubinternational.com/gallery"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/host-guide"
+  to = "https://breakfastclubinternational.com/host-guide"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/start"
+  to = "https://breakfastclubinternational.com/start"
   status = 301
   force = true
 

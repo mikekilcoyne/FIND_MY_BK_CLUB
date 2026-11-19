@@ -459,6 +459,19 @@
     return link;
   }
 
+  // A club's community link is whatever the host uses to let people in: a
+  // WhatsApp group, or an RSVP page (Luma, Eventbrite, Partiful). Label the
+  // button by where it actually goes — same detection the pop-up drawer uses.
+  function communityLinkLabel(url) {
+    const value = String(url || "").toLowerCase();
+    if (!value) return "";
+    if (/luma|lu\.ma/.test(value)) return "RSVP on Luma";
+    if (value.includes("eventbrite")) return "RSVP on Eventbrite";
+    if (value.includes("partiful")) return "RSVP on Partiful";
+    if (value.includes("chat.whatsapp.com") || value.includes("wa.me")) return "Join the Chat";
+    return "Join the Chat";
+  }
+
   window.BKClubData = {
     SHEET_CSV_URL,
     LOCAL_SHEET_CSV_URL,
@@ -481,6 +494,7 @@
     extractEmail,
     toISODate,
     parseSheetUpcomingDate,
+    communityLinkLabel,
     buildLatestHappeningsKeys,
     loadLatestHappeningsRegistry,
     clubHasLatestHappenings,

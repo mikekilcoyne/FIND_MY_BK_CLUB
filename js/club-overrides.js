@@ -50,9 +50,20 @@ window.CLUB_OVERRIDES = {
   "biarritz, fr":        { displayCity: "Biarritz, FR" },
   "copenhagen":          {
     displayCity: "Copenhagen, DK",
-    specificDates: ["2026-04-09"],
-    locationNote: "Date",
-    locationNoteDetail: "Corrected date from 4/2 to 4/9.",
+    verified: true,
+    cadence: "Every Other Thursday",
+    time: "Every Other Thursday, 8:30am",
+    eventTime: "8:30 AM",
+    venue: "Flan — Arts & Coffee, Viktoriagade 6",
+    // Back from a break at a new venue, and invites moved to Luma.
+    // Biweekly Thursdays; the list self-advances to the next future date.
+    specificDates: [
+      "2026-08-27", "2026-09-10", "2026-09-24",
+      "2026-10-08", "2026-10-22", "2026-11-05",
+      "2026-11-19", "2026-12-03", "2026-12-17",
+    ],
+    communityLink: "https://luma.com/jgae1qn6",
+    isNew: true,
   },
   "ibiza, spain":        { displayCity: "Ibiza, ES" },
   "lugano, switzerland": { displayCity: "Lugano, CH" },

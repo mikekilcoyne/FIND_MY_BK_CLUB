@@ -1,0 +1,76 @@
+<!--
+  CLUBBY - chat launcher icon.
+
+  A real egg: off-white shell, ink outline, cracked across the top, with a face.
+  An earlier pass read as a Tamagotchi because the shell was a solid dark blob,
+  which is a device silhouette. Outlining it in ink and filling it off-white
+  makes it an egg first, which is what Clubby actually is (an "Egg-Moji",
+  CLUBBY.md section 1). The face itself is unchanged.
+
+  It still says CHAT: the shell and the speech-bubble tail are ONE path, so the
+  flick at bottom-left reads as a bubble rather than a chip of shell. That
+  detail is load-bearing; lose it and this is just an egg with a face.
+
+  Colours. The shell fill reads the CSS custom property "bc-egg" and falls back
+  to #fffaf0; the outline and face both use currentColor. Set a colour on the
+  button and the whole character follows.
+
+  NOTE: XML comments may not contain two consecutive hyphens, which is why the
+  custom property above is named in prose rather than written in var() form.
+  Writing it literally makes this file fail to parse when it is served as a
+  standalone .svg (an HTML parser tolerates it when the markup is inlined, so
+  the error only shows up once someone references the file by URL).
+
+  Inline this in the page. Through an <img> or a CSS mask the hover spill-over
+  in zany-kit.css cannot reach .bc-clubby-egg.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"
+     fill="none" stroke="currentColor" stroke-width="2.1"
+     stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Chat with Clubby" class="bc-clubby-svg">
+
+  <!-- Shell and face move together, so the hover pop scales the whole character. -->
+  <g class="bc-clubby-egg">
+
+    <!-- Shell + speech-bubble tail as a single outline. Tail sits bottom-left. -->
+    <path class="bc-clubby-shell" fill="var(--bc-egg, #fffaf0)"
+          d="M24 2.8c7.4 0 13.9 8.9 16.4 17.9 2 7.1 1.5 14.9-3.6 19.9
+             -3.4 3.3-7.8 4.9-12.8 4.9-4.3 0-8.2-1.2-11.4-3.6
+             l-8.3 4.6 3.9-8.2C4.6 33.6 5.3 26.6 7.6 20.7 10.1 11.7 16.6 2.8 24 2.8z"/>
+
+    <!-- the crack -->
+    <path class="bc-clubby-crack" stroke-width="1.9"
+          d="M12.1 15.4 15.4 11.7 18.5 15.7 21.8 11 25.1 15.4 28.4 11.2 31.4 15.4 34.6 12.2"/>
+
+    <!-- Face: round specs, dot eyes, a simple smile. The blocky LCD set read as
+         a device once the shell went pale; round eyes behind glasses give him a
+         character instead of an interface. -->
+    <g class="bc-clubby-face">
+
+      <!-- glasses: two rounds, a short bridge, temple arms out to the shell -->
+      <g class="bc-clubby-specs" stroke-width="1.9">
+        <circle cx="17.6" cy="26" r="5.9"/>
+        <circle cx="30.4" cy="26" r="5.9"/>
+        <path d="M23.5 25.5h1"/>
+        <path d="M11.7 24.9 8.6 23.6"/>
+        <path d="M36.3 24.9 39.4 23.6"/>
+      </g>
+
+      <!-- eyes, with a highlight so they read as looking at you -->
+      <circle class="bc-clubby-eye" cx="17.6" cy="26.2" r="2.4" fill="currentColor" stroke="none"/>
+      <circle class="bc-clubby-eye" cx="30.4" cy="26.2" r="2.4" fill="currentColor" stroke="none"/>
+      <circle cx="18.6" cy="25.2" r="0.85" fill="var(--bc-egg, #fffaf0)" stroke="none"/>
+      <circle cx="31.4" cy="25.2" r="0.85" fill="var(--bc-egg, #fffaf0)" stroke="none"/>
+
+      <!-- Two mouths, one shown at a time. Swapping opacity beats animating a
+           path's d, which needs SMIL or Houdini and degrades badly.
+           The flat one is the bored state, after a stretch of no interaction. -->
+      <path class="bc-clubby-mouth bc-clubby-mouth--smile"
+            d="M19.9 35.3c2.5 3.1 5.8 3.1 8.3 0" stroke-width="2"/>
+      <path class="bc-clubby-mouth bc-clubby-mouth--meh"
+            d="M19.9 36.1h8.3" stroke-width="2"/>
+
+    </g>
+
+  </g>
+</svg>

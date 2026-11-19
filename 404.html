@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Not found — Breakfast Club</title>
+    <!--
+      Added 2026-11-18 alongside the /netlify/* and /scripts/* deny rules in
+      netlify.toml. Those rules need a 404 target that actually exists, or the
+      response falls through to Netlify's own generic page.
+
+      Deliberately token-only: no JS, no shared stylesheet beyond the tokens, so
+      it cannot itself 404 or drag in a dependency that breaks the error page.
+    -->
+    <link rel="stylesheet" href="/css/design-tokens.css" />
+    <style>
+      html, body { margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--paper, #efefef);
+        color: var(--ink, #111);
+        font-family: var(--font-sans, "Helvetica Neue", Helvetica, Arial, sans-serif);
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      .wrap { max-width: 32rem; text-align: left; }
+      .eyebrow {
+        font-size: var(--eyebrow-size, 0.68rem);
+        letter-spacing: var(--eyebrow-tracking, 4px);
+        text-transform: uppercase;
+        font-weight: var(--weight-bold, 700);
+        margin: 0 0 1.25rem;
+      }
+      h1 {
+        font-size: clamp(1.75rem, 6vw, 2.75rem);
+        font-weight: var(--weight-medium, 500);
+        line-height: 1.05;
+        margin: 0 0 1rem;
+        letter-spacing: -0.01em;
+      }
+      p { font-size: 1rem; line-height: 1.6; margin: 0 0 1.75rem; max-width: 28rem; }
+      a.btn {
+        display: inline-block;
+        padding: 0.7rem 1.15rem;
+        background: var(--accent, #ffd700);
+        color: var(--accent-ink, #000);
+        border: 2px solid var(--ink, #111);
+        box-shadow: 3px 3px 0 var(--ink, #111);
+        border-radius: 7px;
+        font-weight: var(--weight-bold, 700);
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+      a.btn:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--ink, #111); }
+      a.btn:focus-visible { outline: 3px solid var(--ink, #111); outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <p class="eyebrow">404</p>
+      <h1>that page isn't on the table.</h1>
+      <p>
+        the link might be old, or we might have moved it. the clubs, the fly-ers
+        and the rest of breakfast are all still where you left them.
+      </p>
+      <a class="btn" href="/">find your club</a>
+    </main>
+  </body>
+</html>

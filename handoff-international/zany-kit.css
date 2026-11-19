@@ -1,0 +1,730 @@
+/* ===========================================================================
+   BREAKFAST CLUB INTERNATIONAL — ZANY KIT
+   ---------------------------------------------------------------------------
+   Six drop-in effects lifted from the "Hey, I'm New in Town" deck and dialled
+   back so they sit on a clean site instead of taking it over.
+
+   Deck source: 05_DECK/hint/index.html  (keyframes hop, floaty, bob, write,
+   grain; the .sticker and .splat treatments)
+
+   What changed on the way over:
+     - Deck stickers are pills (border-radius 999px). These are hard-cornered,
+       because Breakfast Club's own square-style is radius 0 with a 2px ink
+       border and an offset block shadow. Same energy, house accent.
+     - Deck runs 8-12 doodles a slide. Default here is 3-4 per section.
+     - Every motion effect is off under prefers-reduced-motion.
+
+   Nothing here is scoped to a framework. Load the file, add the classes.
+   =========================================================================== */
+
+:root {
+  --bc-ink: #111111;
+  --bc-accent: #ffd700;
+  --bc-paper: #ffffff;
+  --bc-magenta: #b42cb0;
+  --bc-teal: #17b3a6;
+  --bc-tomato: #e5472d;
+  --bc-hand: "Covered By Your Grace", "Comic Sans MS", cursive;
+
+  /* --- THE SQUARE SYSTEM ------------------------------------------------
+     One treatment across the site — hard-ish corners, 2px ink border, offset
+     block shadow — in two registers. The difference is small on purpose: they
+     should read as the same family, with tags clearly the quieter of the two.
+
+     TAG     something stuck onto an object. Tighter corner, shallower shadow,
+             usually rotated. Reads as physical: a sticker on a poster.
+             -> .bc-sticker, .bc-new-badge   ("POP-UP", "NEW · DEC 16")
+
+     BUTTON  a surface you press. Softer corner, deeper shadow that collapses
+             under the press. Never rotated at rest — rotation implies it was
+             stuck on rather than built in.
+             -> .bc-btn, .bc-clubby          ("find a club")
+
+     Change these four values and every control on the site follows. */
+  --bc-radius-tag: 3px;
+  --bc-radius-btn: 7px;
+  --bc-shadow-tag: 2px 2px 0 var(--bc-ink);
+  --bc-shadow-btn: 3px 3px 0 var(--bc-ink);
+
+  /* Retained so older rules keep working; new code uses the two above. */
+  --bc-shadow: var(--bc-shadow-btn);
+}
+
+/* ---------------------------------------------------------------------------
+   1. HOP — per-character bounce on a headline.
+   Needs the characters wrapped: use bcHop() from zany.js, or hand-wrap as
+   <span class="bc-ch" style="--i:0">E</span>. The negative stagger means the
+   letters are already mid-cycle on load, so it reads as a loop, not an entrance.
+   --------------------------------------------------------------------------- */
+.bc-hop .bc-ch {
+  display: inline-block;
+  transform-origin: 50% 85%;
+  animation: bc-hop 2.8s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * -0.37s);
+}
+.bc-hop .bc-ch--space { width: 0.28em; }
+
+@keyframes bc-hop {
+  0%   { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-5px) rotate(1.6deg); }
+}
+
+/* ---------------------------------------------------------------------------
+   2. STICKER — rotated hard-cornered badge. The one element that does the most
+   work for the least ink. Drop it next to a number or a CTA.
+   --------------------------------------------------------------------------- */
+.bc-sticker {
+  display: inline-block;
+  white-space: nowrap;
+  font: 800 13px/1 "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  color: var(--bc-ink);
+  background: var(--bc-accent);
+  border: 2px solid var(--bc-ink);
+  border-radius: var(--bc-radius-tag);
+  box-shadow: var(--bc-shadow-tag);
+  transform: rotate(var(--bc-rot, -3deg));
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1.4);
+}
+.bc-sticker:hover { transform: rotate(var(--bc-rot, -3deg)) scale(1.06); }
+
+.bc-sticker--magenta { background: var(--bc-magenta); color: #fff; }
+.bc-sticker--teal    { background: var(--bc-teal);    color: var(--bc-ink); }
+.bc-sticker--tomato  { background: var(--bc-tomato);  color: #fff; }
+
+/* Pinned to a corner of a positioned parent. */
+.bc-sticker--pin {
+  position: absolute;
+  z-index: 6;
+  top: var(--bc-top, auto);
+  right: var(--bc-right, auto);
+  bottom: var(--bc-bottom, auto);
+  left: var(--bc-left, auto);
+}
+
+/* ---------------------------------------------------------------------------
+   3. SCRIBBLE — handwritten aside that writes itself on when scrolled to.
+   The steps() easing is what makes it read as a pen rather than a wipe.
+   Add .bc-in (zany.js does it via IntersectionObserver) to fire it.
+   --------------------------------------------------------------------------- */
+.bc-scribble {
+  font-family: var(--bc-hand);
+  font-size: clamp(18px, 2.1vw, 27px);
+  line-height: 1.15;
+  color: var(--bc-ink);
+  transform: rotate(var(--bc-tilt, -2.5deg));
+  display: inline-block;
+}
+.bc-scribble--write { clip-path: inset(0 100% 0 0); }
+.bc-scribble--write.bc-in {
+  animation: bc-write 0.9s var(--bc-delay, 0.1s) steps(16) forwards;
+}
+
+@keyframes bc-write {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* ---------------------------------------------------------------------------
+   4. DOODLE — small line drawings bobbing in the margins.
+   Absolutely placed inside a .bc-stage. Never over text: pointer-events none
+   and a low z-index keep them decorative.
+   --------------------------------------------------------------------------- */
+.bc-stage { position: relative; }
+
+.bc-doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bc-doodles svg {
+  position: absolute;
+  overflow: visible;
+  /* Marginalia, not illustration. Light enough that a doodle drifting near a
+     heading reads as paper texture rather than competing with it. */
+  opacity: 0.45;
+  animation: bc-bob var(--bc-d, 6s) ease-in-out var(--bc-dl, 0s) infinite alternate;
+}
+
+/* Below the column breakpoint the margins vanish, so the doodles would land on
+   top of the copy. Hide them rather than shuffle them. */
+@media (max-width: 860px) {
+  .bc-doodles { display: none; }
+}
+
+@keyframes bc-bob {
+  from { transform: translate(0, 0) rotate(var(--bc-r0, 0deg)); }
+  to   { transform: translate(var(--bc-dx, 6px), var(--bc-dy, -12px)) rotate(var(--bc-r1, 7deg)); }
+}
+
+/* ---------------------------------------------------------------------------
+   5. GRAIN — the cheapest warmth on the list. A fixed, animated noise tile at
+   very low opacity. Takes the digital edge off flat white.
+   --------------------------------------------------------------------------- */
+.bc-grain::after {
+  content: "";
+  position: fixed;
+  inset: -150%;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: bc-grain 0.5s steps(3) infinite;
+}
+
+@keyframes bc-grain {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-30px, 20px); }
+  66%  { transform: translate(25px, -15px); }
+}
+
+/* ---------------------------------------------------------------------------
+   6. TILT — poster cards lift and straighten under the cursor.
+   Put .bc-tilt on each card. Pair with a --bc-rot for a stacked-on-a-table look.
+   --------------------------------------------------------------------------- */
+.bc-tilt {
+  transform: rotate(var(--bc-rot, 0deg));
+  transition: transform 0.26s cubic-bezier(0.2, 0.9, 0.25, 1.35),
+              box-shadow 0.26s ease;
+}
+.bc-tilt:hover {
+  transform: rotate(0deg) translateY(-6px) scale(1.025);
+  box-shadow: 8px 10px 0 rgba(17, 17, 17, 0.14);
+}
+
+/* ---------------------------------------------------------------------------
+   7. NEW BADGE — floats over a flyer / poster card for a club that has just
+   launched or has its first session coming up.
+
+     <div class="bc-poster bc-tilt" style="--bc-rot:-1.5deg">
+       <img src="...">
+       <span class="bc-new-badge">New<small>Dec 16</small></span>
+     </div>
+
+   The parent needs position:relative — .bc-poster does that. The badge sits
+   proud of the top-right corner so it reads as stuck on, not printed in.
+   --------------------------------------------------------------------------- */
+.bc-poster { position: relative; display: block; }
+
+.bc-new-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 12px 7px;
+  font: 800 14px/1 "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bc-ink);
+  background: var(--bc-accent);
+  border: 2px solid var(--bc-ink);
+  border-radius: var(--bc-radius-tag);
+  box-shadow: var(--bc-shadow-tag);
+  transform: rotate(var(--bc-rot-badge, 6deg));
+  animation: bc-newpop 3.2s ease-in-out infinite alternate;
+}
+.bc-new-badge small {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.78;
+}
+
+/* A slow pulse, not a blink. Enough to catch the eye on scroll-past. */
+@keyframes bc-newpop {
+  0%   { transform: rotate(var(--bc-rot-badge, 6deg)) scale(1); }
+  100% { transform: rotate(var(--bc-rot-badge, 6deg)) scale(1.07); }
+}
+
+/* Variants for the other two states a club can be in. */
+.bc-new-badge--soon   { background: var(--bc-teal); }
+.bc-new-badge--popup  { background: var(--bc-magenta); color: #fff; }
+
+/* ---------------------------------------------------------------------------
+   8. CLUBBY — the chat launcher. Tamagotchi shell, pixel face, and a screen
+   that is also a speech bubble.
+
+     <button class="bc-clubby" aria-label="Chat with Clubby">
+       ...inline contents of clubby-icon.svg...
+     </button>
+
+   The SVG must be INLINE. Loaded through <img> or a CSS mask it is a flat
+   picture and none of the hover behaviour below can reach inside it.
+   --------------------------------------------------------------------------- */
+.bc-clubby {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  cursor: pointer;
+  color: var(--bc-ink);
+  background: var(--bc-accent);
+  border: 2px solid var(--bc-ink);
+  border-radius: var(--bc-radius-btn);
+  box-shadow: var(--bc-shadow-btn);
+  /* The spill-over leaves the button box, so nothing may clip it. */
+  overflow: visible;
+  transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.25, 1.4),
+              box-shadow 0.24s ease;
+}
+.bc-clubby:hover,
+.bc-clubby:focus-visible {
+  transform: translateY(-3px) rotate(-4deg);
+  box-shadow: 6px 7px 0 var(--bc-ink);
+}
+
+.bc-clubby-svg { width: 34px; height: 34px; overflow: visible; }
+
+/* --- the spill-over ---
+   On hover the whole egg grows and leans out past the button's own edge, like
+   the character is climbing out of its box to talk. The button sets
+   overflow:visible so nothing clips it.
+   fill-box keeps the origin at the group's own centre, so it scales in place
+   instead of sliding toward the viewBox origin. */
+.bc-clubby-egg {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.55);
+}
+.bc-clubby:hover .bc-clubby-egg,
+.bc-clubby:focus-visible .bc-clubby-egg {
+  transform: scale(1.34) translateY(-2px) rotate(-5deg);
+}
+
+/* --- idle blink ---
+   A virtual pet that never blinks is a logo.
+
+   The cycle is one plain blink, then later a quick double. The double is the
+   character note: Clubby is a bit nerdy and a bit socially awkward, and a
+   nervous double-blink reads as that without a word of dialogue. An evenly
+   spaced single blink reads as a loading spinner by comparison.
+
+   9s is deliberate. Faster and he looks anxious; slower and you never catch it. */
+.bc-clubby-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bc-blink 9s steps(1, end) infinite;
+}
+@keyframes bc-blink {
+  0%, 37%    { transform: scaleY(1); }
+  38%, 40%   { transform: scaleY(0.14); }  /* the plain one */
+  41%, 75%   { transform: scaleY(1); }
+  76%, 78%   { transform: scaleY(0.14); }  /* double, beat one */
+  79%, 80%   { transform: scaleY(1); }
+  81%, 83%   { transform: scaleY(0.14); }  /* beat two */
+  84%, 100%  { transform: scaleY(1); }
+}
+/* Stop blinking mid-conversation — it reads as a stutter under the hover pop. */
+.bc-clubby:hover .bc-clubby-eye { animation: none; }
+
+/* --- bored ---
+   After a stretch with no interaction he gives up on you: eyes drop to half
+   mast and slide off to one side, the smile goes flat, and the blink slows
+   right down. Toggled by bcClubbyIdle() in zany.js, which adds .bc-clubby--bored.
+
+   The look-away is the half of it that sells boredom. Half-lidded eyes alone
+   read as sleepy; half-lidded AND pointed somewhere else reads as unimpressed. */
+.bc-clubby-mouth { transition: opacity 0.4s ease; }
+.bc-clubby-mouth--meh { opacity: 0; }
+
+.bc-clubby--bored .bc-clubby-mouth--smile { opacity: 0; }
+.bc-clubby--bored .bc-clubby-mouth--meh   { opacity: 1; }
+
+/* A whole separate keyframe set, not a transform on the element: the blink
+   animation owns `transform`, so anything declared alongside it loses. */
+.bc-clubby--bored .bc-clubby-eye {
+  animation: bc-blink-bored 16s steps(1, end) infinite;
+}
+@keyframes bc-blink-bored {
+  0%, 89%    { transform: translateX(1.1px) scaleY(0.58); }
+  90%, 93%   { transform: translateX(1.1px) scaleY(0.12); }
+  94%, 100%  { transform: translateX(1.1px) scaleY(0.58); }
+}
+
+/* Hovering wakes him immediately — no waiting for the idle timer. */
+.bc-clubby:hover .bc-clubby-mouth--smile,
+.bc-clubby:focus-visible .bc-clubby-mouth--smile { opacity: 1; }
+.bc-clubby:hover .bc-clubby-mouth--meh,
+.bc-clubby:focus-visible .bc-clubby-mouth--meh { opacity: 0; }
+
+/* Mouth opens slightly on hover: "about to say something". */
+.bc-clubby-mouth {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.25, 1.55);
+}
+.bc-clubby:hover .bc-clubby-mouth--smile { transform: scaleY(1.6); }
+
+/* Fixed launcher placement, if you want it bottom-right on every page. */
+.bc-clubby--fixed { position: fixed; right: 26px; bottom: 26px; z-index: 50; }
+
+/* ---------------------------------------------------------------------------
+   9. LOWERCASE BODY — clean, friendly, approachable, and it rhymes with the
+   lowercase wordmark.
+
+   Opt in per element or per block:
+       <p class="bc-lower">Breakfast Club brings people together…</p>
+       <section class="bc-lower"> … </section>
+
+   Deliberately NOT applied to <body> wholesale. text-transform is blind: on a
+   whole page it also lowercases city names, venue names and — worst — host
+   names, so "Sheila Guo" renders "sheila guo". Names of real people are the one
+   place this reads as sloppy rather than relaxed.
+
+   So: lowercase the voice, leave the proper nouns alone. Anything inside a
+   .bc-lower block that must keep its capitals gets .bc-keepcase.
+
+   Accessibility note: this is presentational only. The DOM text keeps its
+   capitals, so screen readers and copy-paste are unaffected.
+   --------------------------------------------------------------------------- */
+.bc-lower { text-transform: lowercase; }
+.bc-lower .bc-keepcase,
+.bc-lower [data-proper] { text-transform: none; }
+
+/* Lowercase loses the capital's visual anchor at the start of a line, so give
+   it a touch more size and air to stop it reading as small print. */
+.bc-lower p,
+p.bc-lower { letter-spacing: 0.005em; }
+
+/* ---------------------------------------------------------------------------
+   10. BUTTONS — squared off, with the same lift as the poster tags.
+
+   Softly-squared corners rather than a pill, and the offset block shadow the
+   .bc-sticker and .bc-new-badge already use, so the buttons belong to the same
+   family as the tags instead of looking borrowed from a different site.
+
+       <a class="bc-btn" href="/clubs">Find a club →</a>
+       <button class="bc-btn bc-btn--ghost">Browse all</button>
+   --------------------------------------------------------------------------- */
+/* The shadow always contrasts the FILL, never matches it.
+   A black button with a black shadow has no edge between the two — the shadow
+   just reads as the button being slightly the wrong shape. So the dark default
+   throws an accent shadow, and the light variants throw an ink one. */
+.bc-btn {
+  --bc-btn-shadow: var(--bc-accent);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 22px;
+  font: 500 15px/1 "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--bc-paper);
+  background: var(--bc-ink);
+  border: 2px solid var(--bc-ink);
+  border-radius: var(--bc-radius-btn);
+  box-shadow: 3px 3px 0 var(--bc-btn-shadow);
+  transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.25, 1.4),
+              box-shadow 0.16s ease;
+}
+.bc-btn:hover,
+.bc-btn:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--bc-btn-shadow);
+}
+/* Press returns it to the surface — the shadow collapses under the button. */
+.bc-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--bc-btn-shadow);
+}
+
+/* Light fills flip back to an ink shadow, by the same contrast rule. */
+.bc-btn--accent {
+  background: var(--bc-accent); color: var(--bc-ink);
+  --bc-btn-shadow: var(--bc-ink);
+}
+.bc-btn--ghost {
+  background: var(--bc-paper); color: var(--bc-ink);
+  --bc-btn-shadow: var(--bc-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   11. PANEL — the white, large-surface member of the square family.
+
+   For the club detail sheet, modals, and any card that holds content rather
+   than triggering an action. Same border and offset shadow as the buttons, so
+   it reads as the same system; white so it stays quiet behind the flyer.
+
+       <div class="bc-panel"> … </div>
+
+   Inside a panel, secondary actions (Google Maps / Apple Maps) use
+   .bc-btn--ghost: white fill, squared, same shadow, no accent. They are
+   navigation, not the primary call, so they never take the yellow.
+   --------------------------------------------------------------------------- */
+.bc-panel {
+  background: var(--bc-paper);
+  border: 2px solid var(--bc-ink);
+  border-radius: var(--bc-radius-btn);
+  /* One step deeper than a button: a panel sits further off the page. */
+  box-shadow: 5px 5px 0 var(--bc-ink);
+}
+
+/* Rows inside a panel: hairline dividers, never boxes within boxes. */
+.bc-panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(17, 17, 17, 0.12);
+}
+.bc-panel-row:first-of-type { border-top: 0; }
+
+/* Label above value — the pattern the club sheet already uses. */
+.bc-panel-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.45);
+  margin-bottom: 4px;
+}
+
+/* A person's link: their NAME is the link text, the network is the caption.
+   Never render the profile slug — see README §7. */
+.bc-person { text-decoration: none; color: inherit; display: block; }
+.bc-person b { font-weight: 600; }
+.bc-person span {
+  display: block;
+  font-size: 13px;
+  color: rgba(17, 17, 17, 0.45);
+}
+.bc-person:hover b { text-decoration: underline; }
+
+/* ---------------------------------------------------------------------------
+   12. TEXTURE — a section backdrop pulled from a real flyer.
+
+   The posters are the best art the project owns. This takes one, washes it
+   back, and floats the content over it, so a section feels like it came from
+   the same world as the wall instead of from a stock-photo library.
+
+       <section class="bc-texture"
+                style="--bc-texture-img:url('/flyers/paris.jpg')">
+         …content floats here…
+       </section>
+
+   Pick flyers that are TEXTURE rather than composition — the Paris croissant
+   (a full-bleed pastry photo) and the Barcelona cup read beautifully at 14%.
+   A flyer that's mostly type turns into grey noise, so use those as posters.
+
+   The backdrop is decorative: it sits on a ::before at z-index 0 with the
+   content above it, and carries no alt text or meaning.
+   --------------------------------------------------------------------------- */
+.bc-texture {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.bc-texture > * { position: relative; z-index: 1; }
+
+.bc-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--bc-texture-img);
+  background-size: cover;
+  background-position: var(--bc-texture-pos, center);
+  /* Low enough that body copy still passes contrast over it. Raise it only
+     behind large type, never behind paragraphs. */
+  opacity: var(--bc-texture-opacity, 0.14);
+  filter: saturate(0.8) contrast(1.03);
+  transform: scale(var(--bc-texture-zoom, 1.04));
+}
+
+/* A paper-coloured wash on top of the image, so the section still reads as
+   part of a white site rather than as a photo with words on it. */
+.bc-texture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--bc-texture-scrim-angle, 180deg),
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.86)
+  );
+}
+
+/* Heavier wash for sections carrying real reading copy. */
+.bc-texture--quiet::after {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(255, 255, 255, 0.93)
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   13. STOCK — the material a flyer is printed on.
+
+       <div class="bc-stock bc-stock--paper"> …flyer… </div>
+
+   Three offered — Paper, Fabric, Sandstone — plus Newsprint for editorial use.
+   All procedural: SVG noise and gradients, no image assets to ship, host or
+   colour-manage, and they stay sharp at any size. Each sets its own base
+   colour, so the stock changes a flyer's whole temperature, not just its grain.
+
+   Pick for the LOCALE, not at random. Sandstone belongs to beach towns,
+   Fabric to the warm interior cities, Paper anywhere. A Torquay flyer on
+   sandstone and a Milano flyer on fabric both look like they came from where
+   they came from — which is the entire trick.
+
+   Paper is the default because the wall already says so — the Barcelona flyer
+   is printed on visibly creased paper, and it's the best thing in the gallery.
+   This is codifying the house look, not inventing one.
+
+   Tune with --bc-stock-strength (0 to 1). Keep it under about .5 for anything
+   carrying small type.
+   --------------------------------------------------------------------------- */
+.bc-stock {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--bc-stock-base, #fffaf0);
+  overflow: hidden;
+}
+.bc-stock > * { position: relative; z-index: 1; }
+.bc-stock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--bc-stock-strength, 0.5);
+  background-image: var(--bc-stock-grain);
+  background-size: var(--bc-stock-size, auto);
+  mix-blend-mode: multiply;
+}
+
+/* --- Paper: cool off-white with a fine watercolour tooth. No creases — the
+       reference is uniform grain, and folds read as damage at small sizes. --- */
+.bc-stock--paper {
+  --bc-stock-base: #f7f5f1;
+  --bc-stock-strength: 0.5;
+  --bc-stock-grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* --- Fabric: ochre linen. The weave has to be visible and the base has to be
+       a real tan — a pale cream version just looks like dirty paper. --- */
+.bc-stock--fabric {
+  --bc-stock-base: #c3a46b;
+  --bc-stock-strength: 0.5;
+  --bc-stock-size: 3px 3px, 3px 3px, 170px 170px;
+  --bc-stock-grain:
+    repeating-linear-gradient(0deg,  rgba(60,42,12,.16) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(60,42,12,.13) 0 1px, transparent 1px 3px),
+    /* slubs: linen is irregular, a perfect grid reads as graph paper */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5 0.04' numOctaves='3'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23l)' opacity='0.3'/%3E%3C/svg%3E");
+}
+
+/* --- Sandstone: blush, with big organic flaking. Low frequency and high
+       contrast gives the layered shelves; fine grain on top gives the grit. --- */
+.bc-stock--sandstone {
+  --bc-stock-base: #efdccd;
+  --bc-stock-strength: 0.62;
+  --bc-stock-size: 380px 380px, 120px 120px;
+  --bc-stock-grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='380'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 .18 .34 .5 .66'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='380' height='380' filter='url(%23q)' opacity='0.5'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='0.3'/%3E%3C/svg%3E");
+}
+
+/* --- Newsprint: halftone dots, grey cast. Not offered in the host flow —
+       three choices is already the ceiling — but useful for editorial pages. */
+.bc-stock--newsprint {
+  --bc-stock-base: #f2efe6;
+  --bc-stock-strength: 0.38;
+  --bc-stock-size: 4px 4px;
+  --bc-stock-grain:
+    radial-gradient(circle at 1px 1px, rgba(0,0,0,.26) 0.7px, transparent 0.8px);
+}
+
+/* Want the literal Unsplash photographs instead? The system already takes an
+   image: set --bc-stock-grain to url(...) and --bc-stock-base to the photo's
+   dominant colour. Procedural is the better default — nothing to host, nothing
+   to licence, and it stays sharp at any poster size. */
+
+/* ---------------------------------------------------------------------------
+   14. FLYER FURNITURE — the personal bits a host adds.
+
+   A drawing or a photo goes on as if it were stuck to the flyer, not composited
+   into it. That is what keeps a hand-made addition from wrecking a clean
+   layout: it reads as something placed ON the poster, which is forgiving of
+   whatever it actually is.
+   --------------------------------------------------------------------------- */
+.bc-snap {
+  display: block;
+  padding: 7px 7px 26px;             /* the thick bottom edge of a polaroid */
+  background: #fff;
+  border: 1px solid rgba(17,17,17,.14);
+  box-shadow: 3px 4px 0 rgba(17,17,17,.17);
+  transform: rotate(var(--bc-rot, -3deg));
+}
+.bc-snap img { display: block; width: 100%; }
+
+/* Tape: a translucent strip across one corner. */
+.bc-tape {
+  position: absolute;
+  width: 74px; height: 22px;
+  background: rgba(255,240,170,.62);
+  border-left: 1px solid rgba(0,0,0,.06);
+  border-right: 1px solid rgba(0,0,0,.06);
+  transform: rotate(var(--bc-rot, -24deg));
+  pointer-events: none;
+}
+
+/* A host's own drawing: knocked back to ink so any scribble sits in palette. */
+.bc-doodle-in {
+  filter: grayscale(1) contrast(1.5) brightness(.92);
+  mix-blend-mode: multiply;
+}
+
+/* ---------------------------------------------------------------------------
+   FLOATY — bonus. Slow drift for a badge or a lone element.
+   --------------------------------------------------------------------------- */
+.bc-floaty { animation: bc-floaty 5s ease-in-out infinite alternate; }
+
+@keyframes bc-floaty {
+  from { transform: translateY(0) rotate(-2deg); }
+  to   { transform: translateY(-12px) rotate(1deg); }
+}
+
+/* ---------------------------------------------------------------------------
+   ACCESSIBILITY — one switch kills every loop. The static styling (sticker
+   borders, rotation, handwriting) survives, so nothing disappears.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .bc-hop .bc-ch,
+  .bc-doodles svg,
+  .bc-floaty,
+  .bc-new-badge,
+  .bc-clubby-eye,
+  .bc-grain::after {
+    animation: none !important;
+  }
+  /* Clubby keeps the hover spill — it is a deliberate response to the pointer,
+     not ambient motion — but loses the springy overshoot. */
+  .bc-clubby,
+  .bc-clubby-display,
+  .bc-clubby-shell,
+  .bc-clubby-mouth {
+    transition-duration: 0.01ms;
+  }
+  .bc-scribble--write,
+  .bc-scribble--write.bc-in {
+    animation: none !important;
+    clip-path: none !important;
+  }
+  .bc-tilt { transition: none; }
+}

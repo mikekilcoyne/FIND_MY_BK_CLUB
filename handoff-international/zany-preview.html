@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zany Kit Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Covered+By+Your+Grace&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="zany-kit.css">
+<style>
+  /* ---- A stand-in for the new site's chrome, so the effects are judged in
+         context rather than on a blank page. Not part of the kit. ---- */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #111;
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  header {
+    display: flex; align-items: center; gap: 28px;
+    padding: 20px 0; border-bottom: 1px solid #e6e6e6;
+  }
+  .type-wordmark { font-size: 24px; font-weight: 500; letter-spacing: -1.2px; }
+  .type-wordmark .intl { font-weight: 400; opacity: .55; }
+  nav { display: flex; gap: 22px; font-size: 14px; color: #555; margin-left: auto; }
+
+  .hero { padding: 78px 0 60px; }
+
+  /* Headline type is driven by two vars so the switcher can swap it live.
+     Helvetica Neue is already the house face in css/design-tokens.css. */
+  :root {
+    --head-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --head-weight: 500;
+    --head-tracking: -2.2px;
+  }
+  h1 {
+    font-family: var(--head-font);
+    font-weight: var(--head-weight);
+    letter-spacing: var(--head-tracking);
+    /* 6.2vw keeps "Everyone's invited." on one line all the way down to
+       ~360px, so the nowrap below can never cause a horizontal scroll. */
+    font-size: clamp(27px, 6.2vw, 70px);
+    line-height: 1.04;
+    margin: 0 0 26px;
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  h1 .l1 { white-space: nowrap; }
+  /* The offset from the original site — second line pushed right. em-based so
+     it tracks the type size instead of drifting at small widths. */
+  h1 .l2 { margin-left: 2.1em; }
+  @media (max-width: 560px) { h1 .l2 { margin-left: 1.1em; } }
+
+  /* ---- type switcher ---- */
+  .typebar {
+    position: sticky; top: 0; z-index: 60;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 0; margin-bottom: -10px;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+  }
+  .typebar b { font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color:#888; margin-right:4px; }
+  .typebar button {
+    font: 500 12px/1 "Instrument Sans", Helvetica, Arial, sans-serif;
+    padding: 7px 11px; cursor: pointer;
+    background: #fff; color: #111;
+    border: 1.5px solid #111; border-radius: 5px;
+    box-shadow: 2px 2px 0 #111;
+  }
+  .typebar button[aria-pressed="true"] { background: #ffd700; box-shadow: 3px 3px 0 #111; }
+
+  /* ---- specimen ---- */
+  .spec { border-top: 1px dashed #ddd; padding: 22px 0 6px; }
+  .spec .lbl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+  .spec p { margin: 0; font-size: clamp(26px,3.6vw,44px); line-height: 1.05; }
+  .s-inst { font-family: "Instrument Sans", sans-serif; font-weight: 600; letter-spacing: -1.4px; }
+  .s-hn-light { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 300; letter-spacing: -1.1px; }
+  .s-hn-med   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 500; letter-spacing: -1.4px; }
+  .s-hn-bold  { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 700; letter-spacing: -1.6px; }
+  .lede { font-size: 17px; color: #555; max-width: 46ch; margin: 0 0 30px; line-height: 1.55; }
+  /* The tagline closes the lede — same family, but darker and a weight up so it
+     lands as a statement rather than a third clause of the sentence before it. */
+  .lede .tagline {
+    display: block; margin-top: 10px;
+    color: #111; font-weight: 500;
+  }
+  .cta {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: #111; color: #fff; text-decoration: none;
+    padding: 13px 22px; border-radius: 999px; font-size: 15px; font-weight: 500;
+  }
+
+  .section { padding: 56px 0; border-top: 1px solid #e6e6e6; }
+  .section h2 {
+    font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+    color: #888; font-weight: 600; margin: 0 0 24px;
+  }
+
+  .posters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 26px; }
+  .poster-img {
+    display: block; width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    /* top-anchored so a crop takes the bottom margin, never the headline */
+    object-position: center top;
+    border: 1px solid #e0e0e0; border-radius: 3px;
+    background: #f4f1ea;
+  }
+  .poster-cap {
+    margin-top: 9px; font-size: 12px; color: #777; letter-spacing: .01em;
+  }
+
+  .note {
+    font-size: 12px; color: #999; margin-top: 10px; letter-spacing: .02em;
+  }
+  .swatches { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  footer { padding: 50px 0 70px; color: #999; font-size: 13px; }
+
+
+  /* ---- flyer maker demo ----
+     Three rules taken off the real wall, because they're what make those
+     posters live and what the first pass was missing:
+       1. the line is ALWAYS on it, split across the top corners
+       2. ONE element is huge and everything else is small, no middle sizes
+       3. a motif carries the theme (Barcelona's clinking cups) */
+  .flyers3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:30px; }
+  .fl { aspect-ratio:3/4; padding:7cqw; display:flex; flex-direction:column;
+        border:1px solid rgba(17,17,17,.16); position:relative; overflow:hidden;
+        container-type:inline-size; }
+  .fl .invite { display:flex; justify-content:space-between; gap:8px;
+                font:700 3.3cqw/1 "Instrument Sans",sans-serif; letter-spacing:.11em;
+                text-transform:uppercase; }
+  /* Sized in cqw so a long city name fits the same frame as a short one —
+     "Copenhagen" overflowed at a fixed 40px where "Paris" sat comfortably. */
+  .fl .hero { margin-top:auto; font-weight:700; line-height:.86;
+              letter-spacing:-0.025em; text-transform:uppercase; }
+  .fl .meta { margin-top:4cqw; font:600 4.2cqw/1.5 "Instrument Sans",sans-serif;
+              letter-spacing:.04em; text-transform:uppercase; opacity:.8; }
+  .fl .motif { position:absolute; opacity:.9; pointer-events:none; }
+  .fl .repeat { margin-top:3cqw; font:700 2.9cqw/1.55 "Instrument Sans",sans-serif;
+                letter-spacing:.07em; text-transform:uppercase; opacity:.85; }
+  .fl--simple { background:#1b3fd8; color:#f4f0e4; border-color:#1b3fd8; }
+  .fl--simple .hero { font-size:17cqw; }
+    /* Cropped hard into the pastry. This demo uses a FLYER as its photo, so it
+     has to zoom past the poster's own type — a real cinematic flyer takes an
+     actual photograph and needs none of this. */
+  .fl--cine { color:#fff; background-size:300%; background-position:48% 30%; }
+  .fl--cine::after { content:""; position:absolute; inset:0;
+      background:linear-gradient(180deg,rgba(20,10,5,.30) 0 32%,rgba(20,10,5,.72)); }
+  .fl--cine > * { position:relative; z-index:1; }
+  .fl--cine .hero { font-size:15cqw; }
+  .fl--hand { color:#17204a; }
+  .fl--hand .hero { font-family:"Covered By Your Grace",cursive; font-size:17cqw;
+                    font-weight:400; letter-spacing:0; text-transform:none; line-height:.95; }
+  .fl--hand .meta { font-family:"Covered By Your Grace",cursive; font-size:6.6cqw;
+                    letter-spacing:0; text-transform:none; opacity:.92; }
+  .fl--hand .invite { font-family:"Covered By Your Grace",cursive; font-size:5cqw;
+                      letter-spacing:.02em; text-transform:none; }
+  .stockrow { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:26px; }
+  .sw { width:112px; height:76px; border:1.5px solid rgba(17,17,17,.2);
+        display:grid; place-items:end center; padding-bottom:7px;
+        font:700 9px/1 "Instrument Sans",sans-serif; letter-spacing:.12em;
+        text-transform:uppercase; color:#444; }
+
+  /* ---- Clubby icon demo ---- */
+  .icon-demo {
+    display: inline-block; width: var(--s); height: var(--s);
+    color: #111;
+    background: currentColor;
+    -webkit-mask: url("clubby-mug-icon.svg") center/contain no-repeat;
+            mask: url("clubby-mug-icon.svg") center/contain no-repeat;
+  }
+  .clubby-btn, .clubby-launcher {
+    display: inline-grid; place-items: center;
+    width: 58px; height: 58px; padding: 0;
+    background: #ffd700; color: #111;
+    border: 2px solid #111; border-radius: 0;
+    box-shadow: 4px 4px 0 #111; cursor: pointer;
+  }
+  .clubby-btn::before, .clubby-launcher::before {
+    content: ""; width: 34px; height: 34px;
+    background: currentColor;
+    -webkit-mask: url("clubby-mug-icon.svg") center/contain no-repeat;
+            mask: url("clubby-mug-icon.svg") center/contain no-repeat;
+  }
+  .clubby-launcher {
+    position: fixed; right: 26px; bottom: 26px; z-index: 50;
+    transition: transform .2s cubic-bezier(.2,.9,.25,1.4);
+  }
+  .clubby-launcher:hover { transform: translateY(-3px) rotate(-4deg); }
+</style>
+</head>
+
+<!-- bc-grain puts the paper texture over the whole page -->
+<body class="bc-grain">
+
+<div class="wrap">
+
+  <header>
+    <!-- 8. The wordmark, with "international" in the same face -->
+    <span class="type-wordmark">breakfastclub<span class="intl"> international</span></span>
+    <nav class="bc-lower"><span>Globe</span><span>Clubs</span><span>Gallery</span></nav>
+  </header>
+
+  <!-- ===== TYPE SWITCHER — changes the hero headline live ===== -->
+  <div class="typebar">
+    <b>Headline</b>
+    <button data-f="inst" aria-pressed="false">Instrument Sans 600 (current)</button>
+    <button data-f="light" aria-pressed="false">Helvetica Neue Light 300</button>
+    <button data-f="med" aria-pressed="true">Helvetica Neue Medium 500</button>
+    <button data-f="bold" aria-pressed="false">Helvetica Neue Bold 700</button>
+  </div>
+
+  <!-- ===== HERO: hop + sticker + scribble + doodles ===== -->
+  <section class="hero bc-stage" data-bc-doodles="sparse">
+    <h1>
+      <span class="l1">Everyone&rsquo;s invited.</span>
+      <span class="l2 bc-hop">Especially you.</span>
+    </h1>
+
+    <p class="lede bc-lower">
+      Breakfast Club brings people together over coffee and conversation
+      in cities around the world.
+      <span class="tagline">Make new friends, wherever you are.</span>
+    </p>
+
+    <p style="margin:0 0 34px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+      <a class="bc-btn bc-lower" href="#">Find your club &nbsp;→</a>
+      <span class="bc-scribble bc-scribble--write" style="--bc-tilt:-3deg">
+        ← start here, it's just breakfast
+      </span>
+    </p>
+
+    <span class="bc-sticker bc-floaty" style="--bc-rot:-4deg">53 clubs · 18 countries · and counting</span>
+  </section>
+
+  <!-- ===== POSTERS: tilt + NEW badge ===== -->
+  <section class="section">
+    <h2>The poster wall</h2>
+    <div class="posters">
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:-1.8deg">
+          <img class="poster-img" src="preview-flyers/houston-2026-12-16.jpg" alt="Breakfast Club Houston, December 16" loading="lazy">
+          <span class="bc-new-badge" style="--bc-rot-badge:7deg">New<small>Dec 16</small></span>
+        </div>
+        <div class="poster-cap bc-lower">houston · dec 16</div>
+      </div>
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:1.4deg">
+          <img class="poster-img" src="https://breakfast-club-rebuild.vercel.app/flyers/newcastle-beach-cup-first-tuesday.png" alt="Breakfast Club Newcastle" loading="lazy">
+          <span class="bc-new-badge bc-new-badge--soon" style="--bc-rot-badge:-6deg">New<small>Just launched</small></span>
+        </div>
+        <div class="poster-cap bc-lower">newcastle · first tuesday</div>
+      </div>
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:-0.8deg">
+          <img class="poster-img" src="https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417247140.jpg" alt="Breakfast Club Denver" loading="lazy">
+          <span class="bc-new-badge bc-new-badge--popup" style="--bc-rot-badge:5deg">Pop-up<small>8:00 am</small></span>
+        </div>
+        <div class="poster-cap bc-lower">denver · 8:00 am</div>
+      </div>
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:2.1deg">
+          <img class="poster-img" src="https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417237526.jpg" alt="Breakfast Club Copenhagen" loading="lazy">
+        </div>
+        <div class="poster-cap bc-lower">copenhagen · every second thursday</div>
+      </div>
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:-1.2deg">
+          <img class="poster-img" src="https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417275406.jpg" alt="Breakfast Club Paris" loading="lazy">
+        </div>
+        <div class="poster-cap bc-lower">paris</div>
+      </div>
+      <div>
+        <div class="bc-poster bc-tilt" style="--bc-rot:1.7deg">
+          <img class="poster-img" src="https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417227759.jpg" alt="Breakfast Club Austin" loading="lazy">
+        </div>
+        <div class="poster-cap bc-lower">austin</div>
+      </div>
+    </div>
+    <p class="note bc-lower">Real flyers, pulled live from the Vercel build. Hover one — it
+      straightens up and lifts. The badge only appears on clubs flagged new,
+      launching or pop-up. Houston's is the actual flyer from the host chat.</p>
+  </section>
+
+  <!-- ===== STICKERS ===== -->
+  <section class="section bc-stage" data-bc-doodles="corners">
+    <h2>Stickers</h2>
+    <div class="swatches">
+      <span class="bc-sticker" style="--bc-rot:-3deg">Everyone's invited</span>
+      <span class="bc-sticker bc-sticker--magenta" style="--bc-rot:2deg">New in town?</span>
+      <span class="bc-sticker bc-sticker--teal" style="--bc-rot:-5deg">Bring a friend</span>
+      <span class="bc-sticker bc-sticker--tomato" style="--bc-rot:4deg">Coffee's on us</span>
+    </div>
+    <p class="note bc-lower">Hard corners + 2px ink border + offset block shadow — the
+      house square-style, not the deck's pill.</p>
+  </section>
+
+  <!-- ===== SCRIBBLES ===== -->
+  <section class="section">
+    <h2>Handwriting</h2>
+    <p>
+      <span class="bc-scribble bc-scribble--write" style="--bc-tilt:-2deg">
+        no agenda, no pitch deck, just breakfast
+      </span>
+    </p>
+    <p style="margin-top:22px">
+      <span class="bc-scribble bc-scribble--write" style="--bc-tilt:1.5deg; --bc-delay:.25s">
+        we save a seat for whoever turns up
+      </span>
+    </p>
+    <p class="note bc-lower">Writes itself on when it scrolls into view. Reload to replay.</p>
+  </section>
+
+
+  <!-- ===== CLUB DETAIL PANEL — white square treatment ===== -->
+  <section class="section">
+    <h2>Club detail — panel treatment</h2>
+    <div class="bc-panel" style="max-width:680px; padding:26px 28px">
+
+      <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
+        <strong style="font:500 28px/1 'Helvetica Neue',Helvetica,Arial,sans-serif; letter-spacing:-.8px">Paris</strong>
+        <span class="bc-lower" style="color:#888; font-size:15px">france</span>
+      </div>
+
+      <div class="bc-panel-row">
+        <div>
+          <div class="bc-panel-label">Venue</div>
+          <div style="font-size:17px">Cult Caf&eacute;</div>
+        </div>
+        <div style="display:flex; gap:10px">
+          <a class="bc-btn bc-btn--ghost bc-lower" href="#" style="font-size:13px; padding:9px 14px">Google Maps &nearr;</a>
+          <a class="bc-btn bc-btn--ghost bc-lower" href="#" style="font-size:13px; padding:9px 14px">Apple Maps &nearr;</a>
+        </div>
+      </div>
+
+      <div class="bc-panel-row" style="display:block">
+        <div class="bc-panel-label">Host</div>
+        <div style="display:flex; flex-wrap:wrap; gap:26px; margin-top:6px">
+          <a class="bc-person" href="#"><b>Lisa Ono</b><span>LinkedIn</span></a>
+          <a class="bc-person" href="#"><b>Karla Rodriguez</b><span>LinkedIn</span></a>
+          <a class="bc-person" href="#"><b>Fanny Leonard</b><span>LinkedIn</span></a>
+        </div>
+      </div>
+
+      <div class="bc-panel-row">
+        <div>
+          <div class="bc-panel-label">Schedule</div>
+          <div class="bc-lower" style="font-size:17px">time tbc</div>
+        </div>
+        <a class="bc-btn bc-btn--accent bc-lower" href="#" style="font-size:14px">Save a seat &rarr;</a>
+      </div>
+
+    </div>
+    <p class="note bc-lower">Names, not profile slugs &mdash; &ldquo;Lisa Ono&rdquo;, not
+      &ldquo;lisaonocreate&rdquo;. Maps buttons are the white ghost variant: same square
+      and shadow as the primary, no accent, because they&rsquo;re navigation rather than
+      the call to action.</p>
+  </section>
+
+
+  <!-- ===== TEXTURE — backdrop pulled from real flyers ===== -->
+  <section class="section bc-texture"
+           style="--bc-texture-img:url('https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417275406.jpg');
+                  --bc-texture-opacity:.20; --bc-texture-pos:center 32%;
+                  padding:64px 32px; margin:0 -32px">
+    <h2>Texture — Paris croissant</h2>
+    <p style="font:500 clamp(26px,3.4vw,42px)/1.08 'Helvetica Neue',Helvetica,Arial,sans-serif;
+              letter-spacing:-1.4px; max-width:16ch; margin:0 0 14px">
+      Everyone&rsquo;s invited.
+    </p>
+    <p class="lede bc-lower" style="margin:0 0 18px">
+      The flyer art becomes the backdrop. Content floats over it.
+    </p>
+    <span class="bc-sticker" style="--bc-rot:-3deg">Paris &middot; Cult Caf&eacute;</span>
+  </section>
+
+  <section class="section bc-texture bc-texture--quiet"
+           style="--bc-texture-img:url('preview-flyers/barcelona.jpg');
+                  --bc-texture-opacity:.26; --bc-texture-pos:center 88%;
+                  --bc-texture-zoom:1.12; padding:56px 32px; margin:0 -32px">
+    <h2>Texture — Barcelona, cropped to the cups</h2>
+    <p class="lede bc-lower" style="margin:0 0 16px; max-width:52ch">
+      Cropped to the bottom half, where the flyer is pure line art —
+      three hands clinking cups. Framing past the type is the whole trick; at
+      full-bleed its headline competes with yours.
+    </p>
+    <a class="bc-btn bc-lower" href="#">Find your club &rarr;</a>
+  </section>
+
+
+  <!-- ===== FLYER MAKER ===== -->
+  <section class="section">
+    <h2>Flyer maker — three questions</h2>
+
+    <p class="note bc-lower" style="margin:0 0 16px">1 &middot; what stock? pick for the locale, not at random.</p>
+    <div class="stockrow">
+      <div class="sw bc-stock bc-stock--paper">Paper</div>
+      <div class="sw bc-stock bc-stock--fabric">Fabric</div>
+      <div class="sw bc-stock bc-stock--sandstone">Sandstone</div>
+    </div>
+
+    <p class="note bc-lower" style="margin:0 0 16px">2 &middot; what vibe? 3 &middot; anything personal to add?</p>
+    <div class="flyers3">
+
+      <div>
+        <div class="fl fl--simple">
+          <div class="invite"><span>Everyone is invited</span><span>Especially you</span></div>
+          <svg class="motif" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="right:-16px;top:78px;width:150px;height:150px;opacity:.22"><path d="M5 16h13.2l-1.9 11.8a3.3 3.3 0 0 1-3.3 2.8h-2.8a3.3 3.3 0 0 1-3.3-2.8zM18.4 19.2h2.3a3.1 3.1 0 0 1 0 6.2h-2.3M28.6 16h13.2l-1.9 11.8a3.3 3.3 0 0 1-3.3 2.8h-2.8a3.3 3.3 0 0 1-3.3-2.8zM42 19.2h2.3a3.1 3.1 0 0 1 0 6.2H42M23.4 8.6v3.8M20.4 10.4l1.6 2.6M26.4 10.4l-1.6 2.6"/></svg>
+          <div class="hero">Breakfast<br>Club<br>Copenhagen</div>
+          <div class="meta">Every second Thursday<br>8:30 am &middot; Atelier September</div>
+        </div>
+        <div class="poster-cap bc-lower">simple &middot; one colour, one huge word</div>
+      </div>
+
+      <div>
+        <div class="fl fl--cine"
+             style="background-image:url('https://breakfast-club-rebuild.vercel.app/flyers/unknown-1778417275406.jpg')">
+          <div class="invite"><span>Everyone is invited</span><span>Especially you</span></div>
+          <div class="hero">Breakfast<br>Club Paris</div>
+          <div class="meta">10h30 &middot; Cult Caf&eacute;<br>76 Rue Boursault</div>
+          <div class="repeat">Everyone is welcome, especially you.<br>
+            Everyone is welcome, especially you.<br>
+            Everyone is welcome, especially you.</div>
+        </div>
+        <div class="poster-cap bc-lower">cinematic &middot; cropped to pure texture</div>
+      </div>
+
+      <div>
+        <div class="fl fl--hand bc-stock bc-stock--sandstone">
+          <div class="invite"><span>everyone&rsquo;s invited</span><span>especially you</span></div>
+          <span class="bc-tape" style="top:38px; right:16px; --bc-rot:14deg"></span>
+          <div class="bc-snap" style="--bc-rot:-5deg; width:56%; align-self:flex-end; margin-top:16px">
+            <img src="preview-flyers/barcelona.jpg" alt="">
+          </div>
+          <svg class="motif" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="left:-10px;bottom:84px;width:96px;height:96px;opacity:.5"><path d="M5 16h13.2l-1.9 11.8a3.3 3.3 0 0 1-3.3 2.8h-2.8a3.3 3.3 0 0 1-3.3-2.8zM18.4 19.2h2.3a3.1 3.1 0 0 1 0 6.2h-2.3M28.6 16h13.2l-1.9 11.8a3.3 3.3 0 0 1-3.3 2.8h-2.8a3.3 3.3 0 0 1-3.3-2.8zM42 19.2h2.3a3.1 3.1 0 0 1 0 6.2H42M23.4 8.6v3.8M20.4 10.4l1.6 2.6M26.4 10.4l-1.6 2.6"/></svg>
+          <div class="hero">Breakfast Club<br>Torquay</div>
+          <div class="meta">monthly &middot; 8am<br>Bomboras, the beach end</div>
+        </div>
+        <div class="poster-cap bc-lower">handcrafted &middot; motif + a taped-on photo</div>
+      </div>
+
+    </div>
+    <p class="note bc-lower">Three questions, then it spits one out. <b>&ldquo;Everyone&rsquo;s invited,
+      especially you&rdquo; is on every single one</b> &mdash; split across the top corners the
+      way Barcelona does it, and repeated at the foot the way Paris does. One element is
+      huge and the rest is small; no middle sizes. A host&rsquo;s own photo goes on
+      <em>taped to</em> the flyer, not composited into it.</p>
+  </section>
+
+  <!-- ===== CLUBBY ICON ===== -->
+  <section class="section">
+    <h2>Clubby — chat launcher</h2>
+    <div class="swatches" style="gap:40px; padding:14px 0 26px">
+      <button class="bc-clubby" aria-label="Chat with Clubby" data-svg></button>
+      <button class="bc-clubby" aria-label="Chat with Clubby" data-svg
+              style="width:78px;height:78px"></button>
+      <button class="bc-clubby" aria-label="Chat with Clubby" data-svg
+              style="width:40px;height:40px;box-shadow:2px 2px 0 #111"></button>
+      <span class="note bc-lower" style="margin:0">← hover one</span>
+    </div>
+    <p class="note bc-lower">An egg with a cracked top and round specs. It reads as
+      <em>chat</em> because the egg doubles as a speech bubble — note the tail at
+      its bottom-left. On hover the whole egg spills out past the button edge and
+      the smile widens. It blinks on its own every few seconds. Shell colour is
+      the <code>--bc-egg</code> token, so a warmer tan is a one-line change.</p>
+  </section>
+
+  <!-- ===== TYPE SPECIMEN — all four, side by side ===== -->
+  <section class="section">
+    <h2>Headline type — side by side</h2>
+    <div class="spec"><div class="lbl">Instrument Sans 600 · current</div>
+      <p class="s-inst">Everyone's invited. Especially you.</p></div>
+    <div class="spec"><div class="lbl">Helvetica Neue Light 300</div>
+      <p class="s-hn-light">Everyone's invited. Especially you.</p></div>
+    <div class="spec"><div class="lbl">Helvetica Neue Medium 500</div>
+      <p class="s-hn-med">Everyone's invited. Especially you.</p></div>
+    <div class="spec"><div class="lbl">Helvetica Neue Bold 700 · the old site's h1</div>
+      <p class="s-hn-bold">Everyone's invited. Especially you.</p></div>
+    <p class="note bc-lower">Light wants more size and more line-height to carry; Medium
+      holds the current layout with almost no other change.</p>
+  </section>
+
+  <footer class="wrap">
+    Zany kit preview — eight elements. Everything stops under
+    <code>prefers-reduced-motion</code>.
+  </footer>
+
+  <!-- Fixed launcher, as it would sit on the real site -->
+  <button class="bc-clubby bc-clubby--fixed" aria-label="Chat with Clubby" data-svg></button>
+
+<script>
+// Demo-only wiring. Inlines the Clubby SVG (the hover spill needs it inline,
+// not behind an <img>), and drives the headline type switcher.
+(async () => {
+  try {
+    const svg = await (await fetch("clubby-icon.svg")).text();
+    const markup = svg.slice(svg.indexOf("<svg"));
+    document.querySelectorAll("[data-svg]").forEach(b => { b.innerHTML = markup; });
+  } catch (e) { console.warn("clubby icon not inlined:", e); }
+
+  const FONTS = {
+    inst:  ['"Instrument Sans", Helvetica, Arial, sans-serif', 600, "-2.4px"],
+    light: ['"Helvetica Neue", Helvetica, Arial, sans-serif',  300, "-1.8px"],
+    med:   ['"Helvetica Neue", Helvetica, Arial, sans-serif',  500, "-2.2px"],
+    bold:  ['"Helvetica Neue", Helvetica, Arial, sans-serif',  700, "-2.6px"],
+  };
+
+  // Shrink a poster's hero line until it fits its own width. A generator can't
+  // hand-tune per city: "Copenhagen" is twice the width of "Paris" at the same
+  // size, and breaking the word instead ("COPENHAG / EN") looks like a bug.
+  function fitHero(el) {
+    el.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    let guard = 0;
+    while (el.scrollWidth > el.clientWidth + 1 && guard++ < 60) {
+      size *= 0.96;
+      el.style.fontSize = size + "px";
+    }
+  }
+  const fitAll = () => document.querySelectorAll(".fl .hero").forEach(fitHero);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+  fitAll();
+  addEventListener("resize", fitAll);
+
+  document.querySelectorAll(".typebar button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const [f, w, t] = FONTS[btn.dataset.f];
+      const r = document.documentElement.style;
+      r.setProperty("--head-font", f);
+      r.setProperty("--head-weight", w);
+      r.setProperty("--head-tracking", t);
+      document.querySelectorAll(".typebar button")
+        .forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    });
+  });
+})();
+</script>
+
+</div>
+
+<script src="zany.js"></script>
+</body>
+</html>

@@ -15,8 +15,13 @@ import {
 //   SENDGRID_API_KEY   — from the existing SendGrid account
 //   SHEET_CSV_URL      — Google Sheet CSV export URL (same as in script.js)
 
-const SHEET_CSV_URL = process.env.SHEET_CSV_URL ||
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRMNG01d9e9EXWFE8p97q1HnUj1ikPttYoO1fP1kV-izueziGqw0oDEmDWp1ZukS3pSrnR4EBCQoKJu/pub?output=csv";
+// The published-to-web Google Sheet CSV URL used to be hardcoded here as a
+// fallback. It was removed on 2026-11-18: netlify/functions/ was being served
+// as static files, so that URL was public, and a "publish to web" link needs no
+// Google sign-in -- anyone who read it got all ~75 host email addresses out of
+// the Emails column. Env var only now. With it unset this falls through to the
+// list below rather than to a public URL.
+const SHEET_CSV_URL = process.env.SHEET_CSV_URL || "";
 
 // Fallback host list — used if the sheet fetch fails.
 // Each entry: { city, hostName, emails: ["a@b.com", ...] }

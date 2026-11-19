@@ -7,12 +7,46 @@ cd "$ROOT_DIR"
 
 echo "Running BreakfastClubbing release smoke checks..."
 
+# Pick a PCRE-capable matcher once, up front.
+#
+# This used to call `rg -q --pcre2` directly. ripgrep is not installed on this
+# machine, and because `set -e` is on and every check exits 1 on failure, the
+# whole script died on check #1 with "[fail] Home view still renders featured
+# badges" -- a message that reads exactly like a real regression. The gate had
+# effectively been reporting a false failure rather than running.
+#
+# Order matters: ripgrep when it is there (fastest), then GNU grep -P, then
+# perl, which is on every macOS box. If none match, say so loudly instead of
+# pretending 19 checks passed.
+if command -v rg >/dev/null 2>&1; then
+  MATCHER="rg"
+elif echo "x" | grep -qP 'x' 2>/dev/null; then
+  MATCHER="grep"
+elif command -v perl >/dev/null 2>&1; then
+  MATCHER="perl"
+else
+  echo "No PCRE-capable matcher found (tried: rg, grep -P, perl)." >&2
+  echo "Install ripgrep (brew install ripgrep) and re-run." >&2
+  exit 2
+fi
+
+matches() {
+  local pattern="$1"
+  local file="$2"
+  case "$MATCHER" in
+    rg)   rg -q --pcre2 "$pattern" "$file" ;;
+    grep) grep -qP "$pattern" "$file" ;;
+    perl) perl -e 'my ($p, $f) = @ARGV; open my $fh, "<", $f or exit 1;
+                   while (<$fh>) { exit 0 if /$p/ } exit 1' "$pattern" "$file" 2>/dev/null ;;
+  esac
+}
+
 check() {
   local file="$1"
   local pattern="$2"
   local message="$3"
 
-  if rg -q --pcre2 "$pattern" "$file"; then
+  if matches "$pattern" "$file"; then
     echo "[pass] $message"
   else
     echo "[fail] $message"

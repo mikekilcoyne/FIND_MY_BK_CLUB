@@ -11,6 +11,7 @@
   var getOverrideForCity = BKClubData.getOverrideForCity;
   var sharedShouldHideClub = BKClubData.shouldHideClub;
   var sharedParseSheetUpcomingDate = BKClubData.parseSheetUpcomingDate;
+  var sharedCommunityLinkLabel = BKClubData.communityLinkLabel;
   var sharedExtractInstagramHandles = BKClubData.extractInstagramHandles;
 
   // ── CSV parsing (same pipeline as home + calendar) ────
@@ -1029,7 +1030,7 @@
       communityLink.target = "_blank";
       communityLink.rel = "noreferrer";
       communityLink.className = "community-link-btn";
-      communityLink.textContent = "WhatsApp";
+      communityLink.textContent = sharedCommunityLinkLabel(club.communityLink) || "WhatsApp";
       util.appendChild(communityLink);
     }
 

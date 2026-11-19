@@ -11,6 +11,39 @@ const FROM_NAME = "Breakfast Club Admin";
 // required via hosts.json or ADMIN_PIN). Independent of the ADMIN_EMAIL env var.
 const OWNER_MASTER_EMAIL = "mk@yellowsatinjacket.com";
 
+// ── Super admins ───────────────────────────────────────────────────────────
+// Everyone listed here gets the master role on every one of their addresses,
+// so it does not matter which one they happen to sign in with. It grants the
+// ROLE only -- a PIN is still required, exactly as for the owner.
+//
+// Kept in an env var rather than in this file on purpose. These are personal
+// addresses, and until 2026-11-18 this directory was being served as static
+// files, so anything hardcoded here was downloadable. The deny rules in
+// netlify.toml closed that, but a list of admin addresses is precisely the
+// thing not to keep one config mistake away from the public.
+//
+// Netlify → Site settings → Environment variables:
+//   SUPER_ADMIN_EMAILS = a@x.com, b@y.com, c@z.com
+// Commas, spaces or newlines all work, so a pasted column from the Sheet is
+// fine. Case is ignored.
+function parseEmailList(raw) {
+  return String(raw || "")
+    .split(/[,;\s]+/)
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s.includes("@"));
+}
+
+// Rebuilt per invocation rather than cached at module scope: Netlify keeps a
+// warm function instance alive across requests, so a cached set would hold a
+// stale list until the next deploy after someone is added or removed.
+function masterEmails() {
+  return new Set([
+    OWNER_MASTER_EMAIL,
+    (process.env.ADMIN_EMAIL || "").toLowerCase(),
+    ...parseEmailList(process.env.SUPER_ADMIN_EMAILS),
+  ].filter(Boolean));
+}
+
 async function sendConfirmEmail({ subject, text }) {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) return;
@@ -83,22 +116,112 @@ function normalizeKey(value = "") {
     .trim();
 }
 
-async function getSession(authHeader) {
+// ── Brute-force lockout ────────────────────────────────────────────────────
+// The credential here is <email>:<4-digit PIN>, and the PIN really is only four
+// digits (enforced at add_host: /^\d{4}$/). That is 10,000 possibilities, so
+// without a limiter an attacker who knows one host's email address averages
+// 5,000 requests to get in -- minutes of scripted traffic. Host email addresses
+// were, until 2026-11-18, downloadable from the site, so the email half was not
+// a secret at all.
+//
+// 5 tries then a 15-minute freeze turns a ~20-minute exhaustive search into
+// roughly 500 hours, which is the whole point. Netlify Functions have no
+// built-in rate limiting, so this has to live in the function.
+//
+// Keyed on email, not IP: an IP key is trivially evaded from a botnet, and this
+// has to hold against a distributed attempt on one account. The trade-off is
+// that someone who knows a host's email can keep that host locked out in
+// 15-minute windows. That is a nuisance; account takeover is not. Accepted
+// deliberately -- if it ever gets abused, add an IP dimension alongside, not
+// instead.
+//
+// Netlify Blobs has no atomic increment, so two simultaneous wrong guesses can
+// record as one. It costs an attacker an extra attempt per race at best and
+// does not change the order of magnitude.
+const LOCKOUT_MAX_FAILS = 5;
+const LOCKOUT_WINDOW_MS = 15 * 60 * 1000;
+const LOCKOUT_FREEZE_MS = 15 * 60 * 1000;
+
+function failKey(email) {
+  // Blob keys: keep it filesystem-safe and collision-free for an email.
+  return "failed-logins/" + String(email).replace(/[^a-z0-9@._-]/gi, "_") + ".json";
+}
+
+async function getFailState(email) {
+  try {
+    const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+    return (await store.get(failKey(email), { type: "json" })) || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function recordFailure(email) {
+  try {
+    const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+    const prev = (await store.get(failKey(email), { type: "json" })) || null;
+    const now = Date.now();
+
+    // Count only failures inside the sliding window; an old, stale streak from
+    // a host who simply mistyped last week must not carry over.
+    const windowOpen = prev?.first && now - prev.first < LOCKOUT_WINDOW_MS;
+    const fails = (windowOpen ? prev.fails || 0 : 0) + 1;
+
+    const next = {
+      fails,
+      first: windowOpen ? prev.first : now,
+      last: now,
+      until: fails >= LOCKOUT_MAX_FAILS ? now + LOCKOUT_FREEZE_MS : 0,
+    };
+    await store.setJSON(failKey(email), next);
+
+    // Tell the owner on the attempt that trips the freeze -- a real host hitting
+    // this is a support ticket, and anyone else hitting it is worth knowing about.
+    if (next.until) {
+      await sendConfirmEmail({
+        subject: `Admin login frozen: ${email}`,
+        text:
+          `${fails} failed admin login attempts for ${email} within ` +
+          `${Math.round(LOCKOUT_WINDOW_MS / 60000)} minutes.\n\n` +
+          `That address is now frozen for ${Math.round(LOCKOUT_FREEZE_MS / 60000)} minutes.\n\n` +
+          `If this was not the host, someone is guessing PINs. If it was, they can ` +
+          `retry after the freeze or you can reset their PIN from the admin panel.`,
+      });
+    }
+  } catch (_) {}
+}
+
+async function clearFailures(email) {
+  try {
+    const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
+    await store.delete(failKey(email));
+  } catch (_) {}
+}
+
+// Split the header without deciding whether the credential is any good, so the
+// handler can check the lockout before it checks the PIN.
+function parseAuthHeader(authHeader) {
   const raw = String(authHeader || "").replace(/^Bearer\s+/i, "").trim();
   if (!raw) return null;
-
   const colonIdx = raw.lastIndexOf(":");
   if (colonIdx === -1) return null;
   const email = raw.slice(0, colonIdx).trim().toLowerCase();
   const pin = raw.slice(colonIdx + 1).trim();
   if (!email || !pin) return null;
+  return { email, pin };
+}
+
+async function getSession(authHeader) {
+  const parsed = parseAuthHeader(authHeader);
+  if (!parsed) return null;
+  const { email, pin } = parsed;
 
   // hosts.json takes precedence — allows master to update their own PIN via UI.
-  // The ADMIN_EMAIL owner is ALWAYS master, even if their hosts.json entry
-  // lacks the master flag (a plain host entry must never shadow the owner).
-  const ownerEmails = new Set(
-    [OWNER_MASTER_EMAIL, (process.env.ADMIN_EMAIL || "").toLowerCase()].filter(Boolean)
-  );
+  // The owner and every super admin are ALWAYS master, even if their hosts.json
+  // entry lacks the master flag (a plain host entry must never shadow them).
+  // That is what makes onboarding work: add them with add_host like any other
+  // host to give them a PIN, and the role is granted here regardless.
+  const ownerEmails = masterEmails();
   try {
     const store = getConfiguredStore(CREDS_STORE, { consistency: "strong" });
     const hosts = (await store.get("hosts.json", { type: "json" })) || {};
@@ -130,8 +253,40 @@ export async function handler(event) {
     return { statusCode: 204, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" }, body: "" };
   }
 
-  const session = await getSession(event.headers?.authorization || event.headers?.Authorization);
-  if (!session) return json(401, { error: "Unauthorized." });
+  // Auth, in three steps so the lockout is checked BEFORE the PIN is compared.
+  // Checking it after would still let an attacker learn a correct PIN on the
+  // attempt that trips the freeze.
+  const authHeader = event.headers?.authorization || event.headers?.Authorization;
+  const creds = parseAuthHeader(authHeader);
+  if (!creds) return json(401, { error: "Unauthorized." });
+
+  // One read, reused below, so a signed-in host's every request does not cost a
+  // pointless extra blob write.
+  const failState = await getFailState(creds.email);
+  const frozenFor = failState?.until > Date.now()
+    ? Math.ceil((failState.until - Date.now()) / 1000)
+    : 0;
+  if (frozenFor > 0) {
+    return {
+      statusCode: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "Retry-After": String(frozenFor),
+      },
+      body: JSON.stringify({
+        error: `Too many failed attempts. Try again in ${Math.ceil(frozenFor / 60)} minute(s).`,
+        retryAfter: frozenFor,
+      }),
+    };
+  }
+
+  const session = await getSession(authHeader);
+  if (!session) {
+    await recordFailure(creds.email);
+    return json(401, { error: "Unauthorized." });
+  }
+  if (failState) await clearFailures(creds.email);
 
   // ── GET ──────────────────────────────────────────────────────────────────
   if (event.httpMethod === "GET") {
@@ -581,8 +736,8 @@ export async function handler(event) {
 
     if (action === "seed_from_sheet") {
       if (session.type !== "master") return json(403, { error: "Forbidden." });
-      const sheetUrl = process.env.SHEET_CSV_URL ||
-        "https://docs.google.com/spreadsheets/d/1_4MoIXgSHjERztj0LPPC-XAa7nzFlfrdcjEQdBeSqto/export?format=csv&gid=105813476";
+      // Env var only -- see the note on SHEET_CSV_URL in weekly-host-reminder.js.
+      const sheetUrl = process.env.SHEET_CSV_URL || "";
       if (!sheetUrl) return json(400, { error: "SHEET_CSV_URL not configured." });
       try {
         const res = await fetch(sheetUrl);
