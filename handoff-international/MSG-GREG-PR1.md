@@ -11,30 +11,12 @@ look at this.
 
 ## The message *(send this)*
 
-> Hey Greg — first design PR is up: **#33**.
+> Hey Greg — PR **#33** is up (Clubby's egg, some hand-drawn marks in the hero,
+> "Find your club").
 >
-> It's the small stuff: Clubby's launcher gets the egg instead of the chat
-> bubble, my hand-drawn marks scattered in the hero margins, and "Find a club"
-> → "Find your club". Nothing existing is restyled.
->
-> Two things on your side:
->
-> - **CI didn't run** — I think it needs you to hit "Approve and run workflows"
->   (GitHub's default on a PR from a non-owner). I ran lint, qa:style,
->   typecheck, tests and build locally and they all pass, but you'll want to
->   see that go green yourself.
-> - **No Vercel preview got built.** If you can switch on preview deploys for
->   branches that'd help a lot — design is much easier to judge on a live URL
->   than in a diff, and it'd save us both a round trip on PR 2.
->
-> Colours land as tokens rather than literals so `qa:style` stays happy. One
-> heads-up: `AGENTS.md` has a one-line change I didn't make — `next dev`
-> rewrote a heading inside its own managed block. Your docs say to commit it,
-> so I did, but happy to strip it if you'd rather.
->
-> **PR 2** is the bigger one — squaring the buttons and bringing in the gold.
-> Sending that separately since it changes tokens used across the whole site
-> and deserves its own look.
+> Needs two clicks from you: **"Approve and run workflows"** so CI runs, and
+> **Vercel preview deploys** switched on for branches if you can — way easier
+> to judge design on a live URL.
 >
 > Cheers 🙏
 
