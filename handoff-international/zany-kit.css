@@ -258,7 +258,39 @@
 
 /* Variants for the other two states a club can be in. */
 .bc-new-badge--soon   { background: var(--bc-teal); }
-.bc-new-badge--popup  { background: var(--bc-magenta); color: #fff; }
+
+/* Pop-up badges carry Mike's "Zow!" lettering instead of type.
+
+   The magenta stays as a background even though the artwork covers it, so the
+   badge still reads as a pop-up if the image 404s or hasn't loaded — the
+   caption underneath sits on magenta either way rather than on nothing.
+
+   Padding drops to almost nothing because the source crop already carries its
+   own margin; the artwork is edge-to-edge magenta, so the badge border lands
+   directly on it and the result looks like a printed sticker rather than a
+   picture inside a box. */
+.bc-new-badge--popup {
+  background: var(--bc-magenta);
+  color: #fff;
+  padding: 0 0 4px;
+  gap: 3px;
+  overflow: hidden;
+}
+.bc-new-badge--popup .bc-new-badge__art {
+  position: relative;
+  display: block;
+  width: 110px;
+  height: 38px;
+  overflow: hidden;
+}
+.bc-new-badge--popup .bc-new-badge__art img {
+  position: absolute;
+  max-width: none;
+  width: 184px;
+  left: -37px;
+  top: -55px;
+}
+.bc-new-badge--popup small { padding: 0 8px; opacity: 0.92; }
 
 /* ---------------------------------------------------------------------------
    8. CLUBBY — the chat launcher. Tamagotchi shell, pixel face, and a screen
