@@ -24,6 +24,15 @@
   --bc-magenta: #b42cb0;
   --bc-teal: #17b3a6;
   --bc-tomato: #e5472d;
+
+  /* Marker marks (section 4). Lighter and chalkier than the primaries above --
+     these sit behind content, so full-strength magenta or tomato fights the
+     copy. Taken off the "HEY! I'm New in Town" reference. */
+  --bc-mark-mint: #5fcbb8;
+  --bc-mark-sky: #6cc5e8;
+  --bc-mark-pink: #ef9ac6;
+  --bc-mark-sun: #f6cf4b;
+  --bc-mark-grape: #b42cb0;
   --bc-hand: "Covered By Your Grace", "Comic Sans MS", cursive;
 
   /* --- THE SQUARE SYSTEM ------------------------------------------------
@@ -128,7 +137,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   4. DOODLE — small line drawings bobbing in the margins.
+   4. DOODLE — hand-drawn marker marks bobbing in the margins.
    Absolutely placed inside a .bc-stage. Never over text: pointer-events none
    and a low z-index keep them decorative.
    --------------------------------------------------------------------------- */
@@ -144,9 +153,12 @@
 .bc-doodles svg {
   position: absolute;
   overflow: visible;
-  /* Marginalia, not illustration. Light enough that a doodle drifting near a
-     heading reads as paper texture rather than competing with it. */
-  opacity: 0.45;
+  /* Marginalia, not illustration — but these carry colour now, so the old
+     0.45 made them look washed out and uncertain rather than restrained.
+     At 0.8 they read as deliberate marks while still sitting behind the
+     copy. The colours are already the chalky end of the palette, which is
+     what does the real work of keeping them back. */
+  opacity: 0.8;
   animation: bc-bob var(--bc-d, 6s) ease-in-out var(--bc-dl, 0s) infinite alternate;
 }
 
@@ -727,4 +739,88 @@ p.bc-lower { letter-spacing: 0.005em; }
     clip-path: none !important;
   }
   .bc-tilt { transition: none; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   15. SHOUT — the loud announcement. "Hey! New club." / "Zow! Pop-up."
+
+   This is Mike's title-card artwork reused as a badge, not a recreation of it.
+   An earlier pass was going to rebuild the lettering in CSS with
+   -webkit-text-stroke and a filtered blob. That would have been a forgery:
+   near enough to recognise, wrong in every detail that makes it look drawn by
+   a person. The whole reason the artwork is here is that it is not generated.
+
+   So the art is cropped straight out of the source PNGs. Two consequences
+   worth knowing rather than discovering:
+
+   1. **The words are fixed.** "Hey!" and "Zow!" exist because they were drawn.
+      There is no third word available without Mike drawing it. The caption
+      beside the badge carries the variable part -- "new club", "pop-up",
+      "this Saturday" -- and that is set in the kit's own type.
+
+   2. **They are raster, and not large.** 897x496 source, so these hold up at
+      badge size and would fall apart as a hero. The vector linework in
+      /marks is the opposite -- infinite scale, but outline only, no fill and
+      no blob, because the colour lives in the painted layers.
+
+   Crop boxes are expressed as a scale plus an offset on the inner <img>, so
+   adjusting a crop is two numbers and no new asset.
+   --------------------------------------------------------------------------- */
+.bc-shout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.bc-shout__art {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  /* Rotated a touch because the artwork sits square in its frame and a badge
+     pinned at a true 0deg reads as a stock element. */
+  transform: rotate(-2.5deg);
+}
+.bc-shout__art img {
+  position: absolute;
+  max-width: none;
+  image-rendering: auto;
+}
+
+/* "Hey!" — gold lettering on the magenta blob, from the title card still. */
+.bc-shout--hey .bc-shout__art { width: 261px; height: 177px; }
+.bc-shout--hey .bc-shout__art img { width: 538px; left: -138px; top: -21px; }
+
+/* "Zow!" — for pop-ups. The source is already gold on magenta edge to edge,
+   so the crop needs no blob of its own. */
+.bc-shout--zow .bc-shout__art { width: 268px; height: 93px; border-radius: 2px; }
+.bc-shout--zow .bc-shout__art img { width: 448px; left: -90px; top: -133px; }
+
+/* The variable half. Deliberately the kit's own type rather than an attempt at
+   matching the hand lettering -- the contrast between drawn and set is what
+   stops the badge looking like a sticker someone bought. */
+.bc-shout__sub {
+  font-weight: 500;
+  font-size: clamp(0.95rem, 2.2vw, 1.3rem);
+  line-height: 1.1;
+  color: var(--bc-ink);
+}
+.bc-shout__sub em {
+  display: block;
+  font: inherit;
+  font-family: var(--bc-hand);
+  font-style: normal;
+  font-size: 1.15em;
+  color: var(--bc-magenta);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bc-shout--hey .bc-shout__art,
+  .bc-shout--zow .bc-shout__art {
+    animation: bc-shout-nudge 3.2s ease-in-out infinite alternate;
+  }
+}
+@keyframes bc-shout-nudge {
+  from { transform: rotate(-2.5deg) translateY(0); }
+  to   { transform: rotate(-1deg)   translateY(-3px); }
 }
