@@ -33,6 +33,15 @@
   --bc-mark-pink: #ef9ac6;
   --bc-mark-sun: #f6cf4b;
   --bc-mark-grape: #b42cb0;
+
+  /* Sampled off HINT_ZOW_still.png, not matched by eye: 57,391 of the sampled
+     pixels are exactly this, at every crop edge. The kit's --bc-magenta is
+     #b42cb0, which is close enough to look like a mistake rather than a
+     choice -- butt the cropped artwork against it and you get a visible band
+     where the image stops. Anything sitting flush against that crop uses this.
+     (The lettering's gold is #fdc932 against the kit's #ffd700, same story,
+     but that one lives inside the image so nothing abuts it.) */
+  --bc-zow-field: #ba36bd;
   --bc-hand: "Covered By Your Grace", "Comic Sans MS", cursive;
 
   /* --- THE SQUARE SYSTEM ------------------------------------------------
@@ -270,7 +279,9 @@
    directly on it and the result looks like a printed sticker rather than a
    picture inside a box. */
 .bc-new-badge--popup {
-  background: var(--bc-magenta);
+  /* The artwork's own magenta, so the strip under the caption reads as one
+     surface with the crop above it rather than two magentas disagreeing. */
+  background: var(--bc-zow-field);
   color: #fff;
   padding: 0 0 4px;
   gap: 3px;
@@ -820,12 +831,20 @@ p.bc-lower { letter-spacing: 0.005em; }
 }
 
 /* "Hey!" — gold lettering on the magenta blob, from the title card still. */
-.bc-shout--hey .bc-shout__art { width: 261px; height: 177px; }
+/* The Hey! crop carries the artwork's white ground around the blob, so it
+   needs a light surface under it. Set explicitly rather than relying on the
+   page being white -- on a dark section this would otherwise show as a white
+   rectangle, and it is better to know that from the stylesheet. */
+.bc-shout--hey .bc-shout__art { width: 261px; height: 177px; background: #fff; }
 .bc-shout--hey .bc-shout__art img { width: 538px; left: -138px; top: -21px; }
 
 /* "Zow!" — for pop-ups. The source is already gold on magenta edge to edge,
    so the crop needs no blob of its own. */
-.bc-shout--zow .bc-shout__art { width: 268px; height: 93px; border-radius: 2px; }
+.bc-shout--zow .bc-shout__art {
+  width: 268px; height: 93px; border-radius: 2px;
+  /* Matches the artwork's own field so the crop edge disappears. */
+  background: var(--bc-zow-field);
+}
 .bc-shout--zow .bc-shout__art img { width: 448px; left: -90px; top: -133px; }
 
 /* The variable half. Deliberately the kit's own type rather than an attempt at
