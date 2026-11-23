@@ -23,3 +23,6 @@ js/local-debug-config.js
 # Raw flyer staging dump — inconsistent names, duplicates, ~66MB.
 # Cleaned + renamed flyers belong in assets/flyers/<year>/ as City_YYYY-MM-DD.ext
 assets/BC Flyers 2026/
+
+# Full database setup, kept local (public repo). The migrations live in the app repo.
+handoff-international/apply-all-migrations.sql

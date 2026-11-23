@@ -214,6 +214,14 @@ Supabase → the same CSV. The client never changes again.
 asserts both (`badge-featured`, `region-pill-new`), so they are load-bearing on
 the home view today.
 
+> **Correction, 2026-11-21: they are not columns.** `featured`, `is_new` and
+> `upcoming_date` appear nowhere in the 9 migrations in `supabase/migrations/` —
+> not as columns on `clubs`, not in any function. So the ask below was never
+> "expose three existing columns," it was "add three columns and then expose
+> them." Moot either way: the decision of 2026-11-21 is to rebuild Supabase
+> under Mike's own account, which makes this his own migration to write. See
+> `SUPABASE-REBUILD.md` and `REBUILD-DAY.md` §1.3.
+
 **The ask for Greg is small and specific:** add `featured`, `is_new` and
 `upcoming_date` to `/api/discover`. They are almost certainly already columns on
 the `clubs` table, since they came over in the seed from the Sheet. Then
